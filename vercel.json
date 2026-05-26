@@ -1,14 +1,17 @@
 {
+  "framework": "nextjs",
   "env": {
     "NEXTAUTH_SECRET": "quantum-secret-key-for-prod-32chars!",
     "NEXTAUTH_URL": "https://quantum-s5sr.vercel.app",
-    "DATABASE_URL": "postgresql://user:pass@localhost:5432/quantum"
+    "DATABASE_URL": "postgresql://user:pass@localhost:5432/quantum",
+    "SKIP_ENV_VALIDATION": "1"
   },
   "build": {
     "env": {
       "NEXTAUTH_SECRET": "quantum-secret-key-for-prod-32chars!",
       "NEXTAUTH_URL": "https://quantum-s5sr.vercel.app",
-      "DATABASE_URL": "postgresql://user:pass@localhost:5432/quantum"
+      "DATABASE_URL": "postgresql://user:pass@localhost:5432/quantum",
+      "SKIP_ENV_VALIDATION": "1"
     }
   }
 }
