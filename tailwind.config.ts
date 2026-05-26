@@ -27,7 +27,9 @@ const config: Config = {
         danger: "#EF4444",
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        sans: ["var(--font-inter)", "Inter", "sans-serif"],
+        josefin: ["var(--font-josefin)", "'Josefin Sans'", "sans-serif"],
+        cormorant: ["var(--font-cormorant)", "'Cormorant Garamond'", "serif"],
         mono: ["'Geist Mono'", "monospace"],
       },
       borderRadius: {
