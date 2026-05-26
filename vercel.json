@@ -3,7 +3,7 @@
   "env": {
     "NEXTAUTH_SECRET": "quantum-secret-key-for-prod-32chars!",
     "NEXTAUTH_URL": "https://quantum-s5sr.vercel.app",
-    "DATABASE_URL": "postgresql://neondb_owner:npg_K3uT9OjlgFUs@ep-bold-sound-ap8a83po-pooler.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&pgbouncer=true&connect_timeout=15",
+    "DATABASE_URL": "postgresql://neondb_owner:npg_K3uT9OjlgFUs@ep-bold-sound-ap8a83po.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require&connection_limit=1&pool_timeout=20",
     "RESEND_API_KEY": "re_3dycHueA_2mGPUkANGVx5XNURGdWBSMq6"
   },
   "build": {
