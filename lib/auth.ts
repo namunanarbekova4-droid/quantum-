@@ -1,9 +1,7 @@
 import { NextAuthOptions, User } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import { Session } from "next-auth";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 
@@ -29,19 +27,13 @@ interface ExtendedSession extends Session {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  session: {
-    strategy: "jwt",
-  },
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET ?? "quantum-secret-key-for-prod-32chars!",
   pages: {
     signIn: "/auth/signin",
     newUser: "/onboarding",
   },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -50,23 +42,23 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
-
-        if (!user || !user.password) return null;
-
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          onboarded: user.onboarded,
-        } as ExtendedUser;
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+          if (!user || !user.password) return null;
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isValid) return null;
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            onboarded: user.onboarded,
+          } as ExtendedUser;
+        } catch {
+          return null;
+        }
       },
     }),
   ],
@@ -74,6 +66,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         const u = user as ExtendedUser;
+        token.id = u.id;
         token.role = u.role;
         token.onboarded = u.onboarded;
       }
