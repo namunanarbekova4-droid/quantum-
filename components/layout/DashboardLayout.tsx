@@ -38,7 +38,7 @@ export function DashboardLayout({ children, userName, userRole, plan }: Dashboar
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <TopBar userName={userName} userRole={userRole} />
+            <TopBar userName={userName} userRole={userRole as "FOUNDER" | "INVESTOR" | "EXECUTIVE" | undefined} />
           </div>
         </div>
         <main className="flex-1 overflow-y-auto">

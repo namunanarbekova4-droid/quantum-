@@ -7,11 +7,20 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
-import { mockAlerts } from "@/data/mock";
 import { formatDateTime } from "@/lib/utils";
 
+interface Alert {
+  id: string;
+  topic: string;
+  keywords: string[];
+  frequency: string;
+  active: boolean;
+  lastFired: string | null;
+  triggerCount: number;
+}
+
 export default function AlertsPage() {
-  const [alerts, setAlerts] = useState(mockAlerts);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [newTopic, setNewTopic] = useState("");
   const [newFreq, setNewFreq] = useState("DAILY");
@@ -32,7 +41,7 @@ export default function AlertsPage() {
         keywords: [newTopic.toLowerCase()],
         frequency: newFreq as "REALTIME" | "DAILY" | "WEEKLY",
         active: true,
-        lastFired: null as unknown as string,
+        lastFired: null,
         triggerCount: 0,
       },
     ]);
@@ -48,7 +57,7 @@ export default function AlertsPage() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Intelligence Alerts</h1>
-          <p className="text-text-secondary mt-1">{alerts.filter((a) => a.active).length} active alerts monitoring global signals.</p>
+          <p className="text-text-secondary mt-1">Monitor market signals relevant to your decisions.</p>
         </div>
         <Button onClick={() => setCreateOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" /> New Alert
@@ -56,6 +65,18 @@ export default function AlertsPage() {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="mt-8 space-y-3">
+        {alerts.length === 0 && (
+          <Card className="p-14 text-center">
+            <Bell className="w-8 h-8 text-[#333333] mx-auto mb-4" />
+            <h3 className="text-base font-semibold text-white mb-2">No active intelligence alerts</h3>
+            <p className="text-sm text-text-secondary mb-6 max-w-xs mx-auto leading-relaxed">
+              Create an alert to track market signals, competitor activity, or macro events relevant to your decisions.
+            </p>
+            <Button onClick={() => setCreateOpen(true)} variant="outline" size="sm" className="gap-2">
+              <Plus className="w-3.5 h-3.5" /> Create your first alert
+            </Button>
+          </Card>
+        )}
         {alerts.map((alert) => (
           <Card key={alert.id} className={`p-5 transition-opacity ${!alert.active ? "opacity-50" : ""}`}>
             <div className="flex items-start gap-4">

@@ -12,7 +12,7 @@ import {
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "New Decision", href: "/dashboard/decision/new", icon: Plus },
+  { label: "New Decision", href: "/dashboard", icon: Plus },
   { label: "History", href: "/dashboard/history", icon: Clock },
   { label: "Market Intelligence", href: "/dashboard/market", icon: Globe },
   { label: "Alerts", href: "/dashboard/alerts", icon: Bell },
