@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Josefin_Sans, Cormorant_Garamond } from "next/font/google";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -41,7 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${josefinSans.variable} ${cormorantGaramond.variable}`}>
-      <body className="bg-[#080808] text-white antialiased font-sans">{children}</body>
+      <body className="bg-[#080808] text-white antialiased font-sans">
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   );
 }

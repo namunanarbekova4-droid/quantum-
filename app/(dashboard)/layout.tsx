@@ -4,7 +4,13 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions);
+  let session = null;
+  try {
+    session = await getServerSession(authOptions);
+  } catch {
+    // Continue with null session if getServerSession fails
+  }
+
   const userName = session?.user?.name ?? "User";
   const userRole = (session?.user?.role as "FOUNDER" | "INVESTOR" | "EXECUTIVE") ?? "FOUNDER";
 
