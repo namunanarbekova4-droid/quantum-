@@ -86,9 +86,9 @@ export default function SignInPage() {
               }
             />
             <div className="flex justify-end -mt-1">
-              <a href="#" className="text-xs text-[#888888] hover:text-gold transition-colors">
+              <Link href="/auth/forgot-password" className="text-xs text-[#888888] hover:text-gold transition-colors">
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <Button type="submit" loading={loading} className="w-full gap-2">
               Sign In <ArrowRight className="w-4 h-4" />
