@@ -62,7 +62,11 @@ export default function OnboardingPage() {
       setStep(step + 1);
     } else {
       setLoading(true);
-      await new Promise((r) => setTimeout(r, 1000));
+      await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ company, industry, country }),
+      });
       router.push("/dashboard");
     }
   };

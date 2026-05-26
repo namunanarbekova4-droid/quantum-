@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { User, Shield, Bell, Eye, CreditCard, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -24,30 +24,55 @@ const notifSettings = [
   { id: "leaderboard", label: "Leaderboard Changes", desc: "When your rank changes", enabled: false },
 ];
 
-const invoices = [
-  { date: "May 1, 2025", amount: "$49.00", status: "Paid", plan: "Pro" },
-  { date: "Apr 1, 2025", amount: "$49.00", status: "Paid", plan: "Pro" },
-  { date: "Mar 1, 2025", amount: "$49.00", status: "Paid", plan: "Pro" },
-];
-
 export default function SettingsPage() {
+  const { data: session, update: updateSession } = useSession();
   const [tab, setTab] = useState("profile");
-  const [name, setName] = useState("Alex Chen");
-  const [email, setEmail] = useState("alex@meridianai.com");
-  const [company, setCompany] = useState("Meridian AI");
-  const [country, setCountry] = useState("United States");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [company, setCompany] = useState("");
+  const [country, setCountry] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [role, setRole] = useState("FOUNDER");
   const [notifs, setNotifs] = useState(notifSettings);
   const [publicProfile, setPublicProfile] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  useEffect(() => {
+    fetch("/api/user/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) return;
+        setName(data.name ?? "");
+        setEmail(data.email ?? "");
+        setCompany(data.company ?? "");
+        setCountry(data.country ?? "");
+        setIndustry(data.industry ?? "");
+        setRole(data.role ?? "FOUNDER");
+        setPublicProfile(data.publicProfile ?? false);
+      });
+  }, []);
 
   const save = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
+    setSaveMsg("");
+    const res = await fetch("/api/user/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, company, industry, country, publicProfile, role }),
+    });
     setSaving(false);
+    if (res.ok) {
+      await updateSession({ name });
+      setSaveMsg("Saved!");
+      setTimeout(() => setSaveMsg(""), 3000);
+    }
   };
 
   const toggleNotif = (id: string) =>
     setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, enabled: !n.enabled } : n)));
+
+  const initials = name ? name.charAt(0).toUpperCase() : (session?.user?.email?.charAt(0).toUpperCase() ?? "?");
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
@@ -78,35 +103,46 @@ export default function SettingsPage() {
           <Card className="p-6 space-y-5">
             <h2 className="text-base font-semibold text-white">Profile Information</h2>
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gold/20 border border-gold/30 rounded-lg flex items-center justify-center text-gold text-2xl font-bold">A</div>
-              <Button variant="outline" size="sm">Upload Photo</Button>
+              <div className="w-16 h-16 bg-gold/20 border border-gold/30 rounded-lg flex items-center justify-center text-gold text-2xl font-bold">
+                {initials}
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input label="Full Name" value={name} onChange={(e) => setName(e.target.value)} />
-              <Input label="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
+              <Input label="Email Address" value={email} type="email" disabled className="opacity-60 cursor-not-allowed" onChange={() => {}} />
               <Input label="Company" value={company} onChange={(e) => setCompany(e.target.value)} />
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-text-secondary">Role</label>
-                <select className="h-10 px-3 bg-[#111111] border border-[#1a1a1a] text-white text-sm rounded focus:outline-none focus:border-gold/50 transition-all duration-200">
-                  <option>Founder</option>
-                  <option>Investor</option>
-                  <option>Executive</option>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="h-10 px-3 bg-[#111111] border border-[#1a1a1a] text-white text-sm rounded focus:outline-none focus:border-gold/50 transition-all duration-200"
+                >
+                  <option value="FOUNDER">Founder</option>
+                  <option value="INVESTOR">Investor</option>
+                  <option value="EXECUTIVE">Executive</option>
                 </select>
               </div>
               <Input label="Country" value={country} onChange={(e) => setCountry(e.target.value)} />
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-text-secondary">Industry</label>
-                <select className="h-10 px-3 bg-[#111111] border border-[#1a1a1a] text-white text-sm rounded focus:outline-none focus:border-gold/50 transition-all duration-200">
-                  <option>Technology</option>
-                  <option>Finance</option>
-                  <option>Healthcare</option>
-                  <option>Real Estate</option>
-                  <option>Energy</option>
-                  <option>Other</option>
+                <select
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  className="h-10 px-3 bg-[#111111] border border-[#1a1a1a] text-white text-sm rounded focus:outline-none focus:border-gold/50 transition-all duration-200"
+                >
+                  <option value="">Select industry</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Real Estate">Real Estate</option>
+                  <option value="Energy">Energy</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
             </div>
-            <div className="flex justify-end pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2">
+              {saveMsg && <span className="text-sm text-success">{saveMsg}</span>}
               <Button onClick={save} loading={saving}>Save Changes</Button>
             </div>
           </Card>
@@ -120,19 +156,6 @@ export default function SettingsPage() {
               <Input label="New Password" type="password" placeholder="••••••••" />
               <Input label="Confirm New Password" type="password" placeholder="••••••••" />
               <Button size="sm">Update Password</Button>
-            </Card>
-            <Card className="p-6">
-              <h2 className="text-base font-semibold text-white mb-4">Connected Accounts</h2>
-              <div className="flex items-center justify-between py-3 border-b border-[#1a1a1a]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#1a1a1a] rounded flex items-center justify-center text-sm font-bold text-white">G</div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Google</p>
-                    <p className="text-xs text-text-secondary">alex@meridianai.com</p>
-                  </div>
-                </div>
-                <Badge variant="success">Connected</Badge>
-              </div>
             </Card>
             <Card className="p-6 border-danger/20">
               <div className="flex items-center gap-2 mb-4">
@@ -186,6 +209,9 @@ export default function SettingsPage() {
               <p className="text-sm font-medium text-white mb-2">Data Usage</p>
               <p className="text-xs text-text-secondary leading-relaxed">Your decision data is used to improve analysis quality. We never share individual decision content with third parties. All data is encrypted at rest and in transit.</p>
             </div>
+            <div className="flex justify-end">
+              <Button onClick={save} loading={saving}>Save Changes</Button>
+            </div>
           </Card>
         )}
 
@@ -195,63 +221,16 @@ export default function SettingsPage() {
               <h2 className="text-base font-semibold text-white mb-4">Current Plan</h2>
               <div className="flex items-center justify-between p-4 bg-gold/5 border border-gold/20 rounded-lg">
                 <div>
-                  <p className="text-sm font-bold text-gold">Pro Plan</p>
-                  <p className="text-xs text-text-secondary mt-0.5">50 decisions/month · 3 alerts · 1 private room</p>
+                  <p className="text-sm font-bold text-gold">Free Trial</p>
+                  <p className="text-xs text-text-secondary mt-0.5">Limited access · Upgrade to unlock all features</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-mono text-xl font-bold text-white">$49<span className="text-sm text-text-secondary">/mo</span></p>
-                  <p className="text-xs text-text-secondary">Renews Jun 1, 2025</p>
+                  <p className="font-mono text-xl font-bold text-white">$0<span className="text-sm text-text-secondary">/mo</span></p>
                 </div>
               </div>
               <div className="flex gap-3 mt-4">
-                <Button variant="outline" size="sm">Change Plan</Button>
-                <Button variant="ghost" size="sm">Cancel Subscription</Button>
+                <Button size="sm">Upgrade Plan</Button>
               </div>
-            </Card>
-            <Card className="p-6">
-              <h2 className="text-base font-semibold text-white mb-4">Usage This Month</h2>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-1.5 text-sm">
-                    <span className="text-text-secondary">Decisions</span>
-                    <span className="font-mono text-white">12 / 50</span>
-                  </div>
-                  <div className="h-1.5 bg-[#1a1a1a] rounded-full">
-                    <div className="h-full bg-gold rounded-full" style={{ width: "24%" }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1.5 text-sm">
-                    <span className="text-text-secondary">Active Alerts</span>
-                    <span className="font-mono text-white">4 / 3</span>
-                  </div>
-                  <div className="h-1.5 bg-[#1a1a1a] rounded-full">
-                    <div className="h-full bg-danger rounded-full" style={{ width: "133%" }} />
-                  </div>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-6">
-              <h2 className="text-base font-semibold text-white mb-4">Billing History</h2>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#1a1a1a]">
-                    {["Date", "Plan", "Amount", "Status"].map((h) => (
-                      <th key={h} className="text-left text-xs text-text-secondary font-medium pb-3">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1a1a1a]">
-                  {invoices.map((inv) => (
-                    <tr key={inv.date}>
-                      <td className="py-3 text-text-secondary">{inv.date}</td>
-                      <td className="py-3 text-white">{inv.plan}</td>
-                      <td className="py-3 font-mono text-white">{inv.amount}</td>
-                      <td className="py-3"><Badge variant="success">{inv.status}</Badge></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </Card>
           </div>
         )}

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { ArrowRight, Users, Trophy, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +16,8 @@ const quickActions = ["Market Entry", "Hiring", "Fundraising", "Pivot", "Partner
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const userName = session?.user?.name ?? "there";
   const [decision, setDecision] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +34,7 @@ export default function DashboardPage() {
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl font-bold text-white">Good morning, Alex.</h1>
+        <h1 className="text-2xl font-bold text-white">Good morning, {userName}.</h1>
         <p className="text-text-secondary mt-1">You have 3 new market alerts. Your last decision was 3 days ago.</p>
       </motion.div>
 

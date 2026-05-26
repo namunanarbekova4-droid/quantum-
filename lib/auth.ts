@@ -1,30 +1,7 @@
-import { NextAuthOptions, User } from "next-auth";
-import { JWT } from "next-auth/jwt";
-import { Session } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
-
-interface ExtendedUser extends User {
-  role?: string;
-  onboarded?: boolean;
-}
-
-interface ExtendedToken extends JWT {
-  role?: string;
-  onboarded?: boolean;
-}
-
-interface ExtendedSession extends Session {
-  user: {
-    id?: string;
-    role?: string;
-    onboarded?: boolean;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-  };
-}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -55,7 +32,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role,
             onboarded: user.onboarded,
-          } as ExtendedUser;
+          };
         } catch {
           return null;
         }
@@ -65,22 +42,19 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const u = user as ExtendedUser;
-        token.id = u.id;
-        token.role = u.role;
-        token.onboarded = u.onboarded;
+        token.id = user.id;
+        token.role = user.role;
+        token.onboarded = user.onboarded;
       }
-      return token as ExtendedToken;
+      return token;
     },
     async session({ session, token }) {
-      const extToken = token as ExtendedToken;
-      const extSession = session as ExtendedSession;
-      if (extToken && extSession.user) {
-        extSession.user.id = extToken.sub;
-        extSession.user.role = extToken.role;
-        extSession.user.onboarded = extToken.onboarded;
+      if (token && session.user) {
+        session.user.id = token.sub;
+        session.user.role = token.role;
+        session.user.onboarded = token.onboarded;
       }
-      return extSession;
+      return session;
     },
   },
 };
