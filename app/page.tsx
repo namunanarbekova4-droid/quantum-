@@ -8,7 +8,7 @@ import {
   Building2, Briefcase,
 } from "lucide-react";
 import { ParticleBackground } from "@/components/landing/ParticleBackground";
-import { testimonials, pricingPlans, mockLeaderboard } from "@/data/mock";
+import { pricingPlans } from "@/data/mock";
 import { QuantumLogo } from "@/components/ui/QuantumLogo";
 
 function Navbar() {
@@ -52,7 +52,7 @@ function Hero() {
       >
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold mb-8">
           <Zap className="w-3 h-3" />
-          Now serving decision makers in 90+ countries
+          AI-powered decision intelligence for leaders
         </div>
         <h1 className="text-5xl md:text-6xl lg:text-[72px] font-bold text-white leading-[1.05] tracking-tight">
           Where serious people<br />
@@ -96,26 +96,7 @@ function Hero() {
 }
 
 function SocialProof() {
-  const companies = [
-    "Andreessen Horowitz", "Sequoia Capital", "Y Combinator",
-    "Tiger Global", "General Catalyst", "Bessemer Venture",
-  ];
-  return (
-    <section className="py-12 border-y border-[#1a1a1a]">
-      <div className="max-w-7xl mx-auto px-6">
-        <p className="text-center text-xs text-[#444444] uppercase tracking-widest mb-8">
-          Trusted by decision makers at 2,400+ companies across 90 countries
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-5">
-          {companies.map((c) => (
-            <span key={c} className="text-[#2a2a2a] font-bold text-sm tracking-tight hover:text-[#3a3a3a] transition-colors cursor-default">
-              {c}
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  return null;
 }
 
 function HowItWorks() {
@@ -344,54 +325,7 @@ function PrivateRooms() {
 }
 
 function LeaderboardPreview() {
-  const top5 = mockLeaderboard.slice(0, 5);
-  const rankColors = ["text-yellow-400", "text-gray-300", "text-amber-600"];
-  return (
-    <section className="py-24 px-6">
-      <div className="max-w-4xl mx-auto text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12"
-        >
-          <h2 className="text-4xl md:text-[48px] font-bold text-white tracking-tight">Join the top 1% of decision makers</h2>
-          <p className="mt-4 text-[#888888] text-lg">Compete globally. Build your track record. Get recognized.</p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          className="bg-[#111111] border border-[#1a1a1a] rounded-lg overflow-hidden"
-        >
-          <div className="p-4 border-b border-[#1a1a1a] flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-gold inline-block" />
-            <span className="text-xs text-[#888888]">Global Leaderboard — Live</span>
-          </div>
-          <div className="divide-y divide-[#1a1a1a]">
-            {top5.map((entry, i) => (
-              <div key={entry.rank} className="px-6 py-4 flex items-center gap-4 hover:bg-[#161616] transition-colors">
-                <span className={`font-mono font-bold w-8 text-sm text-center ${rankColors[i] ?? "text-[#888888]"}`}>
-                  #{entry.rank}
-                </span>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-white">{entry.handle}</p>
-                  <p className="text-xs text-[#888888] mt-0.5">{entry.decisions} decisions · {entry.accuracy}% accuracy</p>
-                </div>
-                <span className="font-mono text-xs text-[#888888]">{entry.streak}d streak</span>
-              </div>
-            ))}
-          </div>
-          <div className="p-4 border-t border-[#1a1a1a] text-center">
-            <Link href="/auth/signup" className="text-sm text-gold hover:text-gold-light transition-colors">
-              Join the leaderboard — Start free <ArrowRight className="w-3.5 h-3.5 inline" />
-            </Link>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
+  return null;
 }
 
 function Pricing() {
@@ -484,49 +418,7 @@ function Pricing() {
 }
 
 function Testimonials() {
-  return (
-    <section id="testimonials" className="py-24 px-6 border-t border-[#1a1a1a]">
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-4xl md:text-[48px] font-bold text-white tracking-tight">Trusted by decision makers</h2>
-          <p className="mt-4 text-[#888888] text-lg">Who&apos;ve used Quantum to make their most important calls.</p>
-        </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {testimonials.map((t, i) => (
-            <motion.div
-              key={t.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-6 hover:border-gold/20 transition-all duration-200"
-            >
-              <div className="flex items-center gap-0.5 mb-4">
-                {[...Array(5)].map((_, j) => (
-                  <div key={j} className="w-3 h-3 bg-gold rounded-sm" />
-                ))}
-              </div>
-              <p className="text-[#888888] text-sm leading-relaxed mb-6 italic">&ldquo;{t.quote}&rdquo;</p>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gold/10 border border-gold/20 rounded-full flex items-center justify-center text-gold text-sm font-bold flex-shrink-0">
-                  {t.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-white">{t.name}</p>
-                  <p className="text-xs text-[#888888]">{t.title}, {t.company}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  return null;
 }
 
 function CTASection() {
