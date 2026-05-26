@@ -12,16 +12,4 @@ declare module "next-auth" {
       image?: string | null;
     };
   }
-  interface User {
-    role?: string;
-    onboarded?: boolean;
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id?: string;
-    role?: string;
-    onboarded?: boolean;
-  }
 }
