@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, ChevronDown, LogOut, Settings, User } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,14 @@ interface TopBarProps {
 export function TopBar({ userName = "Alex", userRole = "FOUNDER", notificationCount = 3 }: TopBarProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState("");
+
+  useEffect(() => {
+    fetch("/api/user/profile")
+      .then((r) => r.json())
+      .then((data) => { if (data.image) setProfileImage(data.image); })
+      .catch(() => {});
+  }, []);
 
   const roleLabels = { FOUNDER: "Founder", INVESTOR: "Investor", EXECUTIVE: "Executive" };
 
@@ -63,8 +71,12 @@ export function TopBar({ userName = "Alex", userRole = "FOUNDER", notificationCo
             onClick={() => { setUserOpen(!userOpen); setNotifOpen(false); }}
             className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#111111] rounded transition-all duration-200"
           >
-            <div className="w-7 h-7 bg-gold/20 border border-gold/30 rounded-full flex items-center justify-center text-gold text-xs font-bold">
-              {userName.charAt(0).toUpperCase()}
+            <div className="w-7 h-7 bg-gold/20 border border-gold/30 rounded-full overflow-hidden flex items-center justify-center text-gold text-xs font-bold">
+              {profileImage ? (
+                <img src={profileImage} alt={userName} className="w-full h-full object-cover" />
+              ) : (
+                userName.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="text-left hidden sm:block">
               <p className="text-sm font-medium text-white leading-tight">{userName}</p>

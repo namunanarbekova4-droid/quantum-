@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { User, Shield, Bell, Eye, CreditCard, AlertTriangle } from "lucide-react";
@@ -33,10 +33,12 @@ export default function SettingsPage() {
   const [country, setCountry] = useState("");
   const [industry, setIndustry] = useState("");
   const [role, setRole] = useState("FOUNDER");
+  const [avatarImage, setAvatarImage] = useState("");
   const [notifs, setNotifs] = useState(notifSettings);
   const [publicProfile, setPublicProfile] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/user/profile")
@@ -50,6 +52,7 @@ export default function SettingsPage() {
         setIndustry(data.industry ?? "");
         setRole(data.role ?? "FOUNDER");
         setPublicProfile(data.publicProfile ?? false);
+        setAvatarImage(data.image ?? "");
       });
   }, []);
 
@@ -59,7 +62,7 @@ export default function SettingsPage() {
     const res = await fetch("/api/user/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, company, industry, country, publicProfile, role }),
+      body: JSON.stringify({ name, company, industry, country, publicProfile, role, image: avatarImage || undefined }),
     });
     setSaving(false);
     if (res.ok) {
@@ -71,6 +74,29 @@ export default function SettingsPage() {
 
   const toggleNotif = (id: string) =>
     setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, enabled: !n.enabled } : n)));
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const size = Math.min(img.width, img.height);
+        const scale = Math.min(300 / size, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setAvatarImage(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
 
   const initials = name ? name.charAt(0).toUpperCase() : (session?.user?.email?.charAt(0).toUpperCase() ?? "?");
 
@@ -103,8 +129,31 @@ export default function SettingsPage() {
           <Card className="p-6 space-y-5">
             <h2 className="text-base font-semibold text-white">Profile Information</h2>
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gold/20 border border-gold/30 rounded-lg flex items-center justify-center text-gold text-2xl font-bold">
-                {initials}
+              <div className="w-16 h-16 bg-gold/20 border border-gold/30 rounded-lg overflow-hidden flex items-center justify-center text-gold text-2xl font-bold flex-shrink-0">
+                {avatarImage ? (
+                  <img src={avatarImage} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  initials
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-sm text-gold hover:text-gold/80 transition-colors border border-gold/30 hover:border-gold/60 px-3 py-1.5 rounded"
+                >
+                  Upload Photo
+                </button>
+                {avatarImage && (
+                  <button
+                    type="button"
+                    onClick={() => setAvatarImage("")}
+                    className="text-xs text-text-secondary hover:text-danger transition-colors"
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
