@@ -3,15 +3,13 @@
   "env": {
     "NEXTAUTH_SECRET": "quantum-secret-key-for-prod-32chars!",
     "NEXTAUTH_URL": "https://quantum-s5sr.vercel.app",
-    "DATABASE_URL": "postgresql://user:pass@localhost:5432/quantum",
-    "SKIP_ENV_VALIDATION": "1"
+    "DATABASE_URL": "postgresql://neondb_owner:npg_K3uT9OjlgFUs@ep-bold-sound-ap8a83po.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require"
   },
   "build": {
     "env": {
       "NEXTAUTH_SECRET": "quantum-secret-key-for-prod-32chars!",
       "NEXTAUTH_URL": "https://quantum-s5sr.vercel.app",
-      "DATABASE_URL": "postgresql://user:pass@localhost:5432/quantum",
-      "SKIP_ENV_VALIDATION": "1"
+      "DATABASE_URL": "postgresql://neondb_owner:npg_K3uT9OjlgFUs@ep-bold-sound-ap8a83po.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require"
     }
   }
 }
