@@ -513,7 +513,7 @@ export const pricingPlans = [
   {
     id: "pro",
     name: "Pro",
-    price: { monthly: 49, annual: 490 },
+    price: { monthly: 25, annual: 250 },
     period: "per month",
     description: "For individual decision makers",
     features: [
@@ -533,7 +533,7 @@ export const pricingPlans = [
   {
     id: "max",
     name: "Max",
-    price: { monthly: 149, annual: 1490 },
+    price: { monthly: 99, annual: 990 },
     period: "per month",
     description: "For power users and growing teams",
     features: [
