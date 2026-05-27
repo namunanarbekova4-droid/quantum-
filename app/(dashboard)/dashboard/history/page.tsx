@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, ChevronRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -12,7 +12,7 @@ interface Decision {
   id: string;
   title: string;
   type: string;
-  date: string;
+  createdAt: string;
   riskScore: number;
   recommendation: string;
   status: string;
@@ -21,8 +21,14 @@ interface Decision {
 export default function HistoryPage() {
   const [search, setSearch] = useState("");
   const [recFilter, setRecFilter] = useState("ALL");
+  const [decisions, setDecisions] = useState<Decision[]>([]);
 
-  const decisions: Decision[] = [];
+  useEffect(() => {
+    fetch("/api/decisions")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setDecisions(data); })
+      .catch(() => {});
+  }, []);
 
   const filtered = decisions.filter((d) => {
     const matchSearch = d.title.toLowerCase().includes(search.toLowerCase());
@@ -102,7 +108,7 @@ export default function HistoryPage() {
                           <td className="px-5 py-4">
                             <p className="text-sm text-white font-medium group-hover:text-gold transition-colors">{truncate(d.title, 60)}</p>
                           </td>
-                          <td className="px-5 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(d.date)}</td>
+                          <td className="px-5 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(d.createdAt)}</td>
                           <td className="px-5 py-4">
                             <span className="text-xs text-text-secondary">{d.type.replace(/_/g, " ")}</span>
                           </td>
