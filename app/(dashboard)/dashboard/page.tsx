@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, FileText, Bell, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +14,7 @@ const quickActions = ["Market Entry", "Hiring", "Fundraising", "Pivot", "Partner
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { toast } = useToast();
+  const router = useRouter();
   const userName = session?.user?.name?.split(" ")[0] ?? "there";
   const [decision, setDecision] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,11 +23,19 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!decision.trim()) return;
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/decisions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: decision }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      router.push(`/dashboard/decision/${data.id}`);
+    } catch {
       setLoading(false);
-      setDecision("");
-      toast("Decision submitted. AI analysis is being configured — your report will appear here once the engine is live.", "info");
-    }, 1200);
+      toast("Something went wrong. Please try again.", "error");
+    }
   };
 
   return (
