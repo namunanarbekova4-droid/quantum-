@@ -81,10 +81,11 @@ Return exactly this JSON:
       where: { id: decision.id },
       data: { status: "COMPLETE", riskScore: report.riskScore ?? 50, recommendation: report.recommendation ?? "CONDITIONAL", report },
     });
-  } catch {
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     await prisma.decision.update({
       where: { id: decision.id },
-      data: { status: "COMPLETE", riskScore: 50, recommendation: "CONDITIONAL", report: { summary: "Analysis encountered an error. Please try again.", pros: [], cons: [], keyAssumptions: [], implications: [], nextSteps: [] } },
+      data: { status: "COMPLETE", riskScore: 50, recommendation: "CONDITIONAL", report: { summary: `Analysis error: ${msg}`, pros: [], cons: [], keyAssumptions: [], implications: [], nextSteps: [] } },
     });
   }
 

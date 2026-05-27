@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -13,8 +14,21 @@ export async function GET(req: Request) {
   try {
     await prisma.$queryRaw`SELECT 1`;
 
+    const geminiKey = process.env.GEMINI_API_KEY;
+    let geminiStatus = "key_not_set";
+    if (geminiKey) {
+      try {
+        const genAI = new GoogleGenerativeAI(geminiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const r = await model.generateContent("Say OK");
+        geminiStatus = r.response.text().trim() ? "ok" : "empty_response";
+      } catch (e) {
+        geminiStatus = `error: ${e instanceof Error ? e.message : String(e)}`;
+      }
+    }
+
     if (!email) {
-      return NextResponse.json({ db: "connected", message: "pass ?email=your@email.com" });
+      return NextResponse.json({ db: "connected", gemini: geminiStatus, message: "pass ?email=your@email.com" });
     }
 
     const user = await prisma.user.findUnique({
