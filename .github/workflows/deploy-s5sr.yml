@@ -14,6 +14,22 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Remove local project link (use env vars instead)
+        run: rm -f .vercel/project.json
+
+      - name: Resolve Vercel org ID from token
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          ORG_ID=$(curl -sf -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v2/user" | jq -r '.user.id // empty')
+          if [ -z "$ORG_ID" ]; then
+            echo "Warning: could not resolve org ID, deploying without it"
+          else
+            echo "Resolved org ID: ${ORG_ID:0:8}..."
+            echo "VERCEL_ORG_ID=$ORG_ID" >> $GITHUB_ENV
+          fi
+
       - name: Sync GEMINI_API_KEY to Vercel project
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
