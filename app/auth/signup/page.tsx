@@ -82,8 +82,8 @@ export default function SignUpPage() {
         </div>
 
         <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-8">
-          <h1 className="text-xl font-bold text-white mb-1">Create your account</h1>
-          <p className="text-sm text-[#888888] mb-6">Start your 3-day free trial. No credit card required.</p>
+          <h1 className="text-xl font-bold text-white mb-1">Join Quantum Early Access</h1>
+          <p className="text-sm text-[#888888] mb-6">All features free during Early Access. No credit card required.</p>
 
           {error && (
             <div className="flex items-center gap-2 px-3 py-2.5 bg-danger/10 border border-danger/20 rounded mb-4 text-sm text-danger">

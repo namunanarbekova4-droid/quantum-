@@ -3,11 +3,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { QuantumLogo } from "@/components/ui/QuantumLogo";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
 import {
   LayoutDashboard, Clock, Globe, Bell, Trophy, BarChart2,
-  Lock, Settings, ChevronRight, Zap
+  Lock, Settings, ChevronRight, Star
 } from "lucide-react";
 
 const navItems = [
@@ -22,11 +20,11 @@ const navItems = [
 ];
 
 interface SidebarProps {
-  plan?: "trial" | "pro" | "max" | "premium";
+  plan?: string;
   collapsed?: boolean;
 }
 
-export function Sidebar({ plan = "pro", collapsed = false }: SidebarProps) {
+export function Sidebar({ collapsed = false }: SidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -72,23 +70,11 @@ export function Sidebar({ plan = "pro", collapsed = false }: SidebarProps) {
       </nav>
 
       {!collapsed && (
-        <div className="p-4 border-t border-[#1a1a1a] space-y-3">
-          <div className="flex items-center justify-between">
-            <Badge variant={plan === "premium" || plan === "max" ? "gold" : "neutral"}>
-              {plan.charAt(0).toUpperCase() + plan.slice(1)} Plan
-            </Badge>
-            {plan !== "premium" && (
-              <Link href="/pricing" className="text-xs text-text-secondary hover:text-gold transition-colors">
-                Upgrade
-              </Link>
-            )}
+        <div className="p-4 border-t border-[#1a1a1a]">
+          <div className="flex items-center gap-2 px-3 py-2 bg-gold/5 border border-gold/20 rounded-lg" title="One of Quantum's earliest members.">
+            <Star className="w-3 h-3 text-gold flex-shrink-0" />
+            <span className="text-xs font-semibold text-gold">Founding Member</span>
           </div>
-          {(plan === "trial" || plan === "pro") && (
-            <Button size="sm" variant="outline" className="w-full gap-2">
-              <Zap className="w-3 h-3" />
-              Upgrade to Max
-            </Button>
-          )}
         </div>
       )}
     </div>
