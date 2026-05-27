@@ -67,7 +67,7 @@ function Hero() {
             href="/auth/signup"
             className="inline-flex items-center gap-3 px-8 py-4 text-base font-semibold bg-gold text-[#080808] rounded-lg hover:bg-gold-light transition-all duration-200 hover:shadow-gold-lg w-full sm:w-auto justify-center"
           >
-            Start Free — 3 Days
+            Join Early Access — Free
             <ArrowRight className="w-5 h-5" />
           </Link>
           <a
@@ -79,8 +79,8 @@ function Hero() {
         </div>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-[#444444]">
           <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-gold" /> No credit card required</span>
-          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-gold" /> Cancel anytime</span>
-          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-gold" /> Full access for 3 days</span>
+          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-gold" /> All features unlocked</span>
+          <span className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-gold" /> Founding member status</span>
         </div>
       </motion.div>
       <motion.div
@@ -329,8 +329,6 @@ function LeaderboardPreview() {
 }
 
 function Pricing() {
-  const [annual, setAnnual] = useState(false);
-
   return (
     <section id="pricing" className="py-24 px-6 border-t border-[#1a1a1a]">
       <div className="max-w-6xl mx-auto">
@@ -338,22 +336,23 @@ function Pricing() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-4"
         >
-          <h2 className="text-4xl md:text-[48px] font-bold text-white tracking-tight">Simple, transparent pricing</h2>
-          <p className="mt-4 text-[#888888] text-lg">Start free. Scale as you grow.</p>
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <span className={`text-sm font-medium ${!annual ? "text-white" : "text-[#888888]"}`}>Monthly</span>
-            <button
-              onClick={() => setAnnual(!annual)}
-              className={`relative w-12 h-6 rounded-full transition-all duration-200 ${annual ? "bg-gold" : "bg-[#2a2a2a]"}`}
-            >
-              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${annual ? "left-7" : "left-1"}`} />
-            </button>
-            <span className={`text-sm font-medium ${annual ? "text-white" : "text-[#888888]"}`}>
-              Annual <span className="text-gold text-xs font-semibold ml-1">Save 17%</span>
-            </span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gold/10 border border-gold/20 rounded-full text-xs font-semibold text-gold mb-6">
+            <Zap className="w-3 h-3" />
+            Free for a limited time
           </div>
+          <h2 className="text-4xl md:text-[48px] font-bold text-white tracking-tight">Free during Early Access</h2>
+          <p className="mt-4 text-[#888888] text-lg">All features unlocked. No credit card. No limits while we build together.</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-10"
+        >
+          <p className="text-xs text-[#555555] uppercase tracking-widest">Future plans — currently all unlocked</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -377,21 +376,17 @@ function Pricing() {
               )}
               <h3 className="text-base font-bold text-white mb-1">{plan.name}</h3>
               <p className="text-xs text-[#888888] mb-6">{plan.description}</p>
-              <div className="mb-6">
+              <div className="mb-2">
                 {plan.price.monthly !== null ? (
                   <div>
-                    <span className="font-mono text-4xl font-bold text-white">
-                      ${annual ? Math.floor((plan.price.annual ?? 0) / 12) : plan.price.monthly}
-                    </span>
+                    <span className="font-mono text-4xl font-bold text-white">${plan.price.monthly}</span>
                     <span className="text-[#888888] text-sm ml-1">/mo</span>
-                    {annual && plan.price.annual && (
-                      <p className="text-xs text-gold mt-1">Billed ${plan.price.annual}/year</p>
-                    )}
                   </div>
                 ) : (
                   <span className="text-2xl font-bold text-white">Custom</span>
                 )}
               </div>
+              <p className="text-xs text-gold mb-6">Free during Early Access</p>
               <ul className="space-y-2.5 flex-1 mb-6">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-xs text-[#888888]">
@@ -431,13 +426,13 @@ function CTASection() {
             <span className="text-gold-gradient">your most important one</span>
           </h2>
           <p className="text-[#888888] text-lg mb-10 leading-relaxed">
-            Start with a free 3-day trial. No credit card required. Full access from day one.
+            Join Quantum Early Access — free for founding members while we build together.
           </p>
           <Link
             href="/auth/signup"
             className="inline-flex items-center gap-3 px-10 py-4 text-base font-semibold bg-gold text-[#080808] rounded-lg hover:bg-gold-light transition-all duration-200 hover:shadow-gold-lg"
           >
-            Start Free — 3 Days
+            Join Early Access — Free
             <ArrowRight className="w-5 h-5" />
           </Link>
         </motion.div>

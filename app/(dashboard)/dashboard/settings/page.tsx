@@ -284,18 +284,40 @@ export default function SettingsPage() {
         {tab === "billing" && (
           <div className="space-y-4">
             <Card className="p-6">
-              <h2 className="text-base font-semibold text-white mb-4">Current Plan</h2>
-              <div className="flex items-center justify-between p-4 bg-gold/5 border border-gold/20 rounded-lg">
-                <div>
-                  <p className="text-sm font-bold text-gold">Free Trial</p>
-                  <p className="text-xs text-text-secondary mt-0.5">Limited access · Upgrade to unlock all features</p>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gold/10 border border-gold/20 rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-gold" />
                 </div>
-                <div className="text-right">
-                  <p className="font-mono text-xl font-bold text-white">$0<span className="text-sm text-text-secondary">/mo</span></p>
-                </div>
+                <h2 className="text-base font-semibold text-white">Billing</h2>
               </div>
-              <div className="flex gap-3 mt-4">
-                <Button size="sm" onClick={() => toast("Billing and plan management is coming soon.", "info")}>Upgrade Plan</Button>
+              <div className="p-5 bg-gold/5 border border-gold/20 rounded-lg mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-bold text-gold">Early Access</span>
+                  <span className="px-2 py-0.5 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold">Founding Member</span>
+                </div>
+                <p className="text-sm text-text-secondary leading-relaxed">
+                  Quantum is currently free during Early Access. You have full access to all features as a founding member.
+                </p>
+              </div>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                We are focused on building the best decision intelligence platform before introducing subscriptions. Early Access members will receive founding member pricing when paid plans launch.
+              </p>
+            </Card>
+            <Card className="p-6">
+              <h3 className="text-sm font-semibold text-[#555555] uppercase tracking-wider mb-4">Future Plans</h3>
+              <p className="text-xs text-text-secondary mb-4">These are the pricing tiers we&apos;re planning for after Early Access ends.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { name: "Pro", price: "$25/mo", desc: "Individual decision makers" },
+                  { name: "Max", price: "$99/mo", desc: "Power users and teams" },
+                  { name: "Premium", price: "Custom", desc: "Enterprise organizations" },
+                ].map((p) => (
+                  <div key={p.name} className="p-3 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg">
+                    <p className="text-sm font-semibold text-white">{p.name}</p>
+                    <p className="font-mono text-xs text-gold mt-1">{p.price}</p>
+                    <p className="text-xs text-text-secondary mt-1">{p.desc}</p>
+                  </div>
+                ))}
               </div>
             </Card>
           </div>

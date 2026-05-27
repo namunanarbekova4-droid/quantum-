@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, ArrowRight, Shield, HelpCircle } from "lucide-react";
+import { Check, ArrowRight, HelpCircle, Star, Zap } from "lucide-react";
 import Link from "next/link";
 import { QuantumLogo } from "@/components/ui/QuantumLogo";
+import { EarlyAccessModal } from "@/components/ui/EarlyAccessModal";
 import { pricingPlans } from "@/data/mock";
 
 const featureMatrix = [
@@ -26,12 +27,12 @@ const featureMatrix = [
 
 const faqs = [
   {
-    q: "How does the free trial work?",
-    a: "You get full access to Quantum's analysis features for 3 days — no credit card required. After the trial, you can choose a paid plan or your account reverts to view-only mode.",
+    q: "Is Quantum really free right now?",
+    a: "Yes. During our Early Access phase, all Quantum capabilities are free for members who join now. You get full access to every feature — no credit card, no trial limits.",
   },
   {
-    q: "Can I change my plan at any time?",
-    a: "Yes. You can upgrade or downgrade at any time. Upgrades take effect immediately. Downgrades take effect at the end of your current billing period.",
+    q: "What is Early Access?",
+    a: "Early Access is our pre-launch phase where we build Quantum alongside our earliest users. You get free access to everything, and your feedback directly shapes the product roadmap.",
   },
   {
     q: "What counts as a 'decision'?",
@@ -42,20 +43,16 @@ const faqs = [
     a: "Absolutely. All decision data is encrypted at rest and in transit. We never share, sell, or use your decision content to train models without explicit consent.",
   },
   {
+    q: "When will paid plans launch?",
+    a: "We will introduce paid plans once Quantum reaches a maturity milestone we're proud of. Early Access members will receive advance notice and locked-in founding member pricing.",
+  },
+  {
     q: "What is the Premium plan for?",
-    a: "Premium is designed for organizations that need enterprise-grade capabilities: API access for custom integrations, white-label options, custom AI training on proprietary data, and a dedicated account manager.",
+    a: "Premium is designed for organizations that need enterprise-grade capabilities: API access, white-label options, custom AI training, and a dedicated account manager. Contact us to learn more.",
   },
   {
     q: "Do you offer team or company plans?",
-    a: "The Max plan supports unlimited private rooms for collaboration. For company-wide deployments with SSO, audit logs, and centralized billing, contact us about Premium.",
-  },
-  {
-    q: "What payment methods do you accept?",
-    a: "We accept all major credit cards (Visa, Mastercard, Amex), ACH transfers, and wire transfers for annual Premium contracts.",
-  },
-  {
-    q: "Is there a money-back guarantee?",
-    a: "Yes. If you're not satisfied within the first 14 days of a paid plan, contact us and we'll issue a full refund — no questions asked.",
+    a: "The Max plan supports unlimited private rooms for collaboration. For company-wide deployments with SSO and centralized billing, contact us about Premium.",
   },
 ];
 
@@ -66,11 +63,21 @@ function CellValue({ value }: { value: string | boolean }) {
 }
 
 export default function PricingPage() {
-  const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleCTA = (planId: string) => {
+    if (planId === "premium") {
+      window.location.href = "/premium";
+    } else {
+      setModalOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#080808]">
+      {modalOpen && <EarlyAccessModal onClose={() => setModalOpen(false)} />}
+
       <nav className="border-b border-[#1a1a1a] bg-[#080808]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <QuantumLogo size="md" />
@@ -79,29 +86,46 @@ export default function PricingPage() {
               Sign In
             </Link>
             <Link href="/auth/signup" className="inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-gold text-[#080808] rounded hover:bg-gold-light transition-all duration-200">
-              Start Free <ArrowRight className="w-4 h-4" />
+              Join Free <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-          <h1 className="text-4xl md:text-[48px] font-bold text-white tracking-tight">Pricing built for scale</h1>
-          <p className="mt-4 text-[#888888] text-lg">Start free. No credit card required. Upgrade when you&apos;re ready.</p>
 
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <span className={`text-sm font-medium ${!annual ? "text-white" : "text-[#888888]"}`}>Monthly</span>
+        {/* Early Access Banner */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-16">
+          <div className="relative bg-[#111111] border border-gold/20 rounded-2xl p-10 text-center overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-gold/5 to-transparent pointer-events-none" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gold/10 border border-gold/20 rounded-full text-xs font-semibold text-gold mb-6">
+              <Zap className="w-3 h-3" />
+              Free for a limited time
+            </div>
+            <h1 className="text-4xl md:text-[48px] font-bold text-white tracking-tight mb-4">
+              Quantum Early Access
+            </h1>
+            <p className="text-xl text-[#888888] max-w-2xl mx-auto mb-3">
+              All Quantum capabilities are currently free for early members.
+            </p>
+            <p className="text-sm text-[#555555] max-w-xl mx-auto mb-8">
+              We&apos;re building the future of decision intelligence with feedback from our earliest users.
+            </p>
             <button
-              onClick={() => setAnnual(!annual)}
-              className={`relative w-12 h-6 rounded-full transition-all duration-200 ${annual ? "bg-gold" : "bg-[#2a2a2a]"}`}
+              onClick={() => setModalOpen(true)}
+              className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-semibold bg-gold text-[#080808] rounded-lg hover:bg-gold-light transition-all duration-200"
             >
-              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${annual ? "left-7" : "left-1"}`} />
+              <Star className="w-4 h-4" />
+              Activate Free Access
             </button>
-            <span className={`text-sm font-medium ${annual ? "text-white" : "text-[#888888]"}`}>
-              Annual <span className="text-gold text-xs font-semibold ml-1">Save 17%</span>
-            </span>
           </div>
+        </motion.div>
+
+        {/* Future Plans */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-center mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#555555] mb-3">Future Plans</p>
+          <h2 className="text-2xl font-bold text-white">What pricing will look like after Early Access</h2>
+          <p className="mt-2 text-sm text-[#888888]">All plans are currently unlocked. These prices reflect our future roadmap.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-20">
@@ -110,7 +134,7 @@ export default function PricingPage() {
               key={plan.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: 0.1 + i * 0.05 }}
               className={`relative bg-[#111111] rounded-lg p-6 flex flex-col ${
                 plan.highlighted ? "border-2 border-gold shadow-gold" : "border border-[#1a1a1a]"
               }`}
@@ -124,21 +148,17 @@ export default function PricingPage() {
               )}
               <h3 className="text-base font-bold text-white mb-1">{plan.name}</h3>
               <p className="text-xs text-[#888888] mb-6">{plan.description}</p>
-              <div className="mb-6">
+              <div className="mb-2">
                 {plan.price.monthly !== null ? (
                   <div>
-                    <span className="font-mono text-4xl font-bold text-white">
-                      ${annual ? Math.floor((plan.price.annual ?? 0) / 12) : plan.price.monthly}
-                    </span>
+                    <span className="font-mono text-4xl font-bold text-white">${plan.price.monthly}</span>
                     <span className="text-[#888888] text-sm ml-1">/mo</span>
-                    {annual && plan.price.annual && (
-                      <p className="text-xs text-gold mt-1">Billed ${plan.price.annual}/year</p>
-                    )}
                   </div>
                 ) : (
                   <span className="text-2xl font-bold text-white">Custom</span>
                 )}
               </div>
+              <p className="text-xs text-gold mb-6">Free during Early Access</p>
               <ul className="space-y-2.5 flex-1 mb-6">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-xs text-[#888888]">
@@ -147,19 +167,21 @@ export default function PricingPage() {
                   </li>
                 ))}
               </ul>
-              <Link href={plan.id === "premium" ? "/premium" : "/auth/signup"}>
-                <button className={`w-full py-2.5 text-sm font-semibold rounded transition-all duration-200 ${
+              <button
+                onClick={() => handleCTA(plan.id)}
+                className={`w-full py-2.5 text-sm font-semibold rounded transition-all duration-200 ${
                   plan.highlighted
                     ? "bg-gold text-[#080808] hover:bg-gold-light"
                     : "bg-transparent text-gold border border-gold/30 hover:bg-gold/8"
-                }`}>
-                  {plan.cta}
-                </button>
-              </Link>
+                }`}
+              >
+                {plan.cta}
+              </button>
             </motion.div>
           ))}
         </div>
 
+        {/* Feature Comparison */}
         <div className="mb-20">
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Full feature comparison</h2>
           <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg overflow-hidden">
@@ -191,14 +213,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <div className="mb-20 flex items-center justify-center gap-6 p-6 bg-[#111111] border border-[#1a1a1a] rounded-lg">
-          <Shield className="w-8 h-8 text-gold flex-shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-white">14-day money-back guarantee</p>
-            <p className="text-xs text-[#888888] mt-0.5">Not satisfied? Get a full refund within 14 days of your first paid charge. No questions asked.</p>
-          </div>
-        </div>
-
+        {/* FAQ */}
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl font-bold text-white mb-8 text-center">Frequently asked questions</h2>
           <div className="space-y-2">
@@ -223,10 +238,10 @@ export default function PricingPage() {
 
         <div className="mt-20 text-center">
           <h2 className="text-2xl font-bold text-white mb-3">Need enterprise capabilities?</h2>
-          <p className="text-[#888888] mb-6">Talk to our team about a custom plan for your organization.</p>
+          <p className="text-[#888888] mb-6">Talk to our team about building Quantum for your organization.</p>
           <Link href="/premium">
             <button className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold text-gold border border-gold rounded hover:bg-gold/8 transition-all duration-200">
-              Talk to Sales <ArrowRight className="w-4 h-4" />
+              Learn about Premium <ArrowRight className="w-4 h-4" />
             </button>
           </Link>
         </div>
