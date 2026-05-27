@@ -14,7 +14,32 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Deploy to Vercel Production
-        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Sync GEMINI_API_KEY to Vercel project
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          EXISTING=$(curl -s \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v10/projects/prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh/env" | \
+            jq -r '.envs // [] | .[] | select(.key == "GEMINI_API_KEY") | .id' | head -1)
+
+          if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
+            curl -s -X PATCH \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              "https://api.vercel.com/v10/projects/prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh/env/$EXISTING" \
+              -d "$(jq -n --arg v "$GEMINI_KEY" '{value: $v, type: "encrypted", target: ["production","preview","development"]}')"
+          else
+            curl -s -X POST \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              "https://api.vercel.com/v10/projects/prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh/env" \
+              -d "$(jq -n --arg k "GEMINI_API_KEY" --arg v "$GEMINI_KEY" '{key: $k, value: $v, type: "encrypted", target: ["production","preview","development"]}')"
+          fi
+
+      - name: Deploy to Vercel Production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh
+        run: vercel deploy --prod --yes --token=$VERCEL_TOKEN
