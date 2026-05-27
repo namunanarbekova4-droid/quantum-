@@ -6,13 +6,12 @@ import { QuantumLogo } from "@/components/ui/QuantumLogo";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
-  LayoutDashboard, Plus, Clock, Globe, Bell, Trophy, BarChart2,
+  LayoutDashboard, Clock, Globe, Bell, Trophy, BarChart2,
   Lock, Settings, ChevronRight, Zap
 } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "New Decision", href: "/dashboard", icon: Plus },
   { label: "History", href: "/dashboard/history", icon: Clock },
   { label: "Market Intelligence", href: "/dashboard/market", icon: Globe },
   { label: "Alerts", href: "/dashboard/alerts", icon: Bell },
