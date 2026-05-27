@@ -50,33 +50,11 @@ const premiumFeatures = [
   },
 ];
 
-const caseStudies = [
-  {
-    company: "Vantara Group",
-    industry: "Private Equity",
-    result: "Reduced deal evaluation time from 6 weeks to 4 days",
-    quote: "Quantum Premium transformed how our deal team operates. The custom AI training on our 12-year deal database gives us an analytical edge that's genuinely differentiated.",
-    contact: "Priya Nair, Chief Strategy Officer",
-  },
-  {
-    company: "Nexora Technologies",
-    industry: "Enterprise Software",
-    result: "$140M in acquisition decisions made in Q1 2025",
-    quote: "The API integration with our internal M&A pipeline tool was seamless. We now have Quantum's risk scoring embedded in every deal brief, automatically.",
-    contact: "Yuki Tanaka, VP Corporate Development",
-  },
-  {
-    company: "Avantis Capital",
-    industry: "Venture Capital",
-    result: "47 deals evaluated at 60% reduced cost per evaluation",
-    quote: "For a fund our size, the white-label option meant we could offer portfolio companies direct access to decision intelligence under our brand. That's a real differentiator for our LPs.",
-    contact: "Marcus Okonkwo, Managing Partner",
-  },
-];
-
-const clients = [
-  "Meridian Capital", "Vantara Group", "Avantis Capital", "Nexora Technologies",
-  "Sandstorm Ventures", "Relay Commerce",
+const earlyAccessBenefits = [
+  "Shape the product roadmap — your use case becomes a core feature",
+  "Locked-in pricing before public launch",
+  "Direct access to the founding team",
+  "Priority onboarding and white-glove setup",
 ];
 
 const teamSizes = ["1-10", "11-50", "51-200", "201-1000", "1000+"];
@@ -143,17 +121,11 @@ export default function PremiumPage() {
         </div>
       </section>
 
-      <section className="py-20 px-6 border-b border-[#1a1a1a]">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-center text-xs text-[#444444] uppercase tracking-widest mb-10">
-            Trusted by leading organizations worldwide
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-5">
-            {clients.map((c) => (
-              <span key={c} className="text-[#2a2a2a] font-bold text-sm tracking-tight hover:text-[#3a3a3a] transition-colors cursor-default">
-                {c}
-              </span>
-            ))}
+      <section className="py-16 px-6 border-b border-[#1a1a1a]">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/5 border border-gold/20 rounded-full text-sm text-gold">
+            <Shield className="w-3.5 h-3.5" />
+            Currently accepting a limited number of founding enterprise partners
           </div>
         </div>
       </section>
@@ -189,31 +161,21 @@ export default function PremiumPage() {
       </section>
 
       <section className="py-20 px-6 border-b border-[#1a1a1a] bg-[#0a0a0a]">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white tracking-tight">Results that speak for themselves</h2>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Become a founding partner</h2>
+            <p className="mt-3 text-[#888888]">Quantum Premium is in private access. Founding partners shape the product.</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {caseStudies.map((cs, i) => (
-              <motion.div
-                key={cs.company}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-6"
-              >
-                <div className="mb-4">
-                  <p className="text-xs text-[#888888] uppercase tracking-wider">{cs.industry}</p>
-                  <h3 className="text-base font-bold text-white mt-1">{cs.company}</h3>
-                </div>
-                <div className="bg-gold/5 border border-gold/20 rounded px-3 py-2 mb-4">
-                  <p className="text-xs font-semibold text-gold">{cs.result}</p>
-                </div>
-                <p className="text-sm text-[#888888] leading-relaxed italic mb-4">&ldquo;{cs.quote}&rdquo;</p>
-                <p className="text-xs text-[#444444]">— {cs.contact}</p>
-              </motion.div>
-            ))}
+          <div className="bg-[#111111] border border-gold/20 rounded-lg p-8 max-w-2xl mx-auto">
+            <ul className="space-y-4">
+              {earlyAccessBenefits.map((benefit) => (
+                <li key={benefit} className="flex items-start gap-3 text-sm text-white">
+                  <Check className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
+                  {benefit}
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-[#444444] mt-6 text-center">Case studies and results will be published as founding partners go live.</p>
           </div>
         </div>
       </section>

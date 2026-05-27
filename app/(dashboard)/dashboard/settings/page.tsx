@@ -295,7 +295,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="flex gap-3 mt-4">
-                <Button size="sm">Upgrade Plan</Button>
+                <Button size="sm" onClick={() => toast("Billing and plan management is coming soon.", "info")}>Upgrade Plan</Button>
               </div>
             </Card>
           </div>
