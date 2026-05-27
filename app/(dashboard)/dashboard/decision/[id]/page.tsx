@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, Share2, BookmarkPlus, CheckCircle, XCircle, AlertCircle,
   TrendingUp, TrendingDown, Lightbulb, Target, ChevronRight,
-  ShieldAlert, BarChart2, Brain, ThumbsUp, ThumbsDown, HelpCircle,
+  ShieldAlert, BarChart2, Brain, ThumbsUp, ThumbsDown, HelpCircle, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -26,6 +26,8 @@ interface DecisionReport {
   benchmark?: { label?: string; successRate?: number; insight?: string; context?: string };
   confidence?: { score?: number; explanation?: string; missingData?: string[] };
   outcome?: "GOOD" | "BAD" | "UNKNOWN";
+  _failed?: boolean;
+  _error?: string;
 }
 
 interface Decision {
@@ -34,8 +36,8 @@ interface Decision {
   description: string;
   type: string;
   status: string;
-  riskScore: number;
-  recommendation: string;
+  riskScore: number | null;
+  recommendation: string | null;
   report: DecisionReport;
   createdAt: string;
 }
@@ -92,27 +94,60 @@ export default function DecisionPage() {
   const { toast } = useToast();
   const [decision, setDecision] = useState<Decision | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
 
-  useEffect(() => {
+  const fetchDecision = async () => {
     if (!id) return;
-    fetch(`/api/decisions/${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.error) { setLoading(false); return; }
+    const r = await fetch(`/api/decisions/${id}`);
+    const data = await r.json();
+    if (!data.error) setDecision(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchDecision(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRetry = async () => {
+    if (!id || retrying) return;
+    setRetrying(true);
+    try {
+      const r = await fetch(`/api/decisions/${id}`, { method: "POST" });
+      const data = await r.json();
+      if (!data.error) {
         setDecision(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
+      } else {
+        toast("Analysis failed again. Please try once more.", "error");
+        await fetchDecision();
+      }
+    } catch {
+      toast("Something went wrong. Please try again.", "error");
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const recLabel = decision?.recommendation === "YES" ? "Recommended" : decision?.recommendation === "NO" ? "Not Recommended" : "Conditional";
   const recVariant = decision?.recommendation === "YES" ? "success" : decision?.recommendation === "NO" ? "danger" : "warning";
   const RecIcon = decision?.recommendation === "YES" ? CheckCircle : decision?.recommendation === "NO" ? XCircle : AlertCircle;
 
+  const PageHeader = () => (
+    <div className="border-b border-[#1a1a1a] px-4 sm:px-6 py-4 flex items-center gap-4">
+      <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")} className="gap-2 flex-shrink-0">
+        <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>
+      </Button>
+      <div className="flex-1 min-w-0" />
+      <Button variant="ghost" size="sm" className="gap-2 opacity-40 cursor-not-allowed hidden sm:flex" onClick={() => toast("Sharing is coming soon.", "info")}>
+        <Share2 className="w-4 h-4" /> Share
+      </Button>
+      <Button variant="outline" size="sm" className="gap-2 opacity-40 cursor-not-allowed hidden sm:flex" onClick={() => toast("Saving is coming soon.", "info")}>
+        <BookmarkPlus className="w-4 h-4" /> Save
+      </Button>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center px-4">
           <div className="w-12 h-12 border-2 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
           <p className="text-sm text-text-secondary">Analyzing your decision...</p>
           <p className="text-xs text-[#444444] mt-1">This takes about 10 seconds</p>
@@ -124,7 +159,7 @@ export default function DecisionPage() {
   if (!decision) {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6">
-        <Card className="p-16 text-center max-w-md">
+        <Card className="p-12 text-center max-w-md w-full">
           <h2 className="text-lg font-semibold text-white mb-2">Decision not found</h2>
           <p className="text-sm text-text-secondary mb-6">This decision doesn&apos;t exist or you don&apos;t have access.</p>
           <Button variant="outline" size="sm" onClick={() => router.push("/dashboard/history")}>View History</Button>
@@ -134,54 +169,78 @@ export default function DecisionPage() {
   }
 
   const report = decision.report ?? {};
+  const isFailed = report._failed === true || (decision.riskScore === null && !decision.recommendation);
   const confidence = report.confidence;
   const benchmark = report.benchmark;
 
+  // Analysis interrupted state
+  if (isFailed) {
+    return (
+      <div className="min-h-screen bg-[#080808]">
+        <PageHeader />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+            <p className="text-xs text-text-secondary uppercase tracking-widest mb-2">{decision.type.replace(/_/g, " ")}</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white leading-snug mb-8 break-words">{decision.title}</h1>
+            <Card className="p-10 sm:p-16 text-center">
+              <div className="w-14 h-14 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center mx-auto mb-5">
+                <AlertCircle className="w-6 h-6 text-[#555555]" />
+              </div>
+              <h2 className="text-lg font-bold text-white mb-2">Analysis interrupted</h2>
+              <p className="text-sm text-text-secondary max-w-sm mx-auto mb-8 leading-relaxed">
+                We encountered an issue while generating deeper intelligence. This is usually resolved by retrying.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={handleRetry} loading={retrying} className="gap-2">
+                  <RefreshCw className="w-4 h-4" /> Retry Analysis
+                </Button>
+                <Button variant="outline" onClick={() => router.push("/dashboard")} className="gap-2">
+                  Back to Dashboard
+                </Button>
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#080808]">
-      <div className="border-b border-[#1a1a1a] px-6 py-4 flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")} className="gap-2">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Button>
-        <div className="flex-1" />
-        <Button variant="ghost" size="sm" className="gap-2 opacity-40 cursor-not-allowed" onClick={() => toast("Sharing is coming soon.", "info")}>
-          <Share2 className="w-4 h-4" /> Share
-        </Button>
-        <Button variant="outline" size="sm" className="gap-2 opacity-40 cursor-not-allowed" onClick={() => toast("Saving is coming soon.", "info")}>
-          <BookmarkPlus className="w-4 h-4" /> Save
-        </Button>
-      </div>
+      <PageHeader />
 
-      <div className="max-w-4xl mx-auto px-6 py-10 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-5">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-xs text-text-secondary uppercase tracking-widest mb-2">{decision.type.replace(/_/g, " ")}</p>
-          <h1 className="text-2xl font-bold text-white leading-snug">{decision.title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-white leading-snug break-words">{decision.title}</h1>
         </motion.div>
 
         {/* Metrics row */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card className="p-5 flex items-center gap-3 col-span-2 sm:col-span-1">
-            <RecIcon className={`w-7 h-7 flex-shrink-0 ${decision.recommendation === "YES" ? "text-success" : decision.recommendation === "NO" ? "text-danger" : "text-gold"}`} />
-            <div>
+          className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="p-4 sm:p-5 flex items-center gap-3 col-span-2 sm:col-span-1">
+            <RecIcon className={`w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0 ${decision.recommendation === "YES" ? "text-success" : decision.recommendation === "NO" ? "text-danger" : "text-gold"}`} />
+            <div className="min-w-0">
               <p className="text-xs text-text-secondary mb-1">Verdict</p>
               <Badge variant={recVariant}>{recLabel}</Badge>
             </div>
           </Card>
-          <Card className="p-5">
+          <Card className="p-4 sm:p-5">
             <p className="text-xs text-text-secondary mb-1">Risk Score</p>
-            <p className="font-mono text-3xl font-bold" style={{ color: getRiskColor(decision.riskScore) }}>{decision.riskScore}</p>
+            <p className="font-mono text-2xl sm:text-3xl font-bold" style={{ color: decision.riskScore !== null ? getRiskColor(decision.riskScore) : "#888" }}>
+              {decision.riskScore ?? "—"}
+            </p>
             <p className="text-xs text-[#444444] mt-0.5">/ 100</p>
           </Card>
-          <Card className="p-5">
+          <Card className="p-4 sm:p-5">
             <p className="text-xs text-text-secondary mb-1">AI Confidence</p>
-            <p className="font-mono text-3xl font-bold text-gold">{confidence?.score ?? "—"}</p>
+            <p className="font-mono text-2xl sm:text-3xl font-bold text-gold">{confidence?.score ?? "—"}</p>
             <p className="text-xs text-[#444444] mt-0.5">/ 100</p>
           </Card>
           {benchmark?.successRate !== undefined && (
-            <Card className="p-5">
+            <Card className="p-4 sm:p-5">
               <p className="text-xs text-text-secondary mb-1">Benchmark</p>
-              <p className="font-mono text-3xl font-bold text-white">{benchmark.successRate}%</p>
+              <p className="font-mono text-2xl sm:text-3xl font-bold text-white">{benchmark.successRate}%</p>
               <p className="text-xs text-[#444444] mt-0.5">success rate</p>
             </Card>
           )}
@@ -190,8 +249,8 @@ export default function DecisionPage() {
         {/* Executive Summary */}
         {report.summary && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="p-6">
-              <h2 className="text-sm font-semibold text-gold mb-3 uppercase tracking-wider">Executive Summary</h2>
+            <Card className="p-5 sm:p-6">
+              <h2 className="text-xs font-semibold text-gold mb-3 uppercase tracking-wider">Executive Summary</h2>
               <p className="text-sm text-white leading-relaxed">{report.summary}</p>
             </Card>
           </motion.div>
@@ -200,11 +259,11 @@ export default function DecisionPage() {
         {/* Confidence Explanation */}
         {confidence?.explanation && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}>
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Brain className="w-4 h-4 text-gold" />
+                <Brain className="w-4 h-4 text-gold flex-shrink-0" />
                 <h2 className="text-sm font-semibold text-white">Confidence Analysis</h2>
-                <span className="ml-auto font-mono text-xs text-gold">{confidence.score}/100</span>
+                <span className="ml-auto font-mono text-xs text-gold flex-shrink-0">{confidence.score}/100</span>
               </div>
               <p className="text-sm text-text-secondary leading-relaxed mb-4">{confidence.explanation}</p>
               {confidence.missingData && confidence.missingData.length > 0 && (
@@ -213,7 +272,7 @@ export default function DecisionPage() {
                   <ul className="space-y-1.5">
                     {confidence.missingData.map((d, i) => (
                       <li key={i} className="text-xs text-text-secondary flex items-start gap-2">
-                        <span className="text-[#444444] mt-0.5">·</span> {d}
+                        <span className="text-[#444444] mt-0.5 flex-shrink-0">·</span> {d}
                       </li>
                     ))}
                   </ul>
@@ -223,21 +282,18 @@ export default function DecisionPage() {
           </motion.div>
         )}
 
-        {/* Benchmark */}
+        {/* Historical Benchmark */}
         {benchmark?.insight && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
-                <BarChart2 className="w-4 h-4 text-gold" />
+                <BarChart2 className="w-4 h-4 text-gold flex-shrink-0" />
                 <h2 className="text-sm font-semibold text-white">Historical Benchmark</h2>
-                {benchmark.label && <span className="ml-auto text-xs text-[#555555]">{benchmark.label}</span>}
+                {benchmark.label && <span className="ml-auto text-xs text-[#555555] text-right hidden sm:block">{benchmark.label}</span>}
               </div>
               <div className="flex items-center gap-4 mb-3">
                 <div className="flex-1 h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gold rounded-full transition-all duration-700"
-                    style={{ width: `${benchmark.successRate ?? 0}%` }}
-                  />
+                  <div className="h-full bg-gold rounded-full transition-all duration-700" style={{ width: `${benchmark.successRate ?? 0}%` }} />
                 </div>
                 <span className="font-mono text-sm font-bold text-gold flex-shrink-0">{benchmark.successRate}% success</span>
               </div>
@@ -251,9 +307,9 @@ export default function DecisionPage() {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
           className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {report.pros && report.pros.length > 0 && (
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-4 h-4 text-success" />
+                <TrendingUp className="w-4 h-4 text-success flex-shrink-0" />
                 <h2 className="text-sm font-semibold text-white">Strengths</h2>
               </div>
               <ul className="space-y-2.5">
@@ -266,9 +322,9 @@ export default function DecisionPage() {
             </Card>
           )}
           {report.cons && report.cons.length > 0 && (
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingDown className="w-4 h-4 text-danger" />
+                <TrendingDown className="w-4 h-4 text-danger flex-shrink-0" />
                 <h2 className="text-sm font-semibold text-white">Risks</h2>
               </div>
               <ul className="space-y-2.5">
@@ -285,9 +341,9 @@ export default function DecisionPage() {
         {/* Key Assumptions */}
         {report.keyAssumptions && report.keyAssumptions.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.21 }}>
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Lightbulb className="w-4 h-4 text-gold" />
+                <Lightbulb className="w-4 h-4 text-gold flex-shrink-0" />
                 <h2 className="text-sm font-semibold text-white">Key Assumptions</h2>
               </div>
               <ul className="space-y-2">
@@ -304,9 +360,9 @@ export default function DecisionPage() {
         {/* Pre-Mortem */}
         {report.preMortem && report.preMortem.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
-            <Card className="p-6 border-danger/20">
+            <Card className="p-5 sm:p-6 border-danger/20">
               <div className="flex items-center gap-2 mb-4">
-                <ShieldAlert className="w-4 h-4 text-danger" />
+                <ShieldAlert className="w-4 h-4 text-danger flex-shrink-0" />
                 <h2 className="text-sm font-semibold text-white">Pre-Mortem: What Could Cause This to Fail?</h2>
               </div>
               <ul className="space-y-2.5">
@@ -323,9 +379,9 @@ export default function DecisionPage() {
         {/* Next Steps */}
         {report.nextSteps && report.nextSteps.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}>
-            <Card className="p-6 border-gold/20">
+            <Card className="p-5 sm:p-6 border-gold/20">
               <div className="flex items-center gap-2 mb-4">
-                <Target className="w-4 h-4 text-gold" />
+                <Target className="w-4 h-4 text-gold flex-shrink-0" />
                 <h2 className="text-sm font-semibold text-white">Recommended Next Steps</h2>
               </div>
               <ul className="space-y-3">
