@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const maxDuration = 60;
 
@@ -36,17 +36,13 @@ export async function POST(req: Request) {
   });
 
   try {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
-    const anthropic = new Anthropic({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2500,
-      messages: [{
-        role: "user",
-        content: `You are Quantum, an elite AI decision intelligence platform used by founders, investors, and executives.
+    const prompt = `You are Quantum, an elite AI decision intelligence platform used by founders, investors, and executives.
 
 Analyze this business decision and return ONLY a valid JSON object — no markdown, no explanation, no code fences.
 
@@ -74,14 +70,12 @@ Return exactly this JSON:
     "explanation": "Why the analysis is or isn't highly confident — reference specific factors in the decision",
     "missingData": ["specific data point that would sharpen this analysis", "another input that would reduce uncertainty"]
   }
-}`,
-      }],
-    });
+}`;
 
-    const raw = message.content[0];
-    if (raw.type !== "text") throw new Error("Unexpected Claude response type");
+    const result = await model.generateContent(prompt);
+    const rawText = result.response.text();
 
-    const report = JSON.parse(raw.text.replace(/^```json\n?/, "").replace(/\n?```$/, "").trim());
+    const report = JSON.parse(rawText.replace(/^```json\n?/, "").replace(/\n?```$/, "").trim());
 
     await prisma.decision.update({
       where: { id: decision.id },
