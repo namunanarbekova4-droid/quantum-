@@ -2,7 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import { User, Shield, Bell, Eye, CreditCard, AlertTriangle } from "lucide-react";
+import { User, Shield, Bell, Eye, CreditCard, AlertTriangle, Clock } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -71,6 +72,8 @@ export default function SettingsPage() {
       setTimeout(() => setSaveMsg(""), 3000);
     }
   };
+
+  const { toast } = useToast();
 
   const toggleNotif = (id: string) =>
     setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, enabled: !n.enabled } : n)));
@@ -204,7 +207,14 @@ export default function SettingsPage() {
               <Input label="Current Password" type="password" placeholder="••••••••" />
               <Input label="New Password" type="password" placeholder="••••••••" />
               <Input label="Confirm New Password" type="password" placeholder="••••••••" />
-              <Button size="sm">Update Password</Button>
+              <div className="flex items-center gap-3">
+                <Button size="sm" onClick={() => toast("Password change is coming soon.", "info")} className="gap-2">
+                  Update Password
+                </Button>
+                <span className="flex items-center gap-1 text-xs text-[#555555]">
+                  <Clock className="w-3 h-3" /> Coming soon
+                </span>
+              </div>
             </Card>
             <Card className="p-6 border-danger/20">
               <div className="flex items-center gap-2 mb-4">
@@ -212,7 +222,14 @@ export default function SettingsPage() {
                 <h2 className="text-base font-semibold text-danger">Danger Zone</h2>
               </div>
               <p className="text-sm text-text-secondary mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
-              <Button variant="danger" size="sm">Delete Account</Button>
+              <div className="flex items-center gap-3">
+                <Button variant="danger" size="sm" onClick={() => toast("Account deletion is coming soon. Contact support if this is urgent.", "info")}>
+                  Delete Account
+                </Button>
+                <span className="flex items-center gap-1 text-xs text-[#555555]">
+                  <Clock className="w-3 h-3" /> Coming soon
+                </span>
+              </div>
             </Card>
           </div>
         )}
@@ -278,7 +295,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="flex gap-3 mt-4">
-                <Button size="sm">Upgrade Plan</Button>
+                <Button size="sm" onClick={() => toast("Billing and plan management is coming soon.", "info")}>Upgrade Plan</Button>
               </div>
             </Card>
           </div>

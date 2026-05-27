@@ -291,9 +291,9 @@ function PrivateRooms() {
           >
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#1a1a1a]">
               <Lock className="w-4 h-4 text-gold" />
-              <span className="text-sm font-semibold text-white">Series A Strategy Room</span>
+              <span className="text-sm font-semibold text-white">Strategy Room</span>
               <div className="ml-auto flex -space-x-1.5">
-                {["J", "L", "A"].map((initial) => (
+                {["A", "B", "C"].map((initial) => (
                   <div key={initial} className="w-7 h-7 bg-gold/20 border-2 border-[#111111] rounded-full flex items-center justify-center text-xs font-bold text-gold">
                     {initial}
                   </div>
@@ -302,19 +302,19 @@ function PrivateRooms() {
             </div>
             <div className="space-y-4 text-sm">
               <div className="bg-[#0d0d0d] rounded-lg p-4 border border-[#1a1a1a]">
-                <p className="text-[#888888] text-xs mb-2">Jordan Mehta · 2:30 PM</p>
-                <p className="text-white">I&apos;ve run the Series A analysis. Risk score is 44 — better than expected. Recommend we proceed once pipeline closes.</p>
+                <p className="text-[#888888] text-xs mb-2">Team Member · just now</p>
+                <p className="text-white">I&apos;ve run the market entry analysis. Risk score looks manageable — recommend we discuss timing before committing.</p>
               </div>
               <div className="bg-gold/5 border border-gold/20 rounded-lg p-4 ml-8">
-                <p className="text-gold text-xs mb-2">You · 2:32 PM</p>
-                <p className="text-white">Agreed. Two more deals should get us to $4M ARR. Let&apos;s target a process start in 8 weeks.</p>
+                <p className="text-gold text-xs mb-2">You · just now</p>
+                <p className="text-white">Agreed. Let&apos;s align on the key milestones before we move forward.</p>
               </div>
               <div className="bg-[#0d0d0d] rounded-lg p-4 border border-[#1a1a1a]">
                 <p className="text-gold text-xs mb-2 flex items-center gap-1.5">
                   <span className="w-4 h-4 bg-gold text-[#080808] rounded text-xs font-bold inline-flex items-center justify-center">Q</span>
-                  Quantum AI · Now
+                  Quantum AI · now
                 </p>
-                <p className="text-[#888888]">Based on pipeline probability, closing 2 deals in 8 weeks has a 73% likelihood. Here are the 3 highest-leverage actions...</p>
+                <p className="text-[#888888]">Based on your inputs, here are the 3 highest-leverage actions to reduce risk before committing...</p>
               </div>
             </div>
           </motion.div>

@@ -1,23 +1,19 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
-import { ArrowRight, Users, Trophy, ChevronRight } from "lucide-react";
+import { ArrowRight, FileText, Bell, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { RiskGauge } from "@/components/ui/RiskGauge";
-import { mockDecisions, mockAlerts, mockRooms } from "@/data/mock";
-import { formatDate, truncate } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
 import Link from "next/link";
 
 const quickActions = ["Market Entry", "Hiring", "Fundraising", "Pivot", "Partnership"];
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { data: session } = useSession();
-  const userName = session?.user?.name ?? "there";
+  const { toast } = useToast();
+  const userName = session?.user?.name?.split(" ")[0] ?? "there";
   const [decision, setDecision] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -25,17 +21,18 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!decision.trim()) return;
     setLoading(true);
-    setTimeout(() => router.push("/dashboard/decision/dec_001"), 1500);
+    setTimeout(() => {
+      setLoading(false);
+      setDecision("");
+      toast("Decision submitted. AI analysis is being configured — your report will appear here once the engine is live.", "info");
+    }, 1200);
   };
-
-  const recentDecisions = mockDecisions.slice(0, 3);
-  const recentAlerts = mockAlerts.slice(0, 3);
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <h1 className="text-2xl font-bold text-white">Good morning, {userName}.</h1>
-        <p className="text-text-secondary mt-1">You have 3 new market alerts. Your last decision was 3 days ago.</p>
+        <p className="text-text-secondary mt-1">Quantum is ready. Describe a decision below to begin your analysis.</p>
       </motion.div>
 
       <div className="mt-8 grid grid-cols-1 xl:grid-cols-5 gap-8">
@@ -76,33 +73,15 @@ export default function DashboardPage() {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-white">Recent Decisions</h2>
-              <Link href="/dashboard/history" className="text-xs text-text-secondary hover:text-gold transition-colors flex items-center gap-1">
-                View all <ChevronRight className="w-3 h-3" />
+              <Link href="/dashboard/history" className="text-xs text-text-secondary hover:text-gold transition-colors">
+                View all
               </Link>
             </div>
-            <div className="space-y-3">
-              {recentDecisions.map((d) => (
-                <Link key={d.id} href={`/dashboard/decision/${d.id}`}>
-                  <Card hover className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <RiskGauge score={d.riskScore} size="sm" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white leading-snug">{truncate(d.title, 80)}</p>
-                        <div className="flex items-center gap-3 mt-2">
-                          <Badge variant={d.recommendation === "YES" ? "success" : d.recommendation === "NO" ? "danger" : "warning"}>
-                            {d.recommendation}
-                          </Badge>
-                          <span className="text-xs text-text-secondary">{formatDate(d.date)}</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-text-secondary flex-shrink-0 mt-1" />
-                    </div>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            <Card className="p-12 text-center border-dashed border-[#1a1a1a]">
+              <FileText className="w-8 h-8 text-[#333333] mx-auto mb-4" />
+              <p className="text-sm font-medium text-white mb-1">No decisions yet</p>
+              <p className="text-xs text-text-secondary">Your intelligence history will appear here once you submit your first decision.</p>
+            </Card>
           </motion.div>
         </div>
 
@@ -114,66 +93,25 @@ export default function DashboardPage() {
                 Manage
               </Link>
             </div>
-            <div className="space-y-3">
-              {recentAlerts.map((alert) => (
-                <Card key={alert.id} className="p-4 border-l-2 border-l-gold/40">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-medium text-white">{alert.topic}</p>
-                      <p className="text-xs text-text-secondary mt-1">{alert.keywords.slice(0, 2).join(", ")}</p>
-                    </div>
-                    <Badge variant="gold">{alert.frequency.toLowerCase()}</Badge>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
-            <Card className="p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <Trophy className="w-5 h-5 text-gold" />
-                <h3 className="text-sm font-semibold text-white">Global Rank</h3>
-              </div>
-              <div className="text-center py-2">
-                <p className="font-mono text-4xl font-bold text-gold">#247</p>
-                <p className="text-xs text-text-secondary mt-1">out of 24,000+ decision makers</p>
-              </div>
-              <div className="mt-3 pt-3 border-t border-[#1a1a1a] flex items-center justify-between text-xs">
-                <span className="text-text-secondary">Accuracy Score</span>
-                <span className="font-mono text-success">75%</span>
-              </div>
-              <div className="flex items-center justify-between text-xs mt-1">
-                <span className="text-text-secondary">Decision Streak</span>
-                <span className="font-mono text-white">3 days</span>
-              </div>
+            <Card className="p-10 text-center border-dashed border-[#1a1a1a]">
+              <Bell className="w-7 h-7 text-[#333333] mx-auto mb-3" />
+              <p className="text-sm font-medium text-white mb-1">No active alerts</p>
+              <p className="text-xs text-text-secondary leading-relaxed">Set up intelligence alerts to monitor signals relevant to your decisions.</p>
             </Card>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.5 }}>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-white">Active Rooms</h2>
               <Link href="/dashboard/rooms" className="text-xs text-text-secondary hover:text-gold transition-colors">
                 View all
               </Link>
             </div>
-            <div className="space-y-3">
-              {mockRooms.slice(0, 2).map((room) => (
-                <Link key={room.id} href={`/dashboard/rooms/${room.id}`}>
-                  <Card hover className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gold/10 border border-gold/20 rounded flex items-center justify-center flex-shrink-0">
-                        <Users className="w-4 h-4 text-gold" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white">{room.name}</p>
-                        <p className="text-xs text-text-secondary">{room.participants.length} participants</p>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            <Card className="p-10 text-center border-dashed border-[#1a1a1a]">
+              <Users className="w-7 h-7 text-[#333333] mx-auto mb-3" />
+              <p className="text-sm font-medium text-white mb-1">No active rooms</p>
+              <p className="text-xs text-text-secondary leading-relaxed">Your confidential collaboration spaces will appear here once rooms are created.</p>
+            </Card>
           </motion.div>
         </div>
       </div>
