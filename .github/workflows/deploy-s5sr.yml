@@ -8,27 +8,41 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      VERCEL_PROJECT_ID: prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Remove local project link (use env vars instead)
+      - name: Remove stale project link
         run: rm -f .vercel/project.json
 
-      - name: Resolve Vercel org ID from token
+      - name: Resolve Vercel org ID
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          ORG_ID=$(curl -sf -H "Authorization: Bearer $VERCEL_TOKEN" \
-            "https://api.vercel.com/v2/user" | jq -r '.user.id // empty')
+          # Try project endpoint first (works with project-scoped tokens)
+          ORG_ID=$(curl -sf \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh" | \
+            jq -r '.accountId // empty' 2>/dev/null || true)
+          # Fallback to user endpoint
           if [ -z "$ORG_ID" ]; then
-            echo "Warning: could not resolve org ID, deploying without it"
-          else
-            echo "Resolved org ID: ${ORG_ID:0:8}..."
+            ORG_ID=$(curl -sf \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v2/user" | \
+              jq -r '.user.id // empty' 2>/dev/null || true)
+          fi
+          if [ -n "$ORG_ID" ]; then
             echo "VERCEL_ORG_ID=$ORG_ID" >> $GITHUB_ENV
           fi
+
+      - name: Pull Vercel project config (links project correctly)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token=$VERCEL_TOKEN
 
       - name: Sync GEMINI_API_KEY to Vercel project
         env:
@@ -39,23 +53,21 @@ jobs:
             -H "Authorization: Bearer $VERCEL_TOKEN" \
             "https://api.vercel.com/v10/projects/prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh/env" | \
             jq -r '.envs // [] | .[] | select(.key == "GEMINI_API_KEY") | .id' | head -1)
-
           if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
             curl -s -X PATCH \
               -H "Authorization: Bearer $VERCEL_TOKEN" \
               -H "Content-Type: application/json" \
               "https://api.vercel.com/v10/projects/prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh/env/$EXISTING" \
-              -d "$(jq -n --arg v "$GEMINI_KEY" '{value: $v, type: "encrypted", target: ["production","preview","development"]}')"
+              -d "$(jq -n --arg v "$GEMINI_KEY" '{value: $v, type: "encrypted", target: ["production","preview","development"]}')" || true
           else
             curl -s -X POST \
               -H "Authorization: Bearer $VERCEL_TOKEN" \
               -H "Content-Type: application/json" \
               "https://api.vercel.com/v10/projects/prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh/env" \
-              -d "$(jq -n --arg k "GEMINI_API_KEY" --arg v "$GEMINI_KEY" '{key: $k, value: $v, type: "encrypted", target: ["production","preview","development"]}')"
+              -d "$(jq -n --arg k "GEMINI_API_KEY" --arg v "$GEMINI_KEY" '{key: $k, value: $v, type: "encrypted", target: ["production","preview","development"]}')" || true
           fi
 
       - name: Deploy to Vercel Production
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: prj_Y4UY5ZWrjL0W6BZ24KEMhAqsoOHh
         run: vercel deploy --prod --yes --token=$VERCEL_TOKEN
