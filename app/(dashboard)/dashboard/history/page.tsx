@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, ChevronRight, FileText } from "lucide-react";
+import { Search, ChevronRight, FileText, ThumbsUp, ThumbsDown, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -16,6 +16,14 @@ interface Decision {
   riskScore: number;
   recommendation: string;
   status: string;
+  report?: { outcome?: string };
+}
+
+function OutcomeTag({ outcome }: { outcome?: string }) {
+  if (!outcome) return <span className="text-xs text-[#333333]">—</span>;
+  if (outcome === "GOOD") return <span className="inline-flex items-center gap-1 text-xs text-success"><ThumbsUp className="w-3 h-3" /> Good</span>;
+  if (outcome === "BAD") return <span className="inline-flex items-center gap-1 text-xs text-danger"><ThumbsDown className="w-3 h-3" /> Bad</span>;
+  return <span className="inline-flex items-center gap-1 text-xs text-[#555555]"><HelpCircle className="w-3 h-3" /> Unknown</span>;
 }
 
 export default function HistoryPage() {
@@ -97,7 +105,7 @@ export default function HistoryPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-[#1a1a1a]">
-                        {["Decision", "Date", "Type", "Risk Score", "Recommendation", "Status", ""].map((h) => (
+                        {["Decision", "Date", "Type", "Risk", "Recommendation", "Outcome", ""].map((h) => (
                           <th key={h} className="text-left text-xs text-text-secondary font-medium px-5 py-4">{h}</th>
                         ))}
                       </tr>
@@ -106,7 +114,7 @@ export default function HistoryPage() {
                       {filtered.map((d) => (
                         <tr key={d.id} className="hover:bg-[#161616] transition-colors cursor-pointer group">
                           <td className="px-5 py-4">
-                            <p className="text-sm text-white font-medium group-hover:text-gold transition-colors">{truncate(d.title, 60)}</p>
+                            <p className="text-sm text-white font-medium group-hover:text-gold transition-colors">{truncate(d.title, 55)}</p>
                           </td>
                           <td className="px-5 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(d.createdAt)}</td>
                           <td className="px-5 py-4">
@@ -121,7 +129,7 @@ export default function HistoryPage() {
                             <Badge variant={recVariant(d.recommendation)}>{d.recommendation}</Badge>
                           </td>
                           <td className="px-5 py-4">
-                            <Badge variant="neutral">{d.status}</Badge>
+                            <OutcomeTag outcome={d.report?.outcome} />
                           </td>
                           <td className="px-5 py-4">
                             <Link href={`/dashboard/decision/${d.id}`}>
@@ -133,7 +141,7 @@ export default function HistoryPage() {
                     </tbody>
                   </table>
                 </div>
-                <div className="px-5 py-4 border-t border-[#1a1a1a] flex items-center justify-between">
+                <div className="px-5 py-4 border-t border-[#1a1a1a]">
                   <p className="text-xs text-text-secondary">Showing {filtered.length} of {decisions.length} decisions</p>
                 </div>
               </Card>

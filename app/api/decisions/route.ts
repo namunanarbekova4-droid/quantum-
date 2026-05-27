@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 2000,
+      max_tokens: 2500,
       messages: [{
         role: "user",
         content: `You are Quantum, an elite AI decision intelligence platform used by founders, investors, and executives.
@@ -61,7 +61,19 @@ Return exactly this JSON:
   "cons": ["con 1", "con 2", "con 3"],
   "keyAssumptions": ["assumption 1", "assumption 2", "assumption 3"],
   "implications": ["implication 1", "implication 2", "implication 3"],
-  "nextSteps": ["concrete action 1", "concrete action 2", "concrete action 3"]
+  "nextSteps": ["concrete action 1", "concrete action 2", "concrete action 3"],
+  "preMortem": ["specific failure scenario 1", "specific failure scenario 2", "specific failure scenario 3", "specific failure scenario 4"],
+  "benchmark": {
+    "label": "Short label for similar decision category (e.g. 'SaaS market expansions', 'early-stage fundraising rounds')",
+    "successRate": <integer 0-100, realistic estimate>,
+    "insight": "One concrete sentence about how similar decisions historically performed",
+    "context": "Brief note on what drives success or failure in this category"
+  },
+  "confidence": {
+    "score": <integer 0-100>,
+    "explanation": "Why the analysis is or isn't highly confident — reference specific factors in the decision",
+    "missingData": ["specific data point that would sharpen this analysis", "another input that would reduce uncertainty"]
+  }
 }`,
       }],
     });
@@ -92,7 +104,7 @@ export async function GET() {
   const decisions = await prisma.decision.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    select: { id: true, title: true, type: true, status: true, riskScore: true, recommendation: true, createdAt: true },
+    select: { id: true, title: true, type: true, status: true, riskScore: true, recommendation: true, createdAt: true, report: true },
   });
 
   return NextResponse.json(decisions);
