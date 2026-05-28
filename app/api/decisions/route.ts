@@ -32,8 +32,7 @@ export async function POST(req: Request) {
 
     await prisma.decision.update({
       where: { id: decision.id },
-      data: { status: "COMPLETE", riskScore, recommendation: recommendation as never, report },
-    });
+     data: { status: "COMPLETE", riskScore, recommendation: recommendation as never, report: report as never },});
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await prisma.decision.update({
