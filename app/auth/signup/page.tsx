@@ -9,15 +9,17 @@ import { QuantumLogo } from "@/components/ui/QuantumLogo";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-
-const roles = [
-  { id: "FOUNDER", label: "Founder", desc: "Building the future" },
-  { id: "INVESTOR", label: "Investor", desc: "Deploying capital" },
-  { id: "EXECUTIVE", label: "Executive", desc: "Leading organizations" },
-];
+import { useLanguage } from "@/lib/i18n";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { t } = useLanguage();
+
+  const roles = [
+    { id: "FOUNDER", label: t.auth.signup.founder, desc: t.auth.signup.founderDesc },
+    { id: "INVESTOR", label: t.auth.signup.investor, desc: t.auth.signup.investorDesc },
+    { id: "EXECUTIVE", label: t.auth.signup.executive, desc: t.auth.signup.executiveDesc },
+  ];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -82,8 +84,8 @@ export default function SignUpPage() {
         </div>
 
         <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-8">
-          <h1 className="text-xl font-bold text-white mb-1">Join Quantum Early Access</h1>
-          <p className="text-sm text-[#888888] mb-6">All features free during Early Access. No credit card required.</p>
+          <h1 className="text-xl font-bold text-white mb-1">{t.auth.signup.title}</h1>
+          <p className="text-sm text-[#888888] mb-6">{t.auth.signup.subtitle}</p>
 
           {error && (
             <div className="flex items-center gap-2 px-3 py-2.5 bg-danger/10 border border-danger/20 rounded mb-4 text-sm text-danger">
@@ -94,14 +96,14 @@ export default function SignUpPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Full Name"
+              label={t.auth.signup.name}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Alex Chen"
               autoComplete="name"
             />
             <Input
-              label="Work Email"
+              label={t.auth.signup.email}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -109,11 +111,11 @@ export default function SignUpPage() {
               autoComplete="email"
             />
             <Input
-              label="Password"
+              label={t.auth.signup.password}
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min. 8 characters"
+              placeholder={t.auth.signup.passwordHint}
               autoComplete="new-password"
               suffix={
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="hover:text-white transition-colors">
@@ -123,7 +125,7 @@ export default function SignUpPage() {
             />
 
             <div>
-              <label className="text-sm font-medium text-[#888888] mb-2 block">Select Your Role</label>
+              <label className="text-sm font-medium text-[#888888] mb-2 block">{t.auth.signup.selectRole}</label>
               <div className="grid grid-cols-3 gap-2">
                 {roles.map((r) => (
                   <button
@@ -150,13 +152,13 @@ export default function SignUpPage() {
             </div>
 
             <Button type="submit" loading={loading} disabled={!role} className="w-full gap-2 mt-2">
-              Create Account <ArrowRight className="w-4 h-4" />
+              {t.auth.signup.createAccount} <ArrowRight className="w-4 h-4" />
             </Button>
           </form>
 
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px bg-[#1a1a1a]" />
-            <span className="text-xs text-[#444444]">or</span>
+            <span className="text-xs text-[#444444]">{t.common.or}</span>
             <div className="flex-1 h-px bg-[#1a1a1a]" />
           </div>
 
@@ -171,21 +173,21 @@ export default function SignUpPage() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
             </svg>
-            {googleLoading ? "Connecting..." : "Continue with Google"}
+            {googleLoading ? t.common.loading : t.auth.signup.continueWithGoogle}
           </button>
 
           <p className="text-xs text-[#444444] text-center mt-4">
-            By creating an account, you agree to our{" "}
-            <a href="#" className="text-[#888888] hover:text-gold transition-colors">Terms of Service</a>
-            {" "}and{" "}
-            <a href="#" className="text-[#888888] hover:text-gold transition-colors">Privacy Policy</a>.
+            {t.auth.signup.terms}{" "}
+            <a href="#" className="text-[#888888] hover:text-gold transition-colors">{t.auth.signup.termsLink}</a>
+            {" "}{t.auth.signup.and}{" "}
+            <a href="#" className="text-[#888888] hover:text-gold transition-colors">{t.auth.signup.privacyLink}</a>.
           </p>
         </div>
 
         <p className="text-center text-sm text-[#888888] mt-6">
-          Already have an account?{" "}
+          {t.auth.signup.alreadyHaveAccount}{" "}
           <Link href="/auth/signin" className="text-gold hover:text-gold-light transition-colors font-medium">
-            Sign in
+            {t.auth.signup.signIn}
           </Link>
         </p>
       </motion.div>

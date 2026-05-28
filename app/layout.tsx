@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Josefin_Sans, Cormorant_Garamond } from "next/font/google";
+import { Inter, Josefin_Sans, Cormorant_Garamond, Noto_Sans_SC } from "next/font/google";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { LanguageProvider } from "@/lib/i18n";
 import "./globals.css";
 
 const inter = Inter({
@@ -23,6 +24,15 @@ const cormorantGaramond = Cormorant_Garamond({
   display: "swap",
 });
 
+const notoSansSC = Noto_Sans_SC({
+  // @ts-ignore - chinese-simplified is valid at runtime despite type mismatch
+  subsets: ["chinese-simplified"],
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-sc",
+  display: "swap",
+  preload: false,
+});
+
 export const metadata: Metadata = {
   title: "Quantum — Where Serious People Make Serious Decisions",
   description:
@@ -41,9 +51,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${josefinSans.variable} ${cormorantGaramond.variable}`}>
+    <html lang="en" className={`${inter.variable} ${josefinSans.variable} ${cormorantGaramond.variable} ${notoSansSC.variable}`}>
       <body className="bg-[#080808] text-white antialiased font-sans">
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </SessionProvider>
       </body>
     </html>
   );

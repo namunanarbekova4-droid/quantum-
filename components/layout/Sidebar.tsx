@@ -3,21 +3,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { QuantumLogo } from "@/components/ui/QuantumLogo";
+import { useLanguage } from "@/lib/i18n";
 import {
   LayoutDashboard, Clock, Globe, Bell, Trophy, BarChart2,
   Lock, Settings, ChevronRight, Star
 } from "lucide-react";
-
-const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "History", href: "/dashboard/history", icon: Clock },
-  { label: "Market Intelligence", href: "/dashboard/market", icon: Globe },
-  { label: "Alerts", href: "/dashboard/alerts", icon: Bell },
-  { label: "Leaderboard", href: "/dashboard/leaderboard", icon: Trophy },
-  { label: "Insights", href: "/dashboard/insights", icon: BarChart2 },
-  { label: "Private Rooms", href: "/dashboard/rooms", icon: Lock },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
-];
 
 interface SidebarProps {
   plan?: string;
@@ -26,6 +16,18 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { label: t.nav.dashboard, href: "/dashboard", icon: LayoutDashboard },
+    { label: t.nav.history, href: "/dashboard/history", icon: Clock },
+    { label: t.nav.marketIntelligence, href: "/dashboard/market", icon: Globe },
+    { label: t.nav.alerts, href: "/dashboard/alerts", icon: Bell },
+    { label: t.nav.leaderboard, href: "/dashboard/leaderboard", icon: Trophy },
+    { label: t.nav.insights, href: "/dashboard/insights", icon: BarChart2 },
+    { label: t.nav.privateRooms, href: "/dashboard/rooms", icon: Lock },
+    { label: t.nav.settings, href: "/dashboard/settings", icon: Settings },
+  ];
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -73,7 +75,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         <div className="p-4 border-t border-[#1a1a1a]">
           <div className="flex items-center gap-2 px-3 py-2 bg-gold/5 border border-gold/20 rounded-lg" title="One of Quantum's earliest members.">
             <Star className="w-3 h-3 text-gold flex-shrink-0" />
-            <span className="text-xs font-semibold text-gold">Founding Member</span>
+            <span className="text-xs font-semibold text-gold">{t.nav.foundingMember}</span>
           </div>
         </div>
       )}

@@ -1,32 +1,37 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { motion } from "framer-motion";
-import { User, Shield, Bell, Eye, CreditCard, AlertTriangle, Clock } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, Shield, Bell, Eye, CreditCard, AlertTriangle, Clock, X } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-
-const tabs = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "account", label: "Account", icon: Shield },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "privacy", label: "Privacy", icon: Eye },
-  { id: "billing", label: "Billing", icon: CreditCard },
-];
-
-const notifSettings = [
-  { id: "alerts", label: "Alert Triggers", desc: "When a monitored alert fires", enabled: true },
-  { id: "decisions", label: "Decision Analysis Complete", desc: "When your analysis is ready", enabled: true },
-  { id: "reports", label: "Weekly Reports", desc: "New intelligence reports published", enabled: true },
-  { id: "rooms", label: "Private Room Activity", desc: "New messages in your rooms", enabled: false },
-  { id: "leaderboard", label: "Leaderboard Changes", desc: "When your rank changes", enabled: false },
-];
+import { useLanguage } from "@/lib/i18n";
 
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
+  const { t } = useLanguage();
+  const { toast } = useToast();
+
+  const tabs = [
+    { id: "profile", label: t.settings.tabs.profile, icon: User },
+    { id: "account", label: t.settings.tabs.account, icon: Shield },
+    { id: "notifications", label: t.settings.tabs.notifications, icon: Bell },
+    { id: "privacy", label: t.settings.tabs.privacy, icon: Eye },
+    { id: "billing", label: t.settings.tabs.billing, icon: CreditCard },
+  ];
+
+  const notifSettingsDefault = [
+    { id: "alerts", label: t.settings.notifications.alertTriggers, desc: t.settings.notifications.alertTriggersDesc, enabled: true },
+    { id: "decisions", label: t.settings.notifications.decisionAnalysis, desc: t.settings.notifications.decisionAnalysisDesc, enabled: true },
+    { id: "reports", label: t.settings.notifications.weeklyReports, desc: t.settings.notifications.weeklyReportsDesc, enabled: true },
+    { id: "rooms", label: t.settings.notifications.privateRoomActivity, desc: t.settings.notifications.privateRoomActivityDesc, enabled: false },
+    { id: "leaderboard", label: t.settings.notifications.leaderboardChanges, desc: t.settings.notifications.leaderboardChangesDesc, enabled: false },
+  ];
+
   const [tab, setTab] = useState("profile");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -35,10 +40,17 @@ export default function SettingsPage() {
   const [industry, setIndustry] = useState("");
   const [role, setRole] = useState("FOUNDER");
   const [avatarImage, setAvatarImage] = useState("");
-  const [notifs, setNotifs] = useState(notifSettings);
+  const [notifs, setNotifs] = useState(notifSettingsDefault);
   const [publicProfile, setPublicProfile] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
+  const [privacySaving, setPrivacySaving] = useState(false);
+
+  // Delete modal state
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -68,12 +80,43 @@ export default function SettingsPage() {
     setSaving(false);
     if (res.ok) {
       await updateSession({ name });
-      setSaveMsg("Saved!");
+      setSaveMsg(t.common.saved);
       setTimeout(() => setSaveMsg(""), 3000);
     }
   };
 
-  const { toast } = useToast();
+  const savePrivacy = async () => {
+    setPrivacySaving(true);
+    const res = await fetch("/api/user/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publicProfile }),
+    });
+    setPrivacySaving(false);
+    if (res.ok) {
+      toast(t.settings.privacy.saveSuccess, "success");
+    } else {
+      toast(t.settings.privacy.saveError, "error");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteInput !== "DELETE") return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/user/delete", { method: "DELETE" });
+      if (res.ok) {
+        toast(t.deleteModal.successToast, "success");
+        setTimeout(() => signOut({ callbackUrl: "/" }), 1500);
+      } else {
+        toast(t.deleteModal.errorToast, "error");
+        setDeleting(false);
+      }
+    } catch {
+      toast(t.deleteModal.errorToast, "error");
+      setDeleting(false);
+    }
+  };
 
   const toggleNotif = (id: string) =>
     setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, enabled: !n.enabled } : n)));
@@ -106,22 +149,22 @@ export default function SettingsPage() {
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-text-secondary mt-1">Manage your account, preferences, and billing.</p>
+        <h1 className="text-2xl font-bold text-white">{t.settings.title}</h1>
+        <p className="text-text-secondary mt-1">{t.settings.subtitle}</p>
       </motion.div>
 
       <div className="mt-6 flex gap-1 flex-wrap border-b border-[#1a1a1a] pb-px">
-        {tabs.map((t) => {
-          const Icon = t.icon;
+        {tabs.map((tb) => {
+          const Icon = tb.icon;
           return (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tb.id}
+              onClick={() => setTab(tb.id)}
               className={cn("flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 border-b-2 -mb-px",
-                tab === t.id ? "text-gold border-gold" : "text-text-secondary border-transparent hover:text-white"
+                tab === tb.id ? "text-gold border-gold" : "text-text-secondary border-transparent hover:text-white"
               )}
             >
-              <Icon className="w-4 h-4" /> {t.label}
+              <Icon className="w-4 h-4" /> {tb.label}
             </button>
           );
         })}
@@ -130,7 +173,7 @@ export default function SettingsPage() {
       <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} className="mt-6">
         {tab === "profile" && (
           <Card className="p-6 space-y-5">
-            <h2 className="text-base font-semibold text-white">Profile Information</h2>
+            <h2 className="text-base font-semibold text-white">{t.settings.profile.title}</h2>
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gold/20 border border-gold/30 rounded-lg overflow-hidden flex items-center justify-center text-gold text-2xl font-bold flex-shrink-0">
                 {avatarImage ? (
@@ -146,7 +189,7 @@ export default function SettingsPage() {
                   onClick={() => fileInputRef.current?.click()}
                   className="text-sm text-gold hover:text-gold/80 transition-colors border border-gold/30 hover:border-gold/60 px-3 py-1.5 rounded"
                 >
-                  Upload Photo
+                  {t.settings.profile.uploadPhoto}
                 </button>
                 {avatarImage && (
                   <button
@@ -154,48 +197,48 @@ export default function SettingsPage() {
                     onClick={() => setAvatarImage("")}
                     className="text-xs text-text-secondary hover:text-danger transition-colors"
                   >
-                    Remove
+                    {t.settings.profile.remove}
                   </button>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input label="Full Name" value={name} onChange={(e) => setName(e.target.value)} />
-              <Input label="Email Address" value={email} type="email" disabled className="opacity-60 cursor-not-allowed" onChange={() => {}} />
-              <Input label="Company" value={company} onChange={(e) => setCompany(e.target.value)} />
+              <Input label={t.settings.profile.fullName} value={name} onChange={(e) => setName(e.target.value)} />
+              <Input label={t.settings.profile.emailAddress} value={email} type="email" disabled className="opacity-60 cursor-not-allowed" onChange={() => {}} />
+              <Input label={t.settings.profile.company} value={company} onChange={(e) => setCompany(e.target.value)} />
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-text-secondary">Role</label>
+                <label className="text-sm font-medium text-text-secondary">{t.settings.profile.role}</label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                   className="h-10 px-3 bg-[#111111] border border-[#1a1a1a] text-white text-sm rounded focus:outline-none focus:border-gold/50 transition-all duration-200"
                 >
-                  <option value="FOUNDER">Founder</option>
-                  <option value="INVESTOR">Investor</option>
-                  <option value="EXECUTIVE">Executive</option>
+                  <option value="FOUNDER">{t.settings.profile.roleFounder}</option>
+                  <option value="INVESTOR">{t.settings.profile.roleInvestor}</option>
+                  <option value="EXECUTIVE">{t.settings.profile.roleExecutive}</option>
                 </select>
               </div>
-              <Input label="Country" value={country} onChange={(e) => setCountry(e.target.value)} />
+              <Input label={t.settings.profile.country} value={country} onChange={(e) => setCountry(e.target.value)} />
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-text-secondary">Industry</label>
+                <label className="text-sm font-medium text-text-secondary">{t.settings.profile.industry}</label>
                 <select
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
                   className="h-10 px-3 bg-[#111111] border border-[#1a1a1a] text-white text-sm rounded focus:outline-none focus:border-gold/50 transition-all duration-200"
                 >
-                  <option value="">Select industry</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Real Estate">Real Estate</option>
-                  <option value="Energy">Energy</option>
-                  <option value="Other">Other</option>
+                  <option value="">{t.settings.profile.selectIndustry}</option>
+                  <option value="Technology">{t.settings.profile.industryTech}</option>
+                  <option value="Finance">{t.settings.profile.industryFinance}</option>
+                  <option value="Healthcare">{t.settings.profile.industryHealthcare}</option>
+                  <option value="Real Estate">{t.settings.profile.industryRealEstate}</option>
+                  <option value="Energy">{t.settings.profile.industryEnergy}</option>
+                  <option value="Other">{t.settings.profile.industryOther}</option>
                 </select>
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
               {saveMsg && <span className="text-sm text-success">{saveMsg}</span>}
-              <Button onClick={save} loading={saving}>Save Changes</Button>
+              <Button onClick={save} loading={saving}>{t.common.save}</Button>
             </div>
           </Card>
         )}
@@ -203,40 +246,35 @@ export default function SettingsPage() {
         {tab === "account" && (
           <div className="space-y-4">
             <Card className="p-6 space-y-4">
-              <h2 className="text-base font-semibold text-white">Change Password</h2>
-              <Input label="Current Password" type="password" placeholder="••••••••" />
-              <Input label="New Password" type="password" placeholder="••••••••" />
-              <Input label="Confirm New Password" type="password" placeholder="••••••••" />
+              <h2 className="text-base font-semibold text-white">{t.settings.account.changePassword}</h2>
+              <Input label={t.settings.account.currentPassword} type="password" placeholder="••••••••" />
+              <Input label={t.settings.account.newPassword} type="password" placeholder="••••••••" />
+              <Input label={t.settings.account.confirmPassword} type="password" placeholder="••••••••" />
               <div className="flex items-center gap-3">
-                <Button size="sm" onClick={() => toast("Password change is coming soon.", "info")} className="gap-2">
-                  Update Password
+                <Button size="sm" onClick={() => toast(t.common.comingSoon, "info")} className="gap-2">
+                  {t.settings.account.updatePassword}
                 </Button>
                 <span className="flex items-center gap-1 text-xs text-[#555555]">
-                  <Clock className="w-3 h-3" /> Coming soon
+                  <Clock className="w-3 h-3" /> {t.common.comingSoon}
                 </span>
               </div>
             </Card>
             <Card className="p-6 border-danger/20">
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-4 h-4 text-danger" />
-                <h2 className="text-base font-semibold text-danger">Danger Zone</h2>
+                <h2 className="text-base font-semibold text-danger">{t.settings.account.dangerZone}</h2>
               </div>
-              <p className="text-sm text-text-secondary mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
-              <div className="flex items-center gap-3">
-                <Button variant="danger" size="sm" onClick={() => toast("Account deletion is coming soon. Contact support if this is urgent.", "info")}>
-                  Delete Account
-                </Button>
-                <span className="flex items-center gap-1 text-xs text-[#555555]">
-                  <Clock className="w-3 h-3" /> Coming soon
-                </span>
-              </div>
+              <p className="text-sm text-text-secondary mb-4">{t.settings.account.dangerDesc}</p>
+              <Button variant="danger" size="sm" onClick={() => setDeleteOpen(true)}>
+                {t.settings.account.deleteAccount}
+              </Button>
             </Card>
           </div>
         )}
 
         {tab === "notifications" && (
           <Card className="p-6">
-            <h2 className="text-base font-semibold text-white mb-6">Notification Preferences</h2>
+            <h2 className="text-base font-semibold text-white mb-6">{t.settings.notifications.title}</h2>
             <div className="space-y-5">
               {notifs.map((n) => (
                 <div key={n.id} className="flex items-center justify-between">
@@ -258,11 +296,11 @@ export default function SettingsPage() {
 
         {tab === "privacy" && (
           <Card className="p-6 space-y-6">
-            <h2 className="text-base font-semibold text-white">Privacy Settings</h2>
+            <h2 className="text-base font-semibold text-white">{t.settings.privacy.title}</h2>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-white">Public Profile</p>
-                <p className="text-xs text-text-secondary">Show your profile on the global leaderboard</p>
+                <p className="text-sm font-medium text-white">{t.settings.privacy.publicProfile}</p>
+                <p className="text-xs text-text-secondary">{t.settings.privacy.publicProfileDesc}</p>
               </div>
               <button
                 onClick={() => setPublicProfile(!publicProfile)}
@@ -272,11 +310,11 @@ export default function SettingsPage() {
               </button>
             </div>
             <div className="pt-4 border-t border-[#1a1a1a]">
-              <p className="text-sm font-medium text-white mb-2">Data Usage</p>
-              <p className="text-xs text-text-secondary leading-relaxed">Your decision data is used to improve analysis quality. We never share individual decision content with third parties. All data is encrypted at rest and in transit.</p>
+              <p className="text-sm font-medium text-white mb-2">{t.settings.privacy.dataUsage}</p>
+              <p className="text-xs text-text-secondary leading-relaxed">{t.settings.privacy.dataUsageDesc}</p>
             </div>
             <div className="flex justify-end">
-              <Button onClick={save} loading={saving}>Save Changes</Button>
+              <Button onClick={savePrivacy} loading={privacySaving}>{t.common.save}</Button>
             </div>
           </Card>
         )}
@@ -288,29 +326,25 @@ export default function SettingsPage() {
                 <div className="w-8 h-8 bg-gold/10 border border-gold/20 rounded-lg flex items-center justify-center">
                   <CreditCard className="w-4 h-4 text-gold" />
                 </div>
-                <h2 className="text-base font-semibold text-white">Billing</h2>
+                <h2 className="text-base font-semibold text-white">{t.settings.billing.title}</h2>
               </div>
               <div className="p-5 bg-gold/5 border border-gold/20 rounded-lg mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-bold text-gold">Early Access</span>
-                  <span className="px-2 py-0.5 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold">Founding Member</span>
+                  <span className="text-sm font-bold text-gold">{t.settings.billing.earlyAccess}</span>
+                  <span className="px-2 py-0.5 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold">{t.settings.billing.foundingMember}</span>
                 </div>
-                <p className="text-sm text-text-secondary leading-relaxed">
-                  Quantum is currently free during Early Access. You have full access to all features as a founding member.
-                </p>
+                <p className="text-sm text-text-secondary leading-relaxed">{t.settings.billing.earlyAccessDesc}</p>
               </div>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                We are focused on building the best decision intelligence platform before introducing subscriptions. Early Access members will receive founding member pricing when paid plans launch.
-              </p>
+              <p className="text-xs text-text-secondary leading-relaxed">{t.settings.billing.earlyAccessNote}</p>
             </Card>
             <Card className="p-6">
-              <h3 className="text-sm font-semibold text-[#555555] uppercase tracking-wider mb-4">Future Plans</h3>
-              <p className="text-xs text-text-secondary mb-4">These are the pricing tiers we&apos;re planning for after Early Access ends.</p>
+              <h3 className="text-sm font-semibold text-[#555555] uppercase tracking-wider mb-4">{t.settings.billing.futurePlans}</h3>
+              <p className="text-xs text-text-secondary mb-4">{t.settings.billing.futurePlansDesc}</p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { name: "Pro", price: "$25/mo", desc: "Individual decision makers" },
-                  { name: "Max", price: "$99/mo", desc: "Power users and teams" },
-                  { name: "Premium", price: "Custom", desc: "Enterprise organizations" },
+                  { name: t.settings.billing.pro, price: "$25/mo", desc: t.settings.billing.proDesc },
+                  { name: t.settings.billing.max, price: "$99/mo", desc: t.settings.billing.maxDesc },
+                  { name: t.settings.billing.premium, price: "Custom", desc: t.settings.billing.premiumDesc },
                 ].map((p) => (
                   <div key={p.name} className="p-3 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg">
                     <p className="text-sm font-semibold text-white">{p.name}</p>
@@ -323,6 +357,105 @@ export default function SettingsPage() {
           </div>
         )}
       </motion.div>
+
+      {/* Delete Account Modal */}
+      <AnimatePresence>
+        {deleteOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget && !deleting) { setDeleteOpen(false); setDeleteInput(""); } }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-md bg-[#0d0d0d] border border-[#2a1a1a] rounded-2xl shadow-2xl overflow-hidden"
+            >
+              {/* Header */}
+              <div className="px-6 pt-6 pb-4 border-b border-[#1a1a1a] flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-danger/10 border border-danger/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="w-4 h-4 text-danger" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-white">{t.deleteModal.title}</h2>
+                    <p className="text-xs text-text-secondary mt-0.5 leading-relaxed">{t.deleteModal.subtitle}</p>
+                  </div>
+                </div>
+                {!deleting && (
+                  <button
+                    onClick={() => { setDeleteOpen(false); setDeleteInput(""); }}
+                    className="text-text-secondary hover:text-white transition-colors ml-3 flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Warning */}
+              <div className="px-6 py-4">
+                <div className="bg-danger/5 border border-danger/15 rounded-lg p-4 mb-5">
+                  <p className="text-xs font-semibold text-danger mb-2">{t.deleteModal.willLose}</p>
+                  <ul className="space-y-1.5">
+                    {t.deleteModal.loseItems.map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-xs text-[#cc6666]">
+                        <span className="w-1 h-1 rounded-full bg-danger/50 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Confirmation input */}
+                <div className="space-y-2 mb-5">
+                  <label className="text-xs font-medium text-text-secondary">{t.deleteModal.confirmLabel}</label>
+                  <input
+                    type="text"
+                    value={deleteInput}
+                    onChange={(e) => setDeleteInput(e.target.value)}
+                    placeholder={t.deleteModal.confirmPlaceholder}
+                    disabled={deleting}
+                    className="w-full h-10 px-3 bg-[#111111] border border-[#2a2a2a] text-white text-sm rounded-lg focus:outline-none focus:border-danger/40 transition-all font-mono tracking-widest placeholder:tracking-normal placeholder:font-sans placeholder:text-[#444444] disabled:opacity-50"
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setDeleteOpen(false); setDeleteInput(""); }}
+                    disabled={deleting}
+                    className="flex-1 h-10 px-4 text-sm font-medium text-text-secondary hover:text-white bg-[#111111] hover:bg-[#161616] border border-[#2a2a2a] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {t.deleteModal.cancel}
+                  </button>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleteInput !== "DELETE" || deleting}
+                    className={cn(
+                      "flex-1 h-10 px-4 text-sm font-medium rounded-lg transition-all",
+                      deleteInput === "DELETE" && !deleting
+                        ? "bg-danger text-white hover:bg-danger/90 cursor-pointer"
+                        : "bg-danger/20 text-danger/40 cursor-not-allowed"
+                    )}
+                  >
+                    {deleting ? t.deleteModal.deleting : t.deleteModal.deletePermanently}
+                  </button>
+                </div>
+              </div>
+
+              {/* Gold accent bottom bar */}
+              <div className="h-px bg-gradient-to-r from-transparent via-danger/20 to-transparent" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
