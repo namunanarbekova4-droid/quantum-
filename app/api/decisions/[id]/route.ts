@@ -32,7 +32,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
   await prisma.decision.update({
     where: { id: params.id },
-    data: { status: "ANALYZING", report: null, riskScore: null, recommendation: null },
+    data: { status: "ANALYZING", report: null as never, riskScore: null as never, recommendation: null as never },
   });
 
   try {
@@ -44,7 +44,7 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
 
     const updated = await prisma.decision.update({
       where: { id: params.id },
-      data: { status: "COMPLETE", riskScore, recommendation: recommendation as never, report },
+      data: { status: "COMPLETE", riskScore, recommendation: recommendation as never, report as never },
     });
     return NextResponse.json(updated);
   } catch (err) {
