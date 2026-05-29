@@ -187,9 +187,14 @@ export default function DecisionPage() {
                 <AlertCircle className="w-6 h-6 text-[#555555]" />
               </div>
               <h2 className="text-lg font-bold text-white mb-2">Analysis interrupted</h2>
-              <p className="text-sm text-text-secondary max-w-sm mx-auto mb-8 leading-relaxed">
+              <p className="text-sm text-text-secondary max-w-sm mx-auto mb-4 leading-relaxed">
                 We encountered an issue while generating deeper intelligence. This is usually resolved by retrying.
               </p>
+              {report._error && (
+                <p className="text-xs font-mono text-danger/70 bg-danger/5 border border-danger/10 rounded px-3 py-2 max-w-sm mx-auto mb-8 text-left break-all">
+                  {String(report._error)}
+                </p>
+              )}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button onClick={handleRetry} loading={retrying} className="gap-2">
                   <RefreshCw className="w-4 h-4" /> Retry Analysis
