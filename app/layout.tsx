@@ -25,7 +25,7 @@ const cormorantGaramond = Cormorant_Garamond({
 });
 
 const notoSansSC = Noto_Sans_SC({
-  // @ts-ignore - chinese-simplified is valid at runtime despite type mismatch
+  // @ts-expect-error - chinese-simplified is valid at runtime despite type mismatch
   subsets: ["chinese-simplified"],
   weight: ["400", "500", "700"],
   variable: "--font-noto-sc",
