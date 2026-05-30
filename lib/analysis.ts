@@ -33,15 +33,42 @@ const TYPE_GUIDANCE: Record<string, string> = {
   GENERAL: "Analyze the specific strategic risk factors present. riskScore typically 25–65.",
 };
 
-export function buildPrompt(decisionText: string, type: string, role: string): string {
+type PastDecision = {
+  title: string;
+  type: string;
+  riskScore: number | null;
+  recommendation: string | null;
+  createdAt: Date | string;
+};
+
+export function buildHistoricalContext(pastDecisions: PastDecision[]): string {
+  if (!pastDecisions || pastDecisions.length < 2) return "";
+
+  const lines = pastDecisions.map((d) => {
+    const date = new Date(d.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    return `- "${d.title}" (${d.type.replace(/_/g, " ")}, risk: ${d.riskScore ?? "?"}, verdict: ${d.recommendation ?? "?"}, ${date})`;
+  });
+
+  return `\nUser's past strategic decisions for context:\n${lines.join("\n")}`;
+}
+
+export function buildPrompt(
+  decisionText: string,
+  type: string,
+  role: string,
+  pastDecisions?: PastDecision[]
+): string {
   const roleCtx = ROLE_CONTEXT[role] ?? "a business decision-maker";
   const typeGuidance = TYPE_GUIDANCE[type] ?? TYPE_GUIDANCE.GENERAL;
+  const hasHistory = pastDecisions && pastDecisions.length >= 2;
+  const historicalCtx = hasHistory ? buildHistoricalContext(pastDecisions!) : "";
 
   return `You are Quantum Intelligence — an elite strategic AI advisor to ${roleCtx}.
 
 Decision submitted: "${decisionText}"
 Category: ${type.replace(/_/g, " ")}
 Risk calibration guidance: ${typeGuidance}
+${historicalCtx}
 
 Your task: Produce rigorous, specific analysis of THIS decision. Every data point must reflect the actual content — never use templates or defaults.
 
@@ -50,6 +77,7 @@ Scoring rules:
 - confidence.score: Reflect how much context is available. One vague sentence → 35–55. Detailed decision → 70–90.
 - recommendation: Must follow logically from the pros/cons and risk level.
 - All text must be specific to THIS decision. No generic filler.
+${hasHistory ? `- historicalContext: Analyze the past decisions provided and identify if any are similar. If similar patterns exist, set hasSimilar to true and summarize them in 1-2 sentences. List specific similar past decisions with their timing.` : ""}
 
 Return ONLY raw JSON. No markdown. No code fences. No preamble.
 
@@ -73,14 +101,20 @@ Return ONLY raw JSON. No markdown. No code fences. No preamble.
     "score": <integer 0–100 reflecting information completeness>,
     "explanation": "Why you have this confidence level — reference what context you have and what is missing about this specific decision",
     "missingData": ["specific missing context that would change this analysis", "second missing input that would sharpen the recommendation"]
-  }
+  }${hasHistory ? `,
+  "historicalContext": {
+    "hasSimilar": <true or false>,
+    "summary": "Short summary of relevant past patterns (1-2 sentences)",
+    "similarDecisions": ["description of similar past decision with timing"]
+  }` : ""}
 }`;
 }
 
 export async function runDecisionAnalysis(
   decisionText: string,
   type: string,
-  userRole: string
+  userRole: string,
+  pastDecisions?: PastDecision[]
 ): Promise<Record<string, unknown>> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
@@ -88,10 +122,10 @@ export async function runDecisionAnalysis(
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: "gemini-2.0-flash-lite",
-    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+    generationConfig: { temperature: 0.7, maxOutputTokens: 1200 },
   });
 
-  const prompt = buildPrompt(decisionText, type, userRole);
+  const prompt = buildPrompt(decisionText, type, userRole, pastDecisions);
   let lastError: unknown;
 
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -109,6 +143,12 @@ export async function runDecisionAnalysis(
       const parsed = JSON.parse(cleaned);
       if (typeof parsed.riskScore !== "number") throw new Error("Missing or invalid riskScore in response");
       if (!parsed.summary) throw new Error("Missing summary in response");
+
+      // Ensure historicalContext is null if no past decisions or fewer than 2
+      if (!pastDecisions || pastDecisions.length < 2) {
+        parsed.historicalContext = null;
+      }
+
       return parsed;
     } catch (e) {
       lastError = e;

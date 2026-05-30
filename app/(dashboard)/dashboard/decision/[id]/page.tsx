@@ -27,8 +27,219 @@ interface DecisionReport {
   benchmark?: { label?: string; successRate?: number; insight?: string; context?: string };
   confidence?: { score?: number; explanation?: string; missingData?: string[] };
   outcome?: "GOOD" | "BAD" | "UNKNOWN";
+  historicalContext?: { hasSimilar: boolean; summary: string; similarDecisions: string[] } | null;
   _failed?: boolean;
   _error?: string;
+}
+
+interface JournalData {
+  why?: string;
+  biggestFear?: string;
+  keyAssumption?: string;
+  expectedOutcome?: string;
+  deadline?: string;
+}
+
+interface DecisionOutcomeRecord {
+  id: string;
+  daysAfter: number;
+  result: string;
+  notes?: string;
+  createdAt: string;
+}
+
+// ─── Decision Journal Widget ──────────────────────────────────────────────────
+
+function DecisionJournal({ decisionId }: { decisionId: string }) {
+  const [open, setOpen] = useState(false);
+  const [journal, setJournal] = useState<JournalData>({});
+  const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/decisions/${decisionId}/journal`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setJournal(data); });
+  }, [decisionId]);
+
+  const saveField = async (field: string, value: string) => {
+    if (loading) return;
+    setLoading(true);
+    const updated = { ...journal, [field]: value };
+    setJournal(updated);
+    await fetch(`/api/decisions/${decisionId}/journal`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updated),
+    });
+    setLoading(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const fields: { key: keyof JournalData; label: string; placeholder: string; type?: string }[] = [
+    { key: "why", label: "Why are you making this decision?", placeholder: "What's driving this decision right now..." },
+    { key: "biggestFear", label: "Biggest fear", placeholder: "What outcome are you most afraid of..." },
+    { key: "keyAssumption", label: "Key assumption", placeholder: "What must be true for this to work..." },
+    { key: "expectedOutcome", label: "Expected outcome", placeholder: "What does success look like in 90 days..." },
+    { key: "deadline", label: "Decision deadline", placeholder: "", type: "date" },
+  ];
+
+  return (
+    <Card className="p-5 sm:p-6">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center justify-between w-full group"
+      >
+        <div className="flex items-center gap-2">
+          <Brain className="w-4 h-4 text-gold" />
+          <h2 className="text-sm font-semibold text-white group-hover:text-gold transition-colors">Decision Journal</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          {saved && <span className="text-xs text-success flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Saved</span>}
+          <ChevronDown className={cn("w-4 h-4 text-text-secondary transition-transform duration-200", open && "rotate-180")} />
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <p className="text-xs text-text-secondary mt-4 mb-5">
+              Capture your reasoning now. Future-you will thank you.
+            </p>
+            <div className="space-y-4">
+              {fields.map(({ key, label, placeholder, type }) => (
+                <div key={key}>
+                  <label className="block text-xs font-medium text-[#888888] mb-1.5">{label}</label>
+                  {type === "date" ? (
+                    <input
+                      type="date"
+                      defaultValue={journal[key] ? String(journal[key]).slice(0, 10) : ""}
+                      onBlur={(e) => saveField(key, e.target.value)}
+                      className="w-full bg-[#0d0d0d] border border-[#1a1a1a] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-gold/40 transition-colors"
+                    />
+                  ) : (
+                    <textarea
+                      defaultValue={journal[key] ? String(journal[key]) : ""}
+                      placeholder={placeholder}
+                      rows={2}
+                      onBlur={(e) => saveField(key, e.target.value)}
+                      className="w-full resize-none bg-[#0d0d0d] border border-[#1a1a1a] rounded px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-gold/40 transition-colors"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
+  );
+}
+
+// ─── Follow-up Tracker ────────────────────────────────────────────────────────
+
+function FollowUpTracker({ decisionId, createdAt }: { decisionId: string; createdAt: string }) {
+  const [outcomes, setOutcomes] = useState<DecisionOutcomeRecord[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [selected, setSelected] = useState<{ daysAfter: number; result: string; notes: string } | null>(null);
+  const { toast } = useToast();
+
+  const decisionDate = new Date(createdAt);
+  const now = new Date();
+  const daysSince = Math.floor((now.getTime() - decisionDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  useEffect(() => {
+    fetch(`/api/decisions/${decisionId}/outcome`)
+      .then((r) => r.ok ? r.json() : [])
+      .then(setOutcomes);
+  }, [decisionId]);
+
+  const checkpoints = [7, 30, 90];
+  const dueCheckpoints = checkpoints.filter((d) => {
+    if (daysSince < d) return false;
+    return !outcomes.some((o) => o.daysAfter === d);
+  });
+
+  if (dueCheckpoints.length === 0) return null;
+
+  const resultOptions = [
+    { value: "SUCCEEDED", label: "Succeeded", color: "text-success border-success/30 bg-success/10" },
+    { value: "PARTIAL", label: "Partially", color: "text-gold border-gold/30 bg-gold/10" },
+    { value: "FAILED", label: "Failed", color: "text-danger border-danger/30 bg-danger/10" },
+    { value: "ONGOING", label: "Still ongoing", color: "text-[#888] border-[#2a2a2a] bg-[#1a1a1a]" },
+  ];
+
+  const submit = async () => {
+    if (!selected || submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/decisions/${decisionId}/outcome`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selected),
+      });
+      if (res.ok) {
+        const newOutcome = await res.json();
+        setOutcomes((prev) => [...prev, newOutcome]);
+        setSelected(null);
+        toast("Outcome recorded. This trains your strategic intelligence.", "success");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Card className="p-5 sm:p-6 border-gold/20">
+      <div className="flex items-center gap-2 mb-4">
+        <Target className="w-4 h-4 text-gold" />
+        <h2 className="text-sm font-semibold text-white">Follow-up Check-in</h2>
+        <span className="text-xs text-gold bg-gold/10 border border-gold/20 rounded px-2 py-0.5 ml-auto">
+          {dueCheckpoints[0]}-day review due
+        </span>
+      </div>
+      <p className="text-xs text-text-secondary mb-4">
+        It&apos;s been {daysSince} days. What happened with this decision?
+      </p>
+
+      <input type="hidden" value={dueCheckpoints[0]} />
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {resultOptions.map(({ value, label, color }) => (
+          <button
+            key={value}
+            onClick={() => setSelected((prev) => ({ daysAfter: dueCheckpoints[0], result: value, notes: prev?.notes ?? "" }))}
+            className={cn(
+              "px-3 py-1.5 text-sm rounded border transition-all",
+              selected?.result === value ? color : "border-[#1a1a1a] text-text-secondary hover:border-[#2a2a2a] hover:text-white"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {selected && (
+        <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+          <textarea
+            placeholder="Any notes on what happened? (optional)"
+            rows={2}
+            value={selected.notes}
+            onChange={(e) => setSelected({ ...selected, notes: e.target.value })}
+            className="w-full resize-none bg-[#0d0d0d] border border-[#1a1a1a] rounded px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-gold/40 transition-colors"
+          />
+          <Button size="sm" onClick={submit} loading={submitting}>Record Outcome</Button>
+        </motion.div>
+      )}
+    </Card>
+  );
 }
 
 interface Decision {
@@ -719,6 +930,28 @@ export default function DecisionPage() {
           )}
         </motion.div>
 
+        {/* Strategic Memory (Historical Context) */}
+        {report.historicalContext?.hasSimilar && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+            <div className="border border-gold/30 bg-gold/5 rounded-lg p-5 sm:p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Brain className="w-4 h-4 text-gold flex-shrink-0" />
+                <h2 className="text-sm font-semibold text-gold">Strategic Memory</h2>
+              </div>
+              <p className="text-sm text-white leading-relaxed mb-3">{report.historicalContext.summary}</p>
+              {report.historicalContext.similarDecisions?.length > 0 && (
+                <ul className="space-y-1.5">
+                  {report.historicalContext.similarDecisions.map((d, i) => (
+                    <li key={i} className="text-xs text-text-secondary flex items-start gap-2">
+                      <span className="text-gold flex-shrink-0">·</span> {d}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         {/* Executive Summary */}
         {report.summary && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -867,6 +1100,16 @@ export default function DecisionPage() {
             </Card>
           </motion.div>
         )}
+
+        {/* Decision Journal */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
+          <DecisionJournal decisionId={decision.id} />
+        </motion.div>
+
+        {/* Follow-up Tracker */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.29 }}>
+          <FollowUpTracker decisionId={decision.id} createdAt={decision.createdAt} />
+        </motion.div>
 
         {/* Outcome Feedback */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>

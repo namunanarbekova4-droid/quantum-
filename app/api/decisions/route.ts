@@ -23,7 +23,14 @@ export async function POST(req: Request) {
   });
 
   try {
-    const report = await runDecisionAnalysis(decisionText, type, userRole);
+    const pastDecisions = await prisma.decision.findMany({
+      where: { userId: session.user.id, status: "COMPLETE", id: { not: decision.id } },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: { title: true, type: true, riskScore: true, recommendation: true, createdAt: true },
+    });
+
+    const report = await runDecisionAnalysis(decisionText, type, userRole, pastDecisions);
 
     const riskScore = Math.min(95, Math.max(1, Math.round(Number(report.riskScore))));
     const recommendation = ["YES", "NO", "CONDITIONAL"].includes(String(report.recommendation))

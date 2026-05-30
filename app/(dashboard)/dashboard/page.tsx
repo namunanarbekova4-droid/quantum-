@@ -1,14 +1,231 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, FileText, Bell, Users } from "lucide-react";
+import { ArrowRight, FileText, Bell, Users, Brain, TrendingUp, TrendingDown, Minus, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
+
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+interface IntelligenceData {
+  score: number;
+  subScores: {
+    execution: number;
+    riskIntelligence: number;
+    timing: number;
+    consistency: number;
+    marketAwareness: number;
+  };
+  trend: "improving" | "declining" | "stable";
+  blindSpots: { pattern: string; severity: string; recommendation: string; supportCount: number }[];
+  totalDecisions: number;
+  outcomesTracked: number;
+}
+
+interface MarketSignal {
+  id: string;
+  title: string;
+  summary: string;
+  impact: string;
+  category: string;
+}
+
+// ─── Intelligence Panel ────────────────────────────────────────────────────────
+
+function IntelligencePanel() {
+  const [tab, setTab] = useState<"score" | "insights">("score");
+  const [intel, setIntel] = useState<IntelligenceData | null>(null);
+  const [signals, setSignals] = useState<MarketSignal[]>([]);
+  const [loadingIntel, setLoadingIntel] = useState(true);
+  const [loadingSignals, setLoadingSignals] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/user/intelligence")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setIntel(data); })
+      .finally(() => setLoadingIntel(false));
+
+    fetch("/api/market-radar")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (Array.isArray(data)) setSignals(data); })
+      .finally(() => setLoadingSignals(false));
+  }, []);
+
+  const subScoreLabels: { key: keyof IntelligenceData["subScores"]; label: string }[] = [
+    { key: "execution", label: "Execution" },
+    { key: "riskIntelligence", label: "Risk Intelligence" },
+    { key: "timing", label: "Timing" },
+    { key: "consistency", label: "Consistency" },
+    { key: "marketAwareness", label: "Market Awareness" },
+  ];
+
+  const TrendIcon = intel?.trend === "improving" ? TrendingUp : intel?.trend === "declining" ? TrendingDown : Minus;
+  const trendColor = intel?.trend === "improving" ? "text-green-400" : intel?.trend === "declining" ? "text-red-400" : "text-[#888]";
+
+  const impactColors: Record<string, string> = {
+    high: "text-red-400 bg-red-400/10 border-red-400/20",
+    medium: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    low: "text-[#888] bg-[#1a1a1a] border-[#2a2a2a]",
+  };
+
+  const severityColors: Record<string, string> = {
+    high: "text-red-400 bg-red-400/10 border-red-400/20",
+    medium: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    low: "text-[#888] bg-[#1a1a1a] border-[#2a2a2a]",
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* Score Card */}
+      <Card className="p-5 sm:p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Brain className="w-4 h-4 text-gold" />
+          <h2 className="text-sm font-semibold text-white">Quantum Intelligence</h2>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-5 bg-[#0d0d0d] rounded p-1">
+          {(["score", "insights"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                "flex-1 text-xs py-1.5 rounded transition-all font-medium",
+                tab === t ? "bg-[#1a1a1a] text-white" : "text-[#888] hover:text-white"
+              )}
+            >
+              {t === "score" ? "Score" : "Insights"}
+            </button>
+          ))}
+        </div>
+
+        {tab === "score" && (
+          <div>
+            {loadingIntel ? (
+              <div className="space-y-3 animate-pulse">
+                <div className="h-16 bg-[#1a1a1a] rounded w-32" />
+                <div className="h-3 bg-[#1a1a1a] rounded" />
+                <div className="h-3 bg-[#1a1a1a] rounded w-3/4" />
+              </div>
+            ) : intel?.totalDecisions === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-white mb-1">Make your first decision</p>
+                <p className="text-xs text-[#888]">Your Quantum Strategic Score will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="flex items-end gap-3">
+                  <span className="text-5xl font-bold font-mono" style={{ color: "#C9A84C" }}>
+                    {intel?.score ?? 10}
+                  </span>
+                  <div className="pb-1.5">
+                    <p className="text-xs text-[#888]">Quantum Strategic Score</p>
+                    <p className="text-xs text-[#555]">Based on {intel?.totalDecisions} decision{intel?.totalDecisions !== 1 ? "s" : ""}</p>
+                  </div>
+                  <div className={cn("ml-auto flex items-center gap-1 text-xs pb-1.5", trendColor)}>
+                    <TrendIcon className="w-3 h-3" />
+                    <span className="capitalize">{intel?.trend}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  {subScoreLabels.map(({ key, label }) => {
+                    const val = intel?.subScores[key] ?? 0;
+                    return (
+                      <div key={key}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-[#888]">{label}</span>
+                          <span className="text-white font-mono">{val}</span>
+                        </div>
+                        <div className="h-1 bg-[#1a1a1a] rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${val}%` }}
+                            transition={{ duration: 0.7, delay: 0.1 }}
+                            className="h-full rounded-full bg-gold"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "insights" && (
+          <div className="space-y-3">
+            {loadingIntel ? (
+              <div className="space-y-2 animate-pulse">
+                <div className="h-12 bg-[#1a1a1a] rounded" />
+                <div className="h-12 bg-[#1a1a1a] rounded" />
+              </div>
+            ) : !intel || intel.blindSpots.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-white mb-1">No patterns detected yet</p>
+                <p className="text-xs text-[#888]">Continue making decisions to surface blind spots.</p>
+              </div>
+            ) : (
+              intel.blindSpots.map((spot, i) => (
+                <div key={i} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-white">{spot.pattern}</span>
+                    <span className={cn("text-xs px-2 py-0.5 rounded border", severityColors[spot.severity] ?? severityColors.low)}>
+                      {spot.severity}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#888] leading-relaxed">{spot.recommendation}</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* Market Radar */}
+      <Card className="p-5 sm:p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-gold" />
+          <h2 className="text-sm font-semibold text-white">Market Radar</h2>
+          <Zap className="w-3.5 h-3.5 text-gold ml-auto" />
+        </div>
+
+        {loadingSignals ? (
+          <div className="space-y-3 animate-pulse">
+            <div className="h-14 bg-[#1a1a1a] rounded" />
+            <div className="h-14 bg-[#1a1a1a] rounded" />
+            <div className="h-14 bg-[#1a1a1a] rounded" />
+          </div>
+        ) : signals.length === 0 ? (
+          <p className="text-xs text-[#888] text-center py-4">No signals generated yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {signals.slice(0, 3).map((signal) => (
+              <div key={signal.id} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded p-3">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <p className="text-xs font-medium text-white leading-tight">{signal.title}</p>
+                  <span className={cn("text-xs px-1.5 py-0.5 rounded border flex-shrink-0", impactColors[signal.impact] ?? impactColors.low)}>
+                    {signal.impact}
+                  </span>
+                </div>
+                <p className="text-xs text-[#888] leading-relaxed line-clamp-2">{signal.summary}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+// ─── Dashboard Page ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -93,9 +310,7 @@ export default function DashboardPage() {
               <p className="text-xs text-text-secondary">{t.dashboard.noDecisionsDesc}</p>
             </Card>
           </motion.div>
-        </div>
 
-        <div className="xl:col-span-2 space-y-6">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-white">{t.dashboard.alertFeed}</h2>
@@ -109,8 +324,14 @@ export default function DashboardPage() {
               <p className="text-xs text-text-secondary leading-relaxed">{t.dashboard.noAlertsDesc}</p>
             </Card>
           </motion.div>
+        </div>
 
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
+        <div className="xl:col-span-2 space-y-6">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }}>
+            <IntelligencePanel />
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.45 }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-white">{t.dashboard.activeRooms}</h2>
               <Link href="/dashboard/rooms" className="text-xs text-text-secondary hover:text-gold transition-colors">

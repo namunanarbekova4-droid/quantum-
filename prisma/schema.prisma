@@ -87,7 +87,66 @@ model Decision {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  journal  DecisionJournal?
+  outcomes DecisionOutcome[]
+}
+
+model DecisionJournal {
+  id              String    @id @default(cuid())
+  decisionId      String    @unique
+  userId          String
+  why             String?   @db.Text
+  biggestFear     String?   @db.Text
+  keyAssumption   String?   @db.Text
+  expectedOutcome String?   @db.Text
+  deadline        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  decision Decision @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+}
+
+model DecisionOutcome {
+  id         String        @id @default(cuid())
+  decisionId String
+  userId     String
+  daysAfter  Int
+  result     OutcomeResult
+  notes      String?       @db.Text
+  createdAt  DateTime      @default(now())
+
+  decision Decision @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+}
+
+enum OutcomeResult {
+  SUCCEEDED
+  FAILED
+  PARTIAL
+  ONGOING
+}
+
+model BlindSpot {
+  id             String   @id @default(cuid())
+  userId         String
+  pattern        String
+  severity       String
+  supportCount   Int      @default(0)
+  recommendation String   @db.Text
+  lastUpdated    DateTime @default(now())
+
+  @@unique([userId, pattern])
+}
+
+model MarketSignal {
+  id               String   @id @default(cuid())
+  userId           String
+  title            String
+  summary          String   @db.Text
+  impact           String
+  relatedDecisions String[]
+  category         String
+  createdAt        DateTime @default(now())
 }
 
 enum DecisionType {
