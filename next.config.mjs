@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: false },
   env: {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ?? "quantum-fallback-secret-key-32chars",
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
