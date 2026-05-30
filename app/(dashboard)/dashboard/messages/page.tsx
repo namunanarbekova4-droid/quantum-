@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { MessageSquare, Search } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface Conversation {
   id: string;
@@ -30,6 +31,7 @@ function timeAgo(ts: string) {
 
 export default function MessagesPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -60,8 +62,8 @@ export default function MessagesPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-white">Messages</h1>
-        <p className="text-text-secondary mt-1">Direct messages with other members.</p>
+        <h1 className="text-2xl font-bold text-white">{t.messages.title}</h1>
+        <p className="text-text-secondary mt-1">{t.messages.subtitle}</p>
       </motion.div>
 
       {/* Search to start new conversation */}
@@ -70,7 +72,7 @@ export default function MessagesPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search members to message..."
+          placeholder={t.messages.searchPlaceholder}
           className="w-full bg-[#111111] border border-[#1a1a1a] rounded pl-9 pr-4 py-2.5 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-gold/40 transition-colors"
         />
       </div>
@@ -81,7 +83,7 @@ export default function MessagesPage() {
           <div className="w-12 h-12 rounded-full bg-[#111111] flex items-center justify-center">
             <MessageSquare className="w-5 h-5 text-text-secondary" />
           </div>
-          <p className="text-text-secondary text-sm">No conversations yet. Search for a member to start chatting.</p>
+          <p className="text-text-secondary text-sm">{t.messages.noConversations}</p>
         </div>
       ) : (
         <div className="space-y-1">
@@ -101,7 +103,7 @@ export default function MessagesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-white truncate">{conv.otherUser?.name || "Unknown"}</span>
+                    <span className="text-sm font-medium text-white truncate">{conv.otherUser?.name || t.messages.unknown}</span>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {conv.unreadCount > 0 && (
                         <span className="text-xs bg-gold text-[#080808] font-semibold px-1.5 py-0.5 rounded-full">

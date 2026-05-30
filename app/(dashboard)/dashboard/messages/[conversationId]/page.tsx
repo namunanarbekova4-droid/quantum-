@@ -6,6 +6,7 @@ import { ArrowLeft, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "next-auth/react";
+import { useLanguage } from "@/lib/i18n";
 
 interface DM {
   id: string;
@@ -29,6 +30,7 @@ export default function DMPage() {
   const { conversationId } = useParams<{ conversationId: string }>();
   const router = useRouter();
   const { data: session } = useSession();
+  const { t } = useLanguage();
 
   const [messages, setMessages] = useState<DM[]>([]);
   const [input, setInput] = useState("");
@@ -158,7 +160,7 @@ export default function DMPage() {
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-sm text-text-secondary">
-            No messages yet. Say hello!
+            {t.messages.noMessagesYet}
           </div>
         ) : messages.map((msg, i) => {
           const isOwn = msg.sender_id === session?.user?.id;
@@ -193,7 +195,7 @@ export default function DMPage() {
         })}
         {typingUsers.length > 0 && (
           <div className="text-xs text-text-secondary italic px-2">
-            {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+            {typingUsers.join(", ")} {typingUsers.length === 1 ? t.messages.isTyping : t.messages.areTyping} {t.messages.typingSuffix}
           </div>
         )}
         <div ref={bottomRef} />
@@ -205,7 +207,7 @@ export default function DMPage() {
             value={input}
             onChange={(e) => { setInput(e.target.value); handleTyping(); }}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder={t.messages.typeMessage}
             rows={1}
             className="flex-1 resize-none bg-[#111111] border border-[#1a1a1a] rounded text-sm text-white placeholder-text-secondary px-3 py-2.5 focus:outline-none focus:border-gold/40 transition-colors max-h-32"
             style={{ minHeight: 42 }}

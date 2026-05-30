@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface Review {
   id: string;
@@ -47,6 +48,7 @@ export default function MentorProfilePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -101,8 +103,8 @@ export default function MentorProfilePage() {
   if (!mentor) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <p className="text-text-secondary">Mentor not found.</p>
-        <Button onClick={() => router.back()}>Go Back</Button>
+        <p className="text-text-secondary">{t.mentors.notFound}</p>
+        <Button onClick={() => router.back()}>{t.mentors.goBack}</Button>
       </div>
     );
   }
@@ -111,7 +113,7 @@ export default function MentorProfilePage() {
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       <button onClick={() => router.back()} className="flex items-center gap-2 text-text-secondary hover:text-white transition-colors text-sm">
         <ArrowLeft className="w-4 h-4" />
-        Back to Mentors
+        {t.mentors.backToMentors}
       </button>
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
@@ -127,21 +129,21 @@ export default function MentorProfilePage() {
                 <span className="inline-block mt-2 text-xs border border-[#2a2a2a] text-text-secondary px-2 py-0.5 rounded">{mentor.industry}</span>
               )}
             </div>
-            <Button onClick={() => setShowModal(true)}>Request Mentor Insight</Button>
+            <Button onClick={() => setShowModal(true)}>{t.mentors.requestMentorInsight}</Button>
           </div>
 
           <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[#1a1a1a]">
             <div className="text-center">
               <div className="text-lg font-bold text-white">{mentor.years_experience || 0}</div>
-              <div className="text-xs text-text-secondary">Years Experience</div>
+              <div className="text-xs text-text-secondary">{t.mentors.yearsExperience}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-white">{mentor.session_count}</div>
-              <div className="text-xs text-text-secondary">Sessions</div>
+              <div className="text-xs text-text-secondary">{t.mentors.sessions}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-white">{mentor.response_rate}%</div>
-              <div className="text-xs text-text-secondary">Response Rate</div>
+              <div className="text-xs text-text-secondary">{t.mentors.responseRate}</div>
             </div>
           </div>
 
@@ -157,21 +159,21 @@ export default function MentorProfilePage() {
 
       {mentor.biography && (
         <Card className="p-6">
-          <h2 className="text-sm font-semibold text-white mb-3">About</h2>
+          <h2 className="text-sm font-semibold text-white mb-3">{t.mentors.about}</h2>
           <p className="text-sm text-text-secondary leading-relaxed">{mentor.biography}</p>
         </Card>
       )}
 
       {mentor.why_mentor && (
         <Card className="p-6">
-          <h2 className="text-sm font-semibold text-white mb-3">Why I Mentor</h2>
+          <h2 className="text-sm font-semibold text-white mb-3">{t.mentors.whyMentor}</h2>
           <p className="text-sm text-text-secondary leading-relaxed italic">&ldquo;{mentor.why_mentor}&rdquo;</p>
         </Card>
       )}
 
       {mentor.reviews && mentor.reviews.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Reviews</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">{t.mentors.reviews}</h2>
           <div className="space-y-3">
             {mentor.reviews.map((review) => (
               <Card key={review.id} className="p-4">
@@ -195,20 +197,20 @@ export default function MentorProfilePage() {
             className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-6 w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold text-white mb-2">Request Mentor Insight</h3>
-            <p className="text-text-secondary text-sm mb-4">Send a request to <span className="text-white">{mentor.full_name}</span>. Include context about your situation.</p>
+            <h3 className="text-lg font-semibold text-white mb-2">{t.mentors.requestMentorInsight}</h3>
+            <p className="text-text-secondary text-sm mb-4">{t.mentors.sendRequestTo} <span className="text-white">{mentor.full_name}</span>{t.mentors.includeContext}</p>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Describe your situation and what insights you're looking for..."
+              placeholder={t.mentors.messagePlaceholder}
               rows={4}
               className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded text-sm text-white placeholder-text-secondary px-3 py-2.5 focus:outline-none focus:border-gold/40 transition-colors resize-none mb-4"
             />
             <div className="flex items-center gap-3">
               <Button onClick={submitRequest} disabled={requesting} className="flex-1">
-                {requesting ? "Sending..." : "Send Request"}
+                {requesting ? t.mentors.sending : t.mentors.sendRequest}
               </Button>
-              <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setShowModal(false)}>{t.common.cancel}</Button>
             </div>
           </motion.div>
         </div>

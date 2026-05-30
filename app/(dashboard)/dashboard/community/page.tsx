@@ -6,6 +6,7 @@ import { Users, Lock, ChevronRight, Crown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface Group {
   id: string;
@@ -21,6 +22,7 @@ interface Group {
 export default function CommunityPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState<string | null>(null);
@@ -73,18 +75,18 @@ export default function CommunityPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-10">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-white">Community</h1>
-        <p className="text-text-secondary mt-1">Connect with founders, investors, and executives.</p>
+        <h1 className="text-2xl font-bold text-white">{t.community.title}</h1>
+        <p className="text-text-secondary mt-1">{t.community.subtitle}</p>
       </motion.div>
 
-      <Section title="Open Communities" groups={publicGroups} joining={joining} onJoin={handleJoin} onNavigate={(id) => router.push(`/dashboard/community/${id}`)} />
-      <Section title="VIP Communities" groups={vipGroups} joining={joining} onJoin={handleJoin} onNavigate={(id) => router.push(`/dashboard/community/${id}`)} vip />
+      <Section title={t.community.openCommunities} groups={publicGroups} joining={joining} onJoin={handleJoin} onNavigate={(id) => router.push(`/dashboard/community/${id}`)} t={t} />
+      <Section title={t.community.vipCommunities} groups={vipGroups} joining={joining} onJoin={handleJoin} onNavigate={(id) => router.push(`/dashboard/community/${id}`)} vip t={t} />
     </div>
   );
 }
 
 function Section({
-  title, groups, joining, onJoin, onNavigate, vip = false,
+  title, groups, joining, onJoin, onNavigate, vip = false, t,
 }: {
   title: string;
   groups: Group[];
@@ -92,6 +94,7 @@ function Section({
   onJoin: (e: React.MouseEvent, g: Group) => void;
   onNavigate: (id: string) => void;
   vip?: boolean;
+  t: ReturnType<typeof useLanguage>["t"];
 }) {
   return (
     <div>
@@ -102,7 +105,7 @@ function Section({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {groups.map((group, i) => (
-          <GroupCard key={group.id} group={group} index={i} joining={joining} onJoin={onJoin} onNavigate={onNavigate} />
+          <GroupCard key={group.id} group={group} index={i} joining={joining} onJoin={onJoin} onNavigate={onNavigate} t={t} />
         ))}
       </div>
     </div>
@@ -110,13 +113,14 @@ function Section({
 }
 
 function GroupCard({
-  group, index, joining, onJoin, onNavigate,
+  group, index, joining, onJoin, onNavigate, t,
 }: {
   group: Group;
   index: number;
   joining: string | null;
   onJoin: (e: React.MouseEvent, g: Group) => void;
   onNavigate: (id: string) => void;
+  t: ReturnType<typeof useLanguage>["t"];
 }) {
   return (
     <motion.div
@@ -149,7 +153,7 @@ function GroupCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-xs text-text-secondary">
             <Users className="w-3 h-3" />
-            <span>{group.member_count.toLocaleString()} members</span>
+            <span>{group.member_count.toLocaleString()} {t.community.members}</span>
           </div>
           <button
             onClick={(e) => onJoin(e, group)}
@@ -161,12 +165,12 @@ function GroupCard({
                 : "border-gold/40 text-gold hover:bg-gold/10"
             )}
           >
-            {joining === group.id ? "..." : group.isMember ? "Leave" : "Join"}
+            {joining === group.id ? "..." : group.isMember ? t.community.leave : t.community.join}
           </button>
         </div>
         {group.isMember && (
           <div className="mt-3 pt-3 border-t border-[#1a1a1a] flex items-center justify-between">
-            <span className="text-xs text-gold">Member</span>
+            <span className="text-xs text-gold">{t.community.member}</span>
             <ChevronRight className="w-3 h-3 text-text-secondary" />
           </div>
         )}

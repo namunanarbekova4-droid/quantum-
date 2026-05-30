@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "next-auth/react";
+import { useLanguage } from "@/lib/i18n";
 
 interface Message {
   id: string;
@@ -43,6 +44,7 @@ export default function GroupChatPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const router = useRouter();
   const { data: session } = useSession();
+  const { t } = useLanguage();
   const [group, setGroup] = useState<Group | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -167,7 +169,7 @@ export default function GroupChatPage() {
   if (!group && !loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-text-secondary">Group not found.</p>
+        <p className="text-text-secondary">{t.community.groupNotFound}</p>
       </div>
     );
   }
@@ -178,9 +180,9 @@ export default function GroupChatPage() {
         <div className="w-14 h-14 rounded-full bg-gold/10 flex items-center justify-center">
           <Lock className="w-6 h-6 text-gold" />
         </div>
-        <h2 className="text-xl font-bold text-white">VIP Community</h2>
-        <p className="text-text-secondary max-w-sm">This community is available to Max & Premium plan members. Upgrade to unlock access.</p>
-        <Button onClick={() => router.push("/pricing")}>Upgrade to Max</Button>
+        <h2 className="text-xl font-bold text-white">{t.community.vipTitle}</h2>
+        <p className="text-text-secondary max-w-sm">{t.community.vipDesc}</p>
+        <Button onClick={() => router.push("/pricing")}>{t.community.upgradeToMax}</Button>
       </div>
     );
   }
@@ -196,7 +198,7 @@ export default function GroupChatPage() {
           <h1 className="text-sm font-semibold text-white truncate">{group?.name || "Loading..."}</h1>
           <div className="flex items-center gap-2 text-xs text-text-secondary">
             <Users className="w-3 h-3" />
-            <span>{group?.member_count || 0} members</span>
+            <span>{group?.member_count || 0} {t.community.members}</span>
           </div>
         </div>
       </div>
@@ -209,7 +211,7 @@ export default function GroupChatPage() {
             className="flex items-center gap-2 px-4 py-2 w-full text-left"
           >
             <Pin className="w-3 h-3 text-gold" />
-            <span className="text-xs text-gold font-medium">{pinned.length} pinned message{pinned.length > 1 ? "s" : ""}</span>
+            <span className="text-xs text-gold font-medium">{pinned.length} {pinned.length > 1 ? t.community.pinnedMessages : t.community.pinnedMessage}</span>
             <ChevronDown className={cn("w-3 h-3 text-text-secondary ml-auto transition-transform", !pinnedOpen && "-rotate-90")} />
           </button>
           <AnimatePresence>
@@ -237,7 +239,7 @@ export default function GroupChatPage() {
             <div className="w-12 h-12 rounded-full bg-[#111111] flex items-center justify-center">
               <Users className="w-5 h-5 text-text-secondary" />
             </div>
-            <p className="text-text-secondary text-sm">No messages yet. Start the conversation.</p>
+            <p className="text-text-secondary text-sm">{t.community.noMessages}</p>
           </div>
         ) : (
           messages.map((msg, i) => (
@@ -253,7 +255,7 @@ export default function GroupChatPage() {
         )}
         {typingUsers.length > 0 && (
           <div className="text-xs text-text-secondary italic px-2">
-            {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+            {typingUsers.join(", ")} {typingUsers.length === 1 ? t.community.isTyping : t.community.areTyping} {t.community.typingSuffix}
           </div>
         )}
         <div ref={bottomRef} />
@@ -266,7 +268,7 @@ export default function GroupChatPage() {
             value={input}
             onChange={(e) => { setInput(e.target.value); handleTyping(); }}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder={t.community.typeMessage}
             rows={1}
             className="flex-1 resize-none bg-[#111111] border border-[#1a1a1a] rounded text-sm text-white placeholder-text-secondary px-3 py-2.5 focus:outline-none focus:border-gold/40 transition-colors max-h-32"
             style={{ minHeight: 42 }}

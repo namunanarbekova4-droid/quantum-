@@ -6,6 +6,7 @@ import { GraduationCap, Star, ChevronRight, Filter } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface Mentor {
   id: string;
@@ -35,6 +36,7 @@ function StarRating({ rating }: { rating: number }) {
 
 export default function MentorsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [industry, setIndustry] = useState("All");
@@ -58,11 +60,11 @@ export default function MentorsPage() {
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-white">Mentor Connect</h1>
-          <p className="text-text-secondary mt-1">Get insights from experienced operators and investors.</p>
+          <h1 className="text-2xl font-bold text-white">{t.mentors.title}</h1>
+          <p className="text-text-secondary mt-1">{t.mentors.subtitle}</p>
         </div>
         <Button variant="outline" onClick={() => router.push("/dashboard/mentors/apply")}>
-          Become a Mentor
+          {t.mentors.becomeMentor}
         </Button>
       </motion.div>
 
@@ -92,9 +94,9 @@ export default function MentorsPage() {
           <div className="w-12 h-12 rounded-full bg-[#111111] flex items-center justify-center">
             <GraduationCap className="w-5 h-5 text-text-secondary" />
           </div>
-          <p className="text-white font-medium">No mentors available yet</p>
-          <p className="text-text-secondary text-sm">Be the first to apply as a mentor.</p>
-          <Button onClick={() => router.push("/dashboard/mentors/apply")}>Apply as Mentor</Button>
+          <p className="text-white font-medium">{t.mentors.noMentorsYet}</p>
+          <p className="text-text-secondary text-sm">{t.mentors.noMentorsDesc}</p>
+          <Button onClick={() => router.push("/dashboard/mentors/apply")}>{t.mentors.applyAsMentor}</Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -126,11 +128,11 @@ export default function MentorsPage() {
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="bg-[#0d0d0d] rounded p-2 text-center">
                     <div className="text-sm font-bold text-white">{mentor.years_experience || 0}</div>
-                    <div className="text-xs text-text-secondary">Years Exp.</div>
+                    <div className="text-xs text-text-secondary">{t.mentors.yearsExp}</div>
                   </div>
                   <div className="bg-[#0d0d0d] rounded p-2 text-center">
                     <div className="text-sm font-bold text-white">{mentor.session_count}</div>
-                    <div className="text-xs text-text-secondary">Sessions</div>
+                    <div className="text-xs text-text-secondary">{t.mentors.sessions}</div>
                   </div>
                 </div>
 
@@ -139,7 +141,7 @@ export default function MentorsPage() {
                 )}
 
                 <div className="mt-3 pt-3 border-t border-[#1a1a1a] flex items-center justify-between">
-                  <span className="text-xs text-gold font-medium">Request Insight</span>
+                  <span className="text-xs text-gold font-medium">{t.mentors.requestInsight}</span>
                   <ChevronRight className="w-3 h-3 text-text-secondary" />
                 </div>
               </Card>

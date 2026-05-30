@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { useToast } from "@/components/ui/Toast";
 import { getRiskColor, cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface DecisionReport {
   summary?: string;
@@ -51,6 +52,7 @@ interface DecisionOutcomeRecord {
 // ─── Decision Journal Widget ──────────────────────────────────────────────────
 
 function DecisionJournal({ decisionId }: { decisionId: string }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [journal, setJournal] = useState<JournalData>({});
   const [saved, setSaved] = useState(false);
@@ -78,11 +80,11 @@ function DecisionJournal({ decisionId }: { decisionId: string }) {
   };
 
   const fields: { key: keyof JournalData; label: string; placeholder: string; type?: string }[] = [
-    { key: "why", label: "Why are you making this decision?", placeholder: "What's driving this decision right now..." },
-    { key: "biggestFear", label: "Biggest fear", placeholder: "What outcome are you most afraid of..." },
-    { key: "keyAssumption", label: "Key assumption", placeholder: "What must be true for this to work..." },
-    { key: "expectedOutcome", label: "Expected outcome", placeholder: "What does success look like in 90 days..." },
-    { key: "deadline", label: "Decision deadline", placeholder: "", type: "date" },
+    { key: "why", label: t.decision.journalWhyLabel, placeholder: t.decision.journalWhyPlaceholder },
+    { key: "biggestFear", label: t.decision.journalFearLabel, placeholder: t.decision.journalFearPlaceholder },
+    { key: "keyAssumption", label: t.decision.journalAssumptionLabel, placeholder: t.decision.journalAssumptionPlaceholder },
+    { key: "expectedOutcome", label: t.decision.journalOutcomeLabel, placeholder: t.decision.journalOutcomePlaceholder },
+    { key: "deadline", label: t.decision.journalDeadlineLabel, placeholder: "", type: "date" },
   ];
 
   return (
@@ -93,10 +95,10 @@ function DecisionJournal({ decisionId }: { decisionId: string }) {
       >
         <div className="flex items-center gap-2">
           <Brain className="w-4 h-4 text-gold" />
-          <h2 className="text-sm font-semibold text-white group-hover:text-gold transition-colors">Decision Journal</h2>
+          <h2 className="text-sm font-semibold text-white group-hover:text-gold transition-colors">{t.decision.decisionJournal}</h2>
         </div>
         <div className="flex items-center gap-2">
-          {saved && <span className="text-xs text-success flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Saved</span>}
+          {saved && <span className="text-xs text-success flex items-center gap-1"><CheckCircle className="w-3 h-3" /> {t.decision.journalSaved}</span>}
           <ChevronDown className={cn("w-4 h-4 text-text-secondary transition-transform duration-200", open && "rotate-180")} />
         </div>
       </button>
@@ -111,7 +113,7 @@ function DecisionJournal({ decisionId }: { decisionId: string }) {
             className="overflow-hidden"
           >
             <p className="text-xs text-text-secondary mt-4 mb-5">
-              Capture your reasoning now. Future-you will thank you.
+              {t.decision.journalCapture}
             </p>
             <div className="space-y-4">
               {fields.map(({ key, label, placeholder, type }) => (
@@ -146,6 +148,7 @@ function DecisionJournal({ decisionId }: { decisionId: string }) {
 // ─── Follow-up Tracker ────────────────────────────────────────────────────────
 
 function FollowUpTracker({ decisionId, createdAt }: { decisionId: string; createdAt: string }) {
+  const { t } = useLanguage();
   const [outcomes, setOutcomes] = useState<DecisionOutcomeRecord[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [selected, setSelected] = useState<{ daysAfter: number; result: string; notes: string } | null>(null);
@@ -170,10 +173,10 @@ function FollowUpTracker({ decisionId, createdAt }: { decisionId: string; create
   if (dueCheckpoints.length === 0) return null;
 
   const resultOptions = [
-    { value: "SUCCEEDED", label: "Succeeded", color: "text-success border-success/30 bg-success/10" },
-    { value: "PARTIAL", label: "Partially", color: "text-gold border-gold/30 bg-gold/10" },
-    { value: "FAILED", label: "Failed", color: "text-danger border-danger/30 bg-danger/10" },
-    { value: "ONGOING", label: "Still ongoing", color: "text-[#888] border-[#2a2a2a] bg-[#1a1a1a]" },
+    { value: "SUCCEEDED", label: t.decision.resultSucceeded, color: "text-success border-success/30 bg-success/10" },
+    { value: "PARTIAL", label: t.decision.resultPartial, color: "text-gold border-gold/30 bg-gold/10" },
+    { value: "FAILED", label: t.decision.resultFailed, color: "text-danger border-danger/30 bg-danger/10" },
+    { value: "ONGOING", label: t.decision.resultOngoing, color: "text-[#888] border-[#2a2a2a] bg-[#1a1a1a]" },
   ];
 
   const submit = async () => {
@@ -200,13 +203,13 @@ function FollowUpTracker({ decisionId, createdAt }: { decisionId: string; create
     <Card className="p-5 sm:p-6 border-gold/20">
       <div className="flex items-center gap-2 mb-4">
         <Target className="w-4 h-4 text-gold" />
-        <h2 className="text-sm font-semibold text-white">Follow-up Check-in</h2>
+        <h2 className="text-sm font-semibold text-white">{t.decision.followUpCheckin}</h2>
         <span className="text-xs text-gold bg-gold/10 border border-gold/20 rounded px-2 py-0.5 ml-auto">
-          {dueCheckpoints[0]}-day review due
+          {dueCheckpoints[0]}{t.decision.reviewDue}
         </span>
       </div>
       <p className="text-xs text-text-secondary mb-4">
-        It&apos;s been {daysSince} days. What happened with this decision?
+        {t.decision.daysSince} {daysSince} {t.decision.daysSinceMiddle}
       </p>
 
       <input type="hidden" value={dueCheckpoints[0]} />
@@ -229,13 +232,13 @@ function FollowUpTracker({ decisionId, createdAt }: { decisionId: string; create
       {selected && (
         <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
           <textarea
-            placeholder="Any notes on what happened? (optional)"
+            placeholder={t.decision.notesPlaceholder}
             rows={2}
             value={selected.notes}
             onChange={(e) => setSelected({ ...selected, notes: e.target.value })}
             className="w-full resize-none bg-[#0d0d0d] border border-[#1a1a1a] rounded px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-gold/40 transition-colors"
           />
-          <Button size="sm" onClick={submit} loading={submitting}>Record Outcome</Button>
+          <Button size="sm" onClick={submit} loading={submitting}>{t.decision.recordOutcome}</Button>
         </motion.div>
       )}
     </Card>
@@ -255,6 +258,7 @@ interface Decision {
 }
 
 function OutcomePicker({ decisionId, initial, onSaved }: { decisionId: string; initial?: string; onSaved: (o: string) => void }) {
+  const { t } = useLanguage();
   const [selected, setSelected] = useState(initial ?? "");
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -274,15 +278,15 @@ function OutcomePicker({ decisionId, initial, onSaved }: { decisionId: string; i
   };
 
   const options = [
-    { value: "GOOD", label: "Good outcome", Icon: ThumbsUp, color: "text-success", bg: "bg-success/10 border-success/30" },
-    { value: "BAD", label: "Bad outcome", Icon: ThumbsDown, color: "text-danger", bg: "bg-danger/10 border-danger/30" },
-    { value: "UNKNOWN", label: "Still unknown", Icon: HelpCircle, color: "text-[#888888]", bg: "bg-[#1a1a1a] border-[#2a2a2a]" },
+    { value: "GOOD", label: t.decision.outcomeGood, Icon: ThumbsUp, color: "text-success", bg: "bg-success/10 border-success/30" },
+    { value: "BAD", label: t.decision.outcomeBad, Icon: ThumbsDown, color: "text-danger", bg: "bg-danger/10 border-danger/30" },
+    { value: "UNKNOWN", label: t.decision.outcomeUnknown, Icon: HelpCircle, color: "text-[#888888]", bg: "bg-[#1a1a1a] border-[#2a2a2a]" },
   ];
 
   return (
     <Card className="p-6">
-      <h2 className="text-sm font-semibold text-white mb-1">How did this decision turn out?</h2>
-      <p className="text-xs text-text-secondary mb-4">Your feedback improves future analysis quality.</p>
+      <h2 className="text-sm font-semibold text-white mb-1">{t.decision.outcomeQuestion}</h2>
+      <p className="text-xs text-text-secondary mb-4">{t.decision.outcomeFeedbackDesc}</p>
       <div className="flex flex-wrap gap-3">
         {options.map(({ value, label, Icon, color, bg }) => (
           <button
@@ -306,6 +310,7 @@ interface VoteCounts { go: number; caution: number; dont: number }
 interface Comment { id: string; content: string; upvotes: number; userUpvoted: boolean; displayName: string; created_at: string }
 
 function CommunityIntelligence({ decisionId }: { decisionId: string }) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [voteCounts, setVoteCounts] = useState<VoteCounts>({ go: 0, caution: 0, dont: 0 });
   const [userVote, setUserVote] = useState<string | null>(null);
@@ -375,14 +380,14 @@ function CommunityIntelligence({ decisionId }: { decisionId: string }) {
   const pct = (n: number) => total > 0 ? Math.round((n / total) * 100) : 0;
 
   const voteOptions = [
-    { type: "go", label: "Go for it", color: "text-success", border: "border-success/40", bg: "bg-success/10", barColor: "bg-success" },
-    { type: "caution", label: "Proceed with caution", color: "text-gold", border: "border-gold/40", bg: "bg-gold/10", barColor: "bg-gold" },
-    { type: "dont", label: "Don't do it", color: "text-danger", border: "border-danger/40", bg: "bg-danger/10", barColor: "bg-danger" },
+    { type: "go", label: t.decision.voteGoForIt, color: "text-success", border: "border-success/40", bg: "bg-success/10", barColor: "bg-success" },
+    { type: "caution", label: t.decision.voteCaution, color: "text-gold", border: "border-gold/40", bg: "bg-gold/10", barColor: "bg-gold" },
+    { type: "dont", label: t.decision.voteDontDoIt, color: "text-danger", border: "border-danger/40", bg: "bg-danger/10", barColor: "bg-danger" },
   ];
 
   return (
     <Card className="p-5 sm:p-6 space-y-6">
-      <h2 className="text-sm font-semibold text-white">Community Intelligence</h2>
+      <h2 className="text-sm font-semibold text-white">{t.decision.communityIntelligence}</h2>
 
       {/* Vote buttons */}
       <div className="flex flex-wrap gap-2">
@@ -419,14 +424,14 @@ function CommunityIntelligence({ decisionId }: { decisionId: string }) {
               </div>
             </div>
           ))}
-          <p className="text-xs text-text-secondary">{total} total vote{total !== 1 ? "s" : ""}</p>
+          <p className="text-xs text-text-secondary">{total} {total !== 1 ? t.decision.totalVotes : t.decision.totalVote}</p>
         </div>
       )}
 
       {/* Comments */}
       <div className="border-t border-[#1a1a1a] pt-5">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-white">Community Comments</span>
+          <span className="text-sm font-medium text-white">{t.decision.communityComments}</span>
           <div className="flex gap-1">
             {(["top", "recent"] as const).map((s) => (
               <button
@@ -437,7 +442,7 @@ function CommunityIntelligence({ decisionId }: { decisionId: string }) {
                   sort === s ? "border-gold/40 text-gold bg-gold/10" : "border-[#1a1a1a] text-text-secondary hover:text-white"
                 )}
               >
-                {s === "top" ? "Top" : "Recent"}
+                {s === "top" ? t.decision.sortTop : t.decision.sortRecent}
               </button>
             ))}
           </div>
@@ -448,7 +453,7 @@ function CommunityIntelligence({ decisionId }: { decisionId: string }) {
           <textarea
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Share your perspective anonymously..."
+            placeholder={t.decision.commentPlaceholder}
             rows={2}
             className="flex-1 resize-none bg-[#111111] border border-[#1a1a1a] rounded text-sm text-white placeholder-text-secondary px-3 py-2 focus:outline-none focus:border-gold/40 transition-colors"
           />
@@ -464,7 +469,7 @@ function CommunityIntelligence({ decisionId }: { decisionId: string }) {
         {/* Comment list */}
         <div className="space-y-3">
           {comments.length === 0 && !loading && (
-            <p className="text-xs text-text-secondary text-center py-3">No comments yet. Be the first to share your perspective.</p>
+            <p className="text-xs text-text-secondary text-center py-3">{t.decision.noComments}</p>
           )}
           {comments.map((c) => (
             <div key={c.id} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded p-3">
@@ -512,6 +517,7 @@ interface LeaderAnalysis {
 }
 
 function WhatWouldTheyDo({ decisionText }: { decisionText: string }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -544,7 +550,7 @@ function WhatWouldTheyDo({ decisionText }: { decisionText: string }) {
         onClick={() => setOpen((p) => !p)}
         className="flex items-center justify-between w-full group"
       >
-        <h2 className="text-sm font-semibold text-white group-hover:text-gold transition-colors">What Would They Do?</h2>
+        <h2 className="text-sm font-semibold text-white group-hover:text-gold transition-colors">{t.decision.whatWouldTheyDo}</h2>
         <ChevronDown className={cn("w-4 h-4 text-text-secondary transition-transform duration-200", open && "rotate-180")} />
       </button>
 
@@ -603,11 +609,11 @@ function WhatWouldTheyDo({ decisionText }: { decisionText: string }) {
                   >
                     <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded p-4 space-y-3">
                       <div>
-                        <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-1">Problem Framing</p>
+                        <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-1">{t.decision.problemFraming}</p>
                         <p className="text-sm text-white">{currentResult.problemFraming}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Questions They&apos;d Ask</p>
+                        <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">{t.decision.questionsTheyAsk}</p>
                         <ul className="space-y-1">
                           {currentResult.questions?.map((q, i) => (
                             <li key={i} className="text-sm text-text-secondary flex items-start gap-2">
@@ -618,16 +624,16 @@ function WhatWouldTheyDo({ decisionText }: { decisionText: string }) {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Optimizes For</p>
+                          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">{t.decision.optimizesFor}</p>
                           <p className="text-sm text-white">{currentResult.optimizeFor}</p>
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Biggest Concern</p>
+                          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">{t.decision.biggestConcern}</p>
                           <p className="text-sm text-white">{currentResult.biggestConcern}</p>
                         </div>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Likely Decision</p>
+                        <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">{t.decision.likelyDecision}</p>
                         <span className={cn(
                           "text-sm font-medium",
                           currentResult.likelyDecision?.startsWith("YES") ? "text-success" : currentResult.likelyDecision?.startsWith("NO") ? "text-danger" : "text-gold"
@@ -638,13 +644,13 @@ function WhatWouldTheyDo({ decisionText }: { decisionText: string }) {
                       <p className="text-sm text-white italic leading-relaxed">&ldquo;{currentResult.recommendation}&rdquo;</p>
                       <p className="text-xs text-gold mt-1">— Simulated {selected}</p>
                     </div>
-                    <p className="text-xs text-[#444] leading-relaxed">Simulated using publicly known decision-making principles. Not affiliated with or endorsed by these individuals.</p>
+                    <p className="text-xs text-[#444] leading-relaxed">{t.decision.simulatedDisclaimer}</p>
                   </motion.div>
                 )}
                 {selected && loading && (
                   <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 py-4">
                     <Loader2 className="w-4 h-4 text-gold animate-spin" />
-                    <span className="text-sm text-text-secondary">Simulating {selected}&apos;s decision framework...</span>
+                    <span className="text-sm text-text-secondary">{t.decision.simulating} {selected}{t.decision.decisionFramework}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -659,6 +665,7 @@ function WhatWouldTheyDo({ decisionText }: { decisionText: string }) {
 // ─── Mentor Request Button ─────────────────────────────────────────────────────
 
 function MentorRequestSection({ decisionId }: { decisionId: string }) {
+  const { t } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
   const [mentors, setMentors] = useState<{ id: string; full_name: string; expertise: string }[]>([]);
@@ -704,9 +711,9 @@ function MentorRequestSection({ decisionId }: { decisionId: string }) {
             <GraduationCap className="w-4 h-4 text-gold" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-white mb-1">Get a Mentor&apos;s Perspective</h3>
-            <p className="text-xs text-text-secondary mb-3">Request insights from an experienced operator or investor on this specific decision.</p>
-            <Button size="sm" onClick={() => setShowModal(true)}>Request Mentor Insight</Button>
+            <h3 className="text-sm font-semibold text-white mb-1">{t.decision.getMentorPerspective}</h3>
+            <p className="text-xs text-text-secondary mb-3">{t.decision.getMentorDesc}</p>
+            <Button size="sm" onClick={() => setShowModal(true)}>{t.decision.requestMentorInsight}</Button>
           </div>
         </div>
       </Card>
@@ -719,44 +726,44 @@ function MentorRequestSection({ decisionId }: { decisionId: string }) {
             className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-6 w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold text-white mb-4">Request Mentor Insight</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">{t.decision.requestMentorTitle}</h3>
             {mentors.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-4">
-                <p className="text-text-secondary text-sm text-center">No approved mentors available yet.</p>
+                <p className="text-text-secondary text-sm text-center">{t.decision.noMentorsAvailable}</p>
                 <Button size="sm" variant="outline" onClick={() => { setShowModal(false); router.push("/dashboard/mentors/apply"); }}>
-                  Become a Mentor
+                  {t.decision.becomeMentor}
                 </Button>
               </div>
             ) : (
               <>
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-text-secondary mb-1.5">Select Mentor</label>
+                  <label className="block text-xs font-medium text-text-secondary mb-1.5">{t.decision.selectMentor}</label>
                   <select
                     value={selectedMentor}
                     onChange={(e) => setSelectedMentor(e.target.value)}
                     className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40 transition-colors"
                   >
-                    <option value="">Choose a mentor...</option>
+                    <option value="">{t.decision.chooseMentor}</option>
                     {mentors.map((m) => (
                       <option key={m.id} value={m.id}>{m.full_name} — {m.expertise}</option>
                     ))}
                   </select>
                 </div>
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-text-secondary mb-1.5">Message (optional)</label>
+                  <label className="block text-xs font-medium text-text-secondary mb-1.5">{t.decision.messageOptional}</label>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Add context about what specific guidance you need..."
+                    placeholder={t.decision.addContextPlaceholder}
                     rows={3}
                     className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded text-sm text-white placeholder-text-secondary px-3 py-2.5 focus:outline-none focus:border-gold/40 transition-colors resize-none"
                   />
                 </div>
                 <div className="flex gap-3">
                   <Button onClick={submit} disabled={requesting} className="flex-1">
-                    {requesting ? "Sending..." : "Send Request"}
+                    {requesting ? t.decision.sending : t.decision.sendRequest}
                   </Button>
-                  <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
+                  <Button variant="outline" onClick={() => setShowModal(false)}>{t.common.cancel}</Button>
                 </div>
               </>
             )}
@@ -771,6 +778,7 @@ export default function DecisionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [decision, setDecision] = useState<Decision | null>(null);
   const [loading, setLoading] = useState(true);
   const [retrying, setRetrying] = useState(false);
@@ -804,7 +812,7 @@ export default function DecisionPage() {
     }
   };
 
-  const recLabel = decision?.recommendation === "YES" ? "Recommended" : decision?.recommendation === "NO" ? "Not Recommended" : "Conditional";
+  const recLabel = decision?.recommendation === "YES" ? t.decision.recommended : decision?.recommendation === "NO" ? t.decision.notRecommended : t.decision.conditional;
   const recVariant = decision?.recommendation === "YES" ? "success" : decision?.recommendation === "NO" ? "danger" : "warning";
   const RecIcon = decision?.recommendation === "YES" ? CheckCircle : decision?.recommendation === "NO" ? XCircle : AlertCircle;
 
@@ -814,11 +822,11 @@ export default function DecisionPage() {
         <ArrowLeft className="w-4 h-4" /> <span className="hidden sm:inline">Back</span>
       </Button>
       <div className="flex-1 min-w-0" />
-      <Button variant="ghost" size="sm" className="gap-2 opacity-40 cursor-not-allowed hidden sm:flex" onClick={() => toast("Sharing is coming soon.", "info")}>
-        <Share2 className="w-4 h-4" /> Share
+      <Button variant="ghost" size="sm" className="gap-2 opacity-40 cursor-not-allowed hidden sm:flex" onClick={() => toast(t.common.comingSoon, "info")}>
+        <Share2 className="w-4 h-4" /> {t.decision.share}
       </Button>
-      <Button variant="outline" size="sm" className="gap-2 opacity-40 cursor-not-allowed hidden sm:flex" onClick={() => toast("Saving is coming soon.", "info")}>
-        <BookmarkPlus className="w-4 h-4" /> Save
+      <Button variant="outline" size="sm" className="gap-2 opacity-40 cursor-not-allowed hidden sm:flex" onClick={() => toast(t.common.comingSoon, "info")}>
+        <BookmarkPlus className="w-4 h-4" /> {t.decision.save}
       </Button>
     </div>
   );
@@ -828,8 +836,8 @@ export default function DecisionPage() {
       <div className="min-h-screen bg-[#080808] flex items-center justify-center">
         <div className="text-center px-4">
           <div className="w-12 h-12 border-2 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-text-secondary">Analyzing your decision...</p>
-          <p className="text-xs text-[#444444] mt-1">This takes about 10 seconds</p>
+          <p className="text-sm text-text-secondary">{t.decision.analyzing}</p>
+          <p className="text-xs text-[#444444] mt-1">{t.decision.analyzeTime}</p>
         </div>
       </div>
     );
@@ -839,9 +847,9 @@ export default function DecisionPage() {
     return (
       <div className="min-h-screen bg-[#080808] flex items-center justify-center p-6">
         <Card className="p-12 text-center max-w-md w-full">
-          <h2 className="text-lg font-semibold text-white mb-2">Decision not found</h2>
-          <p className="text-sm text-text-secondary mb-6">This decision doesn&apos;t exist or you don&apos;t have access.</p>
-          <Button variant="outline" size="sm" onClick={() => router.push("/dashboard/history")}>View History</Button>
+          <h2 className="text-lg font-semibold text-white mb-2">{t.decision.notFound}</h2>
+          <p className="text-sm text-text-secondary mb-6">{t.decision.notFoundDesc}</p>
+          <Button variant="outline" size="sm" onClick={() => router.push("/dashboard/history")}>{t.decision.viewHistory}</Button>
         </Card>
       </div>
     );
@@ -865,9 +873,9 @@ export default function DecisionPage() {
               <div className="w-14 h-14 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center mx-auto mb-5">
                 <AlertCircle className="w-6 h-6 text-[#555555]" />
               </div>
-              <h2 className="text-lg font-bold text-white mb-2">Analysis interrupted</h2>
+              <h2 className="text-lg font-bold text-white mb-2">{t.decision.analysisInterrupted}</h2>
               <p className="text-sm text-text-secondary max-w-sm mx-auto mb-4 leading-relaxed">
-                We encountered an issue while generating deeper intelligence. This is usually resolved by retrying.
+                {t.decision.analysisInterruptedDesc}
               </p>
               {report._error && (
                 <p className="text-xs font-mono text-danger/70 bg-danger/5 border border-danger/10 rounded px-3 py-2 max-w-sm mx-auto mb-8 text-left break-all">
@@ -876,10 +884,10 @@ export default function DecisionPage() {
               )}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button onClick={handleRetry} loading={retrying} className="gap-2">
-                  <RefreshCw className="w-4 h-4" /> Retry Analysis
+                  <RefreshCw className="w-4 h-4" /> {t.decision.retryAnalysis}
                 </Button>
                 <Button variant="outline" onClick={() => router.push("/dashboard")} className="gap-2">
-                  Back to Dashboard
+                  {t.decision.backToDashboard}
                 </Button>
               </div>
             </Card>
@@ -905,27 +913,27 @@ export default function DecisionPage() {
           <Card className="p-4 sm:p-5 flex items-center gap-3 col-span-2 sm:col-span-1">
             <RecIcon className={`w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0 ${decision.recommendation === "YES" ? "text-success" : decision.recommendation === "NO" ? "text-danger" : "text-gold"}`} />
             <div className="min-w-0">
-              <p className="text-xs text-text-secondary mb-1">Verdict</p>
+              <p className="text-xs text-text-secondary mb-1">{t.decision.verdict}</p>
               <Badge variant={recVariant}>{recLabel}</Badge>
             </div>
           </Card>
           <Card className="p-4 sm:p-5">
-            <p className="text-xs text-text-secondary mb-1">Risk Score</p>
+            <p className="text-xs text-text-secondary mb-1">{t.decision.riskScore}</p>
             <p className="font-mono text-2xl sm:text-3xl font-bold" style={{ color: decision.riskScore !== null ? getRiskColor(decision.riskScore) : "#888" }}>
               {decision.riskScore ?? "—"}
             </p>
             <p className="text-xs text-[#444444] mt-0.5">/ 100</p>
           </Card>
           <Card className="p-4 sm:p-5">
-            <p className="text-xs text-text-secondary mb-1">AI Confidence</p>
+            <p className="text-xs text-text-secondary mb-1">{t.decision.aiConfidence}</p>
             <p className="font-mono text-2xl sm:text-3xl font-bold text-gold">{confidence?.score ?? "—"}</p>
             <p className="text-xs text-[#444444] mt-0.5">/ 100</p>
           </Card>
           {benchmark?.successRate !== undefined && (
             <Card className="p-4 sm:p-5">
-              <p className="text-xs text-text-secondary mb-1">Benchmark</p>
+              <p className="text-xs text-text-secondary mb-1">{t.decision.benchmark}</p>
               <p className="font-mono text-2xl sm:text-3xl font-bold text-white">{benchmark.successRate}%</p>
-              <p className="text-xs text-[#444444] mt-0.5">success rate</p>
+              <p className="text-xs text-[#444444] mt-0.5">{t.decision.successRate}</p>
             </Card>
           )}
         </motion.div>
@@ -936,7 +944,7 @@ export default function DecisionPage() {
             <div className="border border-gold/30 bg-gold/5 rounded-lg p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-3">
                 <Brain className="w-4 h-4 text-gold flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-gold">Strategic Memory</h2>
+                <h2 className="text-sm font-semibold text-gold">{t.decision.strategicMemory}</h2>
               </div>
               <p className="text-sm text-white leading-relaxed mb-3">{report.historicalContext.summary}</p>
               {report.historicalContext.similarDecisions?.length > 0 && (
@@ -956,7 +964,7 @@ export default function DecisionPage() {
         {report.summary && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Card className="p-5 sm:p-6">
-              <h2 className="text-xs font-semibold text-gold mb-3 uppercase tracking-wider">Executive Summary</h2>
+              <h2 className="text-xs font-semibold text-gold mb-3 uppercase tracking-wider">{t.decision.executiveSummary}</h2>
               <p className="text-sm text-white leading-relaxed">{report.summary}</p>
             </Card>
           </motion.div>
@@ -968,13 +976,13 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Brain className="w-4 h-4 text-gold flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Confidence Analysis</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.confidenceAnalysis}</h2>
                 <span className="ml-auto font-mono text-xs text-gold flex-shrink-0">{confidence.score}/100</span>
               </div>
               <p className="text-sm text-text-secondary leading-relaxed mb-4">{confidence.explanation}</p>
               {confidence.missingData && confidence.missingData.length > 0 && (
                 <div className="border-t border-[#1a1a1a] pt-4">
-                  <p className="text-xs font-semibold text-[#555555] uppercase tracking-wider mb-2">Data that would sharpen this analysis</p>
+                  <p className="text-xs font-semibold text-[#555555] uppercase tracking-wider mb-2">{t.decision.dataThatWouldSharpen}</p>
                   <ul className="space-y-1.5">
                     {confidence.missingData.map((d, i) => (
                       <li key={i} className="text-xs text-text-secondary flex items-start gap-2">
@@ -994,7 +1002,7 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <BarChart2 className="w-4 h-4 text-gold flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Historical Benchmark</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.historicalBenchmark}</h2>
                 {benchmark.label && <span className="ml-auto text-xs text-[#555555] text-right hidden sm:block">{benchmark.label}</span>}
               </div>
               <div className="flex items-center gap-4 mb-3">
@@ -1016,7 +1024,7 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-4 h-4 text-success flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Strengths</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.strengths}</h2>
               </div>
               <ul className="space-y-2.5">
                 {report.pros.map((p, i) => (
@@ -1031,7 +1039,7 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingDown className="w-4 h-4 text-danger flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Risks</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.risks}</h2>
               </div>
               <ul className="space-y-2.5">
                 {report.cons.map((c, i) => (
@@ -1050,7 +1058,7 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Lightbulb className="w-4 h-4 text-gold flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Key Assumptions</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.keyAssumptions}</h2>
               </div>
               <ul className="space-y-2">
                 {report.keyAssumptions.map((a, i) => (
@@ -1069,7 +1077,7 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6 border-danger/20">
               <div className="flex items-center gap-2 mb-4">
                 <ShieldAlert className="w-4 h-4 text-danger flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Pre-Mortem: What Could Cause This to Fail?</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.preMortem}</h2>
               </div>
               <ul className="space-y-2.5">
                 {report.preMortem.map((f, i) => (
@@ -1088,7 +1096,7 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6 border-gold/20">
               <div className="flex items-center gap-2 mb-4">
                 <Target className="w-4 h-4 text-gold flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Recommended Next Steps</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.nextSteps}</h2>
               </div>
               <ul className="space-y-3">
                 {report.nextSteps.map((s, i) => (
