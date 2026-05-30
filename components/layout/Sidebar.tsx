@@ -6,7 +6,7 @@ import { QuantumLogo } from "@/components/ui/QuantumLogo";
 import { useLanguage } from "@/lib/i18n";
 import {
   LayoutDashboard, Clock, Globe, Bell, Trophy, BarChart2,
-  Lock, Settings, ChevronRight, Star
+  Lock, Settings, ChevronRight, Star, Users, MessageSquare, GraduationCap
 } from "lucide-react";
 
 interface SidebarProps {
@@ -26,6 +26,9 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
     { label: t.nav.leaderboard, href: "/dashboard/leaderboard", icon: Trophy },
     { label: t.nav.insights, href: "/dashboard/insights", icon: BarChart2 },
     { label: t.nav.privateRooms, href: "/dashboard/rooms", icon: Lock },
+    { label: t.nav.community, href: "/dashboard/community", icon: Users },
+    { label: t.nav.messages, href: "/dashboard/messages", icon: MessageSquare },
+    { label: t.nav.mentors, href: "/dashboard/mentors", icon: GraduationCap },
     { label: t.nav.settings, href: "/dashboard/settings", icon: Settings },
   ];
 

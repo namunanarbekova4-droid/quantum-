@@ -1,17 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Share2, BookmarkPlus, CheckCircle, XCircle, AlertCircle,
   TrendingUp, TrendingDown, Lightbulb, Target, ChevronRight,
   ShieldAlert, BarChart2, Brain, ThumbsUp, ThumbsDown, HelpCircle, RefreshCw,
+  ChevronDown, MessageCircle, ThumbsUp as UpIcon, GraduationCap, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { useToast } from "@/components/ui/Toast";
-import { getRiskColor } from "@/lib/utils";
+import { getRiskColor, cn } from "@/lib/utils";
 
 interface DecisionReport {
   summary?: string;
@@ -85,6 +86,473 @@ function OutcomePicker({ decisionId, initial, onSaved }: { decisionId: string; i
         ))}
       </div>
     </Card>
+  );
+}
+
+// ─── Community Intelligence (Voting + Comments) ───────────────────────────────
+
+interface VoteCounts { go: number; caution: number; dont: number }
+interface Comment { id: string; content: string; upvotes: number; userUpvoted: boolean; displayName: string; created_at: string }
+
+function CommunityIntelligence({ decisionId }: { decisionId: string }) {
+  const { toast } = useToast();
+  const [voteCounts, setVoteCounts] = useState<VoteCounts>({ go: 0, caution: 0, dont: 0 });
+  const [userVote, setUserVote] = useState<string | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [sort, setSort] = useState<"top" | "recent">("top");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchVotes();
+    fetchComments();
+  }, [decisionId]);
+
+  useEffect(() => { fetchComments(); }, [sort]);
+
+  const fetchVotes = async () => {
+    const res = await fetch(`/api/decisions/${decisionId}/vote`);
+    if (res.ok) {
+      const data = await res.json();
+      setVoteCounts(data.counts);
+      setUserVote(data.userVote);
+    }
+    setLoading(false);
+  };
+
+  const fetchComments = async () => {
+    const res = await fetch(`/api/decisions/${decisionId}/comments?sort=${sort}`);
+    if (res.ok) setComments(await res.json());
+  };
+
+  const vote = async (type: string) => {
+    await fetch(`/api/decisions/${decisionId}/vote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ vote_type: type }),
+    });
+    setUserVote(type);
+    fetchVotes();
+  };
+
+  const postComment = async () => {
+    if (!commentText.trim() || posting) return;
+    setPosting(true);
+    try {
+      const res = await fetch(`/api/decisions/${decisionId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: commentText.trim(), is_anonymous: true }),
+      });
+      if (res.ok) {
+        setCommentText("");
+        fetchComments();
+        toast("Comment posted anonymously.", "success");
+      }
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  const upvote = async (commentId: string) => {
+    await fetch(`/api/decisions/${decisionId}/comments/${commentId}/upvote`, { method: "POST" });
+    fetchComments();
+  };
+
+  const total = voteCounts.go + voteCounts.caution + voteCounts.dont;
+  const pct = (n: number) => total > 0 ? Math.round((n / total) * 100) : 0;
+
+  const voteOptions = [
+    { type: "go", label: "Go for it", color: "text-success", border: "border-success/40", bg: "bg-success/10", barColor: "bg-success" },
+    { type: "caution", label: "Proceed with caution", color: "text-gold", border: "border-gold/40", bg: "bg-gold/10", barColor: "bg-gold" },
+    { type: "dont", label: "Don't do it", color: "text-danger", border: "border-danger/40", bg: "bg-danger/10", barColor: "bg-danger" },
+  ];
+
+  return (
+    <Card className="p-5 sm:p-6 space-y-6">
+      <h2 className="text-sm font-semibold text-white">Community Intelligence</h2>
+
+      {/* Vote buttons */}
+      <div className="flex flex-wrap gap-2">
+        {voteOptions.map(({ type, label, color, border, bg }) => (
+          <button
+            key={type}
+            onClick={() => vote(type)}
+            className={cn(
+              "text-sm px-4 py-2 rounded border font-medium transition-all duration-200",
+              userVote === type ? `${bg} ${color} ${border}` : "border-[#1a1a1a] text-text-secondary hover:border-[#2a2a2a] hover:text-white"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Percentage bars */}
+      {total > 0 && (
+        <div className="space-y-2.5">
+          {voteOptions.map(({ type, label, barColor }) => (
+            <div key={type}>
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-text-secondary">{label}</span>
+                <span className="text-white font-mono">{pct(voteCounts[type as keyof VoteCounts])}%</span>
+              </div>
+              <div className="h-1.5 bg-[#1a1a1a] rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${pct(voteCounts[type as keyof VoteCounts])}%` }}
+                  transition={{ duration: 0.6 }}
+                  className={`h-full rounded-full ${barColor}`}
+                />
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-text-secondary">{total} total vote{total !== 1 ? "s" : ""}</p>
+        </div>
+      )}
+
+      {/* Comments */}
+      <div className="border-t border-[#1a1a1a] pt-5">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium text-white">Community Comments</span>
+          <div className="flex gap-1">
+            {(["top", "recent"] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setSort(s)}
+                className={cn(
+                  "text-xs px-2.5 py-1 rounded border transition-all",
+                  sort === s ? "border-gold/40 text-gold bg-gold/10" : "border-[#1a1a1a] text-text-secondary hover:text-white"
+                )}
+              >
+                {s === "top" ? "Top" : "Recent"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Post comment */}
+        <div className="flex gap-2 mb-4">
+          <textarea
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="Share your perspective anonymously..."
+            rows={2}
+            className="flex-1 resize-none bg-[#111111] border border-[#1a1a1a] rounded text-sm text-white placeholder-text-secondary px-3 py-2 focus:outline-none focus:border-gold/40 transition-colors"
+          />
+          <button
+            onClick={postComment}
+            disabled={!commentText.trim() || posting}
+            className="px-3 py-2 rounded bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors self-end"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Comment list */}
+        <div className="space-y-3">
+          {comments.length === 0 && !loading && (
+            <p className="text-xs text-text-secondary text-center py-3">No comments yet. Be the first to share your perspective.</p>
+          )}
+          {comments.map((c) => (
+            <div key={c.id} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-text-secondary">{c.displayName}</span>
+                <span className="text-xs text-[#444]">{new Date(c.created_at).toLocaleDateString()}</span>
+              </div>
+              <p className="text-sm text-white leading-relaxed">{c.content}</p>
+              <button
+                onClick={() => upvote(c.id)}
+                className={cn(
+                  "flex items-center gap-1.5 mt-2 text-xs transition-colors",
+                  c.userUpvoted ? "text-gold" : "text-text-secondary hover:text-white"
+                )}
+              >
+                <UpIcon className="w-3 h-3" />
+                <span>{c.upvotes}</span>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// ─── What Would They Do ────────────────────────────────────────────────────────
+
+const LEADERS = [
+  { name: "Elon Musk", knownFor: "First Principles" },
+  { name: "Jeff Bezos", knownFor: "Customer Obsession" },
+  { name: "Steve Jobs", knownFor: "Simplicity & Focus" },
+  { name: "Warren Buffett", knownFor: "Value & Moat" },
+  { name: "Mark Zuckerberg", knownFor: "Scale & Platforms" },
+  { name: "Ray Dalio", knownFor: "Radical Transparency" },
+];
+
+interface LeaderAnalysis {
+  problemFraming: string;
+  questions: string[];
+  optimizeFor: string;
+  biggestConcern: string;
+  likelyDecision: string;
+  recommendation: string;
+}
+
+function WhatWouldTheyDo({ decisionText }: { decisionText: string }) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<Record<string, LeaderAnalysis>>({});
+
+  const analyze = async (leaderName: string) => {
+    if (results[leaderName]) { setSelected(leaderName); return; }
+    setSelected(leaderName);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/leaders/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decisionText, leaderName }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setResults((prev) => ({ ...prev, [leaderName]: data }));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const currentResult = selected ? results[selected] : null;
+
+  return (
+    <Card className="p-5 sm:p-6">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center justify-between w-full group"
+      >
+        <h2 className="text-sm font-semibold text-white group-hover:text-gold transition-colors">What Would They Do?</h2>
+        <ChevronDown className={cn("w-4 h-4 text-text-secondary transition-transform duration-200", open && "rotate-180")} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="pt-5 space-y-5">
+              {/* Leader cards */}
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {LEADERS.map((leader) => {
+                  const isSelected = selected === leader.name;
+                  const isLoading = loading && isSelected;
+                  const hasDone = !!results[leader.name];
+                  return (
+                    <button
+                      key={leader.name}
+                      onClick={() => analyze(leader.name)}
+                      disabled={loading}
+                      className={cn(
+                        "flex-shrink-0 w-28 p-3 rounded border text-left transition-all duration-200",
+                        isSelected ? "border-gold/40 bg-gold/5" : "border-[#1a1a1a] hover:border-gold/20 bg-[#0d0d0d]",
+                        loading && !isSelected && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold mb-2 mx-auto",
+                        isSelected ? "bg-gold text-[#080808]" : "bg-[#1a1a1a] text-text-secondary"
+                      )}>
+                        {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : leader.name.split(" ").map(n => n[0]).join("")}
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs font-medium text-white leading-tight">{leader.name.split(" ")[0]}</p>
+                        <p className="text-[10px] text-text-secondary mt-0.5">{leader.knownFor}</p>
+                        {hasDone && !isSelected && <div className="w-1 h-1 rounded-full bg-gold mx-auto mt-1" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Result panel */}
+              <AnimatePresence mode="wait">
+                {selected && currentResult && !loading && (
+                  <motion.div
+                    key={selected}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="space-y-4"
+                  >
+                    <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded p-4 space-y-3">
+                      <div>
+                        <p className="text-xs font-semibold text-gold uppercase tracking-wider mb-1">Problem Framing</p>
+                        <p className="text-sm text-white">{currentResult.problemFraming}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Questions They&apos;d Ask</p>
+                        <ul className="space-y-1">
+                          {currentResult.questions?.map((q, i) => (
+                            <li key={i} className="text-sm text-text-secondary flex items-start gap-2">
+                              <span className="text-gold flex-shrink-0">?</span> {q}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Optimizes For</p>
+                          <p className="text-sm text-white">{currentResult.optimizeFor}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Biggest Concern</p>
+                          <p className="text-sm text-white">{currentResult.biggestConcern}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Likely Decision</p>
+                        <span className={cn(
+                          "text-sm font-medium",
+                          currentResult.likelyDecision?.startsWith("YES") ? "text-success" : currentResult.likelyDecision?.startsWith("NO") ? "text-danger" : "text-gold"
+                        )}>{currentResult.likelyDecision}</span>
+                      </div>
+                    </div>
+                    <div className="border-l-2 border-gold pl-4">
+                      <p className="text-sm text-white italic leading-relaxed">&ldquo;{currentResult.recommendation}&rdquo;</p>
+                      <p className="text-xs text-gold mt-1">— Simulated {selected}</p>
+                    </div>
+                    <p className="text-xs text-[#444] leading-relaxed">Simulated using publicly known decision-making principles. Not affiliated with or endorsed by these individuals.</p>
+                  </motion.div>
+                )}
+                {selected && loading && (
+                  <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 py-4">
+                    <Loader2 className="w-4 h-4 text-gold animate-spin" />
+                    <span className="text-sm text-text-secondary">Simulating {selected}&apos;s decision framework...</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
+  );
+}
+
+// ─── Mentor Request Button ─────────────────────────────────────────────────────
+
+function MentorRequestSection({ decisionId }: { decisionId: string }) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [mentors, setMentors] = useState<{ id: string; full_name: string; expertise: string }[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedMentor, setSelectedMentor] = useState("");
+  const [message, setMessage] = useState("");
+  const [requesting, setRequesting] = useState(false);
+
+  useEffect(() => {
+    if (showModal && mentors.length === 0) {
+      fetch("/api/mentors").then(r => r.json()).then(data => {
+        if (Array.isArray(data)) setMentors(data.slice(0, 10));
+      });
+    }
+  }, [showModal]);
+
+  const submit = async () => {
+    if (!selectedMentor) { toast("Select a mentor", "error"); return; }
+    setRequesting(true);
+    try {
+      const res = await fetch("/api/mentor-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mentor_id: selectedMentor, decision_id: decisionId, message }),
+      });
+      if (res.ok) {
+        toast("Mentor request sent!", "success");
+        setShowModal(false);
+      } else {
+        const err = await res.json();
+        toast(err.error || "Failed to send request", "error");
+      }
+    } finally {
+      setRequesting(false);
+    }
+  };
+
+  return (
+    <>
+      <Card className="p-5 sm:p-6">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded bg-gold/10 flex items-center justify-center flex-shrink-0">
+            <GraduationCap className="w-4 h-4 text-gold" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-white mb-1">Get a Mentor&apos;s Perspective</h3>
+            <p className="text-xs text-text-secondary mb-3">Request insights from an experienced operator or investor on this specific decision.</p>
+            <Button size="sm" onClick={() => setShowModal(true)}>Request Mentor Insight</Button>
+          </div>
+        </div>
+      </Card>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Request Mentor Insight</h3>
+            {mentors.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-4">
+                <p className="text-text-secondary text-sm text-center">No approved mentors available yet.</p>
+                <Button size="sm" variant="outline" onClick={() => { setShowModal(false); router.push("/dashboard/mentors/apply"); }}>
+                  Become a Mentor
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-text-secondary mb-1.5">Select Mentor</label>
+                  <select
+                    value={selectedMentor}
+                    onChange={(e) => setSelectedMentor(e.target.value)}
+                    className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded px-3 py-2.5 text-sm text-white focus:outline-none focus:border-gold/40 transition-colors"
+                  >
+                    <option value="">Choose a mentor...</option>
+                    {mentors.map((m) => (
+                      <option key={m.id} value={m.id}>{m.full_name} — {m.expertise}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-text-secondary mb-1.5">Message (optional)</label>
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Add context about what specific guidance you need..."
+                    rows={3}
+                    className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded text-sm text-white placeholder-text-secondary px-3 py-2.5 focus:outline-none focus:border-gold/40 transition-colors resize-none"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <Button onClick={submit} disabled={requesting} className="flex-1">
+                    {requesting ? "Sending..." : "Send Request"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
+                </div>
+              </>
+            )}
+          </motion.div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -407,6 +875,21 @@ export default function DecisionPage() {
             initial={report.outcome}
             onSaved={(o) => setDecision((prev) => prev ? { ...prev, report: { ...prev.report, outcome: o as "GOOD" | "BAD" | "UNKNOWN" } } : prev)}
           />
+        </motion.div>
+
+        {/* What Would They Do */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33 }}>
+          <WhatWouldTheyDo decisionText={decision.description} />
+        </motion.div>
+
+        {/* Community Intelligence */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.36 }}>
+          <CommunityIntelligence decisionId={decision.id} />
+        </motion.div>
+
+        {/* Mentor Request */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.39 }}>
+          <MentorRequestSection decisionId={decision.id} />
         </motion.div>
       </div>
     </div>
