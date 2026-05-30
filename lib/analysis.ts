@@ -88,15 +88,18 @@ export async function runDecisionAnalysis(
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: "gemini-2.0-flash-lite",
-    generationConfig: { temperature: 0.7 },
+    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
   });
 
   const prompt = buildPrompt(decisionText, type, userRole);
   let lastError: unknown;
 
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
       const result = await model.generateContent(prompt);
+      clearTimeout(timeout);
       const raw = result.response.text();
       const cleaned = raw
         .replace(/^```json\s*/i, "")
@@ -109,7 +112,7 @@ export async function runDecisionAnalysis(
       return parsed;
     } catch (e) {
       lastError = e;
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 700));
+      if (attempt < 1) await new Promise((r) => setTimeout(r, 500));
     }
   }
 
