@@ -4,7 +4,6 @@ import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Send, Lock, Users, Pin, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import { useSession } from "next-auth/react";
@@ -44,8 +43,6 @@ export default function GroupChatPage() {
   const { groupId } = useParams<{ groupId: string }>();
   const router = useRouter();
   const { data: session } = useSession();
-  const { toast } = useToast();
-
   const [group, setGroup] = useState<Group | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");

@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Users, Lock, ChevronRight, Crown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 

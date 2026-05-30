@@ -116,7 +116,7 @@ Return ONLY raw JSON with no markdown:
       .trim();
     const parsed = JSON.parse(cleaned);
     return NextResponse.json(parsed);
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Failed to generate analysis" }, { status: 500 });
   }
 }

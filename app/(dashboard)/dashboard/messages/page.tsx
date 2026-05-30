@@ -2,9 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { MessageSquare, Search, Clock } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { cn } from "@/lib/utils";
+import { MessageSquare, Search } from "lucide-react";
 
 interface Conversation {
   id: string;
@@ -35,8 +33,6 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [searching, setSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     fetchConversations();
@@ -52,17 +48,6 @@ export default function MessagesPage() {
     }
   };
 
-  const startConversation = async (userId: string) => {
-    const res = await fetch("/api/messages/conversations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
-    });
-    if (res.ok) {
-      const conv = await res.json();
-      router.push(`/dashboard/messages/${conv.id}`);
-    }
-  };
 
   if (loading) {
     return (
