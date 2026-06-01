@@ -7,6 +7,7 @@ import {
   RotateCcw, AlertTriangle, Zap, Eye, HelpCircle, TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -24,46 +25,6 @@ interface Verdict {
   recommendation: string;
   recommendationLabel: "Strong Move" | "Proceed Carefully" | "Weak Strategy" | "High Risk" | "Not Ready Yet";
 }
-
-// ─── Personalities ────────────────────────────────────────────────────────────
-
-const PERSONALITIES = [
-  {
-    id: "savage-investor",
-    name: "Savage Investor",
-    description: "A brutal VC who will tear apart every assumption and demand cold, hard evidence.",
-    voiceStyle: "Punchy & Relentless",
-    icon: "💰",
-  },
-  {
-    id: "competitor",
-    name: "Competitor",
-    description: "Your most dangerous rival, looking for every weakness to counter-position and exploit.",
-    voiceStyle: "Cold & Calculated",
-    icon: "⚔️",
-  },
-  {
-    id: "board-member",
-    name: "Angry Board Member",
-    description: "A senior board member demanding financial justification and execution clarity.",
-    voiceStyle: "Professional & Relentless",
-    icon: "🏛️",
-  },
-  {
-    id: "tough-mentor",
-    name: "Tough Mentor",
-    description: "A veteran mentor who calls out self-deception after watching founders fail for 20 years.",
-    voiceStyle: "Direct & Caring",
-    icon: "🎯",
-  },
-  {
-    id: "brutal-strategist",
-    name: "Brutal Strategist",
-    description: "A McKinsey consultant who applies frameworks ruthlessly and quantifies everything.",
-    voiceStyle: "Precise & Intimidating",
-    icon: "📊",
-  },
-];
 
 // ─── TTS ──────────────────────────────────────────────────────────────────────
 
@@ -141,6 +102,17 @@ function VerdictBadge({ label }: { label: string }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function EnemyModePage() {
+  const { t } = useLanguage();
+  const em = t.enemyMode;
+
+  const PERSONALITIES = [
+    { id: "savage-investor", ...em.personalities.savageInvestor, icon: "💰" },
+    { id: "competitor",      ...em.personalities.competitor,     icon: "⚔️" },
+    { id: "board-member",    ...em.personalities.boardMember,    icon: "🏛️" },
+    { id: "tough-mentor",    ...em.personalities.toughMentor,    icon: "🎯" },
+    { id: "brutal-strategist", ...em.personalities.brutalStrategist, icon: "📊" },
+  ];
+
   const [step, setStep] = useState<0 | 1 | 2>(0);
 
   // Step 0
@@ -162,13 +134,9 @@ export default function EnemyModePage() {
 
   const personality = PERSONALITIES.find((p) => p.id === selectedPersonality);
 
-  // ── Scroll to bottom ─────────────────────────────────────────────────────
-
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
-
-  // ── Call chat API ─────────────────────────────────────────────────────────
 
   const callChat = useCallback(
     async (userMessage: string, currentHistory: Message[]) => {
@@ -197,7 +165,6 @@ export default function EnemyModePage() {
             const idx = newMessages.length - 1;
             setSpeakingIndex(idx);
             speak(data.reply, selectedPersonality!);
-            // Clear speaking state after estimated duration
             const words = data.reply.split(" ").length;
             setTimeout(() => setSpeakingIndex(null), (words / 2) * 1000);
           }
@@ -211,16 +178,11 @@ export default function EnemyModePage() {
     [selectedPersonality, decisionText, voiceEnabled]
   );
 
-  // ── Begin session ─────────────────────────────────────────────────────────
-
   const beginSession = useCallback(async () => {
     setStep(1);
     setMessages([]);
-    // Enemy speaks first
     await callChat("", []);
   }, [callChat]);
-
-  // ── Send user message ─────────────────────────────────────────────────────
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
@@ -230,8 +192,6 @@ export default function EnemyModePage() {
     setMessages(currentMessages);
     await callChat(text, messages);
   }, [input, isTyping, messages, callChat]);
-
-  // ── End session → verdict ─────────────────────────────────────────────────
 
   const endSession = useCallback(async () => {
     setVerdictLoading(true);
@@ -256,8 +216,6 @@ export default function EnemyModePage() {
     }
   }, [selectedPersonality, decisionText, messages]);
 
-  // ── Reset ─────────────────────────────────────────────────────────────────
-
   const reset = () => {
     setStep(0);
     setDecisionText("");
@@ -267,8 +225,6 @@ export default function EnemyModePage() {
     setInput("");
     if (typeof window !== "undefined") window.speechSynthesis?.cancel();
   };
-
-  // ── Handle speak button ───────────────────────────────────────────────────
 
   const handleSpeak = (text: string, index: number) => {
     if (speakingIndex === index) {
@@ -282,50 +238,37 @@ export default function EnemyModePage() {
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // STEP 0: SETUP
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── STEP 0: SETUP ─────────────────────────────────────────────────────────
 
   if (step === 0) {
     return (
       <div className="min-h-screen bg-[#080808] p-6 max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
-        >
-          {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
           <div className="text-center space-y-3 pt-4">
             <div className="flex items-center justify-center gap-3">
               <ShieldAlert className="w-8 h-8 text-[#C9A84C]" />
-              <h1 className="text-3xl font-bold text-white">Enemy Mode</h1>
+              <h1 className="text-3xl font-bold text-white">{em.title}</h1>
             </div>
-            <p className="text-[#888888] text-lg">
-              Challenge your decisions against resistance.
-            </p>
+            <p className="text-[#888888] text-lg">{em.subtitle}</p>
           </div>
 
-          {/* Decision input */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-[#888888]">
-              Your decision or strategy
-            </label>
+            <label className="text-sm font-medium text-[#888888]">{em.decisionLabel}</label>
             <textarea
               value={decisionText}
               onChange={(e) => setDecisionText(e.target.value)}
-              placeholder="Describe your decision or strategy..."
+              placeholder={em.decisionPlaceholder}
               rows={4}
               className="w-full bg-[#111111] border border-[#1a1a1a] rounded-lg px-4 py-3 text-white placeholder-[#888888] resize-none focus:outline-none focus:border-[#C9A84C]/40 transition-colors"
             />
             <div className="flex justify-between text-xs text-[#888888]">
-              <span>{decisionText.length < 50 ? `${50 - decisionText.length} more characters required` : "Ready"}</span>
-              <span>{decisionText.length} chars</span>
+              <span>{decisionText.length < 50 ? `${50 - decisionText.length} ${em.charsRemaining}` : em.ready}</span>
+              <span>{decisionText.length} {em.chars}</span>
             </div>
           </div>
 
-          {/* Personality grid */}
           <div className="space-y-3">
-            <label className="text-sm font-medium text-[#888888]">Choose your adversary</label>
+            <label className="text-sm font-medium text-[#888888]">{em.chooseAdversary}</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {PERSONALITIES.map((p) => (
                 <button
@@ -351,7 +294,6 @@ export default function EnemyModePage() {
             </div>
           </div>
 
-          {/* Begin button */}
           <button
             onClick={beginSession}
             disabled={decisionText.length < 50 || !selectedPersonality}
@@ -362,27 +304,24 @@ export default function EnemyModePage() {
                 : "bg-[#1a1a1a] text-[#888888] cursor-not-allowed"
             )}
           >
-            Begin Session
+            {em.beginSession}
           </button>
         </motion.div>
       </div>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // STEP 1: CHAT
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── STEP 1: CHAT ──────────────────────────────────────────────────────────
 
   if (step === 1) {
     return (
       <div className="flex flex-col h-screen bg-[#080808]">
-        {/* Fixed header */}
         <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a] bg-[#080808]">
           <div className="flex items-center gap-3">
             <ShieldAlert className="w-5 h-5 text-[#C9A84C]" />
             <div>
               <span className="text-white font-semibold text-sm">{personality?.name}</span>
-              <span className="text-[#888888] text-xs ml-2">Enemy Mode</span>
+              <span className="text-[#888888] text-xs ml-2">{em.title}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -394,7 +333,7 @@ export default function EnemyModePage() {
                   ? "border-[#C9A84C]/40 text-[#C9A84C] bg-[#C9A84C]/5"
                   : "border-[#1a1a1a] text-[#888888] hover:text-white"
               )}
-              title={voiceEnabled ? "Disable voice" : "Enable voice"}
+              title={voiceEnabled ? em.disableVoice : em.enableVoice}
             >
               {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
@@ -402,12 +341,11 @@ export default function EnemyModePage() {
               onClick={endSession}
               className="px-3 py-1.5 text-xs font-semibold text-red-400 border border-red-400/20 rounded-lg hover:bg-red-400/5 transition-colors"
             >
-              End Session
+              {em.endSession}
             </button>
           </div>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           <AnimatePresence>
             {messages.map((msg, i) => (
@@ -415,10 +353,7 @@ export default function EnemyModePage() {
                 key={i}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={cn(
-                  "flex",
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                )}
+                className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}
               >
                 {msg.role === "enemy" ? (
                   <div className="max-w-[80%] space-y-1">
@@ -433,15 +368,9 @@ export default function EnemyModePage() {
                       className="flex items-center gap-1.5 text-xs text-[#888888] hover:text-[#C9A84C] transition-colors mt-1"
                     >
                       {speakingIndex === i ? (
-                        <>
-                          <Waveform />
-                          <span>Stop</span>
-                        </>
+                        <><Waveform /><span>{em.stop}</span></>
                       ) : (
-                        <>
-                          <Volume2 className="w-3 h-3" />
-                          <span>Play</span>
-                        </>
+                        <><Volume2 className="w-3 h-3" /><span>{em.play}</span></>
                       )}
                     </button>
                   </div>
@@ -455,31 +384,21 @@ export default function EnemyModePage() {
           </AnimatePresence>
 
           {isTyping && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
               <TypingIndicator />
             </motion.div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
         <div className="flex-shrink-0 border-t border-[#1a1a1a] bg-[#080808] p-4">
           <div className="flex gap-3 items-end">
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-              placeholder="Respond to the challenge..."
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+              placeholder={em.respondPlaceholder}
               rows={2}
               className="flex-1 bg-[#111111] border border-[#1a1a1a] rounded-lg px-4 py-3 text-white placeholder-[#888888] resize-none focus:outline-none focus:border-[#C9A84C]/40 transition-colors text-sm"
             />
@@ -501,47 +420,35 @@ export default function EnemyModePage() {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // STEP 2: VERDICT
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── STEP 2: VERDICT ───────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-[#080808] p-6 max-w-3xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
-        {/* Header */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         <div className="text-center space-y-3 pt-4">
           <div className="flex items-center justify-center gap-2 text-[#888888] text-sm">
             <span>{personality?.icon} {personality?.name}</span>
             <span>·</span>
-            <span>Final Verdict</span>
+            <span>{em.finalVerdict}</span>
           </div>
-          <h2 className="text-2xl font-bold text-white">Session Complete</h2>
+          <h2 className="text-2xl font-bold text-white">{em.sessionComplete}</h2>
           {verdictLoading && (
             <div className="flex items-center justify-center gap-2 text-[#888888]">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Generating verdict...</span>
+              <span>{em.generatingVerdict}</span>
             </div>
           )}
-          {verdict && (
-            <div className="flex justify-center">
-              <VerdictBadge label={verdict.recommendationLabel} />
-            </div>
-          )}
+          {verdict && <div className="flex justify-center"><VerdictBadge label={verdict.recommendationLabel} /></div>}
         </div>
 
         {verdict && (
           <>
-            {/* Verdict sections */}
             {[
-              { label: "Strongest Weakness", value: verdict.strongestWeakness, icon: AlertTriangle, color: "text-red-400" },
-              { label: "Biggest Blind Spot", value: verdict.biggestBlindSpot, icon: Eye, color: "text-orange-400" },
-              { label: "What Would Fail First", value: verdict.whatFailsFirst, icon: Zap, color: "text-yellow-400" },
-              { label: "Toughest Unanswered Question", value: verdict.unansweredQuestion, icon: HelpCircle, color: "text-amber-400" },
-              { label: "Strategic Strength", value: verdict.strategicStrength, icon: TrendingUp, color: "text-green-400" },
+              { label: em.strongestWeakness,    value: verdict.strongestWeakness,  icon: AlertTriangle, color: "text-red-400" },
+              { label: em.biggestBlindSpot,     value: verdict.biggestBlindSpot,   icon: Eye,           color: "text-orange-400" },
+              { label: em.whatFailsFirst,       value: verdict.whatFailsFirst,     icon: Zap,           color: "text-yellow-400" },
+              { label: em.unansweredQuestion,   value: verdict.unansweredQuestion, icon: HelpCircle,    color: "text-amber-400" },
+              { label: em.strategicStrength,    value: verdict.strategicStrength,  icon: TrendingUp,    color: "text-green-400" },
             ].map((section, i) => {
               const Icon = section.icon;
               return (
@@ -554,39 +461,27 @@ export default function EnemyModePage() {
                 >
                   <div className="flex items-center gap-2">
                     <Icon className={cn("w-4 h-4", section.color)} />
-                    <span className="text-xs font-semibold text-[#888888] uppercase tracking-wider">
-                      {section.label}
-                    </span>
+                    <span className="text-xs font-semibold text-[#888888] uppercase tracking-wider">{section.label}</span>
                   </div>
                   <p className="text-white text-sm leading-relaxed">{section.value}</p>
                 </motion.div>
               );
             })}
 
-            {/* Recommendation */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
+              initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
               className="bg-[#C9A84C]/5 border border-[#C9A84C]/20 rounded-lg p-5 space-y-2"
             >
-              <span className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider">
-                Final Recommendation
-              </span>
+              <span className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider">{em.finalRecommendation}</span>
               <p className="text-white text-sm leading-relaxed">{verdict.recommendation}</p>
             </motion.div>
 
-            {/* Share card */}
             <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
               className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-5 space-y-3"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#C9A84C] tracking-widest uppercase">
-                  Quantum Enemy Mode
-                </span>
+                <span className="text-xs font-bold text-[#C9A84C] tracking-widest uppercase">{em.shareTitle}</span>
                 <VerdictBadge label={verdict.recommendationLabel} />
               </div>
               <p className="text-[#888888] text-xs">vs. {personality?.name}</p>
@@ -598,13 +493,12 @@ export default function EnemyModePage() {
           </>
         )}
 
-        {/* Reset */}
         <button
           onClick={reset}
           className="w-full py-3 rounded-lg border border-[#1a1a1a] text-[#888888] hover:text-white hover:border-[#C9A84C]/30 transition-all text-sm font-medium flex items-center justify-center gap-2"
         >
           <RotateCcw className="w-4 h-4" />
-          Start New Session
+          {em.startNewSession}
         </button>
       </motion.div>
     </div>
