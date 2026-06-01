@@ -16,36 +16,25 @@ export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { plan: true, planSince: true },
-  });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
   let usage = await prisma.planUsage.upsert({
     where: { userId: session.user.id },
     create: { userId: session.user.id },
     update: {},
   });
 
-  // Reset monthly counters if needed
   if (shouldResetUsage(usage.resetAt)) {
     usage = await prisma.planUsage.update({
       where: { userId: session.user.id },
-      data: {
-        decisionsThisMonth: 0,
-        mentorRequestsThisMonth: 0,
-        resetAt: new Date(),
-      },
+      data: { decisionsThisMonth: 0, mentorRequestsThisMonth: 0, resetAt: new Date() },
     });
   }
 
-  const plan = user.plan as Plan;
+  const plan = usage.plan as Plan;
   const limits = PLAN_LIMITS[plan];
 
   return NextResponse.json({
     plan,
-    planSince: user.planSince,
+    planSince: usage.planSince,
     usage: {
       decisionsThisMonth: usage.decisionsThisMonth,
       mentorRequestsThisMonth: usage.mentorRequestsThisMonth,
@@ -70,11 +59,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
 
-  const user = await prisma.user.update({
-    where: { id: session.user.id },
-    data: { plan: plan as never, planSince: new Date() },
-    select: { id: true, plan: true, planSince: true },
+  const usage = await prisma.planUsage.upsert({
+    where: { userId: session.user.id },
+    create: { userId: session.user.id, plan, planSince: new Date() },
+    update: { plan, planSince: new Date() },
   });
 
-  return NextResponse.json(user);
+  return NextResponse.json({ plan: usage.plan, planSince: usage.planSince });
 }

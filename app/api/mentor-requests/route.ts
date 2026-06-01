@@ -49,18 +49,13 @@ export async function POST(req: Request) {
 
   if (!mentor) return NextResponse.json({ error: "Mentor not found or not approved" }, { status: 404 });
 
-  // Plan-based limit check
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { plan: true },
-  });
-  const plan = (user?.plan ?? "FREE_TRIAL") as Plan;
-
+  // Plan-based limit check — reads from PlanUsage only
   const usage = await prisma.planUsage.upsert({
     where: { userId: session.user.id },
     create: { userId: session.user.id },
     update: {},
   });
+  const plan = (usage.plan ?? "FREE_TRIAL") as Plan;
 
   // Reset monthly counter if needed
   const thirtyDaysAgo = new Date();

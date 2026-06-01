@@ -16,8 +16,6 @@ model User {
   image         String?
   password      String?
   role          UserRole  @default(FOUNDER)
-  plan          UserPlan  @default(FREE_TRIAL)
-  planSince     DateTime  @default(now())
   company       String?
   industry      String?
   country       String?
@@ -50,6 +48,8 @@ enum UserPlan {
 model PlanUsage {
   id                      String   @id @default(cuid())
   userId                  String   @unique
+  plan                    String   @default("FREE_TRIAL")
+  planSince               DateTime @default(now())
   decisionsThisMonth      Int      @default(0)
   mentorRequestsThisMonth Int      @default(0)
   alertsCount             Int      @default(0)

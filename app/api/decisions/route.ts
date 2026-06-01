@@ -11,17 +11,13 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // Plan gating
-  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } });
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
+  // Plan gating — reads from PlanUsage (not User) so no schema migration needed on User table
   const usage = await prisma.planUsage.upsert({
     where: { userId: session.user.id },
     create: { userId: session.user.id },
     update: {},
   });
 
-  // Reset monthly counter if needed
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   let decisionsThisMonth = usage.decisionsThisMonth;
@@ -33,7 +29,7 @@ export async function POST(req: Request) {
     decisionsThisMonth = 0;
   }
 
-  const plan = user.plan as Plan;
+  const plan = usage.plan as Plan;
   const limit = PLAN_LIMITS[plan].decisionsPerMonth;
   if (limit !== -1 && decisionsThisMonth >= limit) {
     return NextResponse.json({ error: "Decision limit reached", code: "PLAN_LIMIT" }, { status: 403 });

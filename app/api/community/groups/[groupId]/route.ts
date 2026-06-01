@@ -22,11 +22,8 @@ export async function GET(
 
   // Check VIP gating via plan
   if (group.is_vip) {
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { plan: true },
-    });
-    const plan = (user?.plan ?? "FREE_TRIAL") as Plan;
+    const planUsage = await prisma.planUsage.findUnique({ where: { userId: session.user.id } });
+    const plan = (planUsage?.plan ?? "FREE_TRIAL") as Plan;
     if (plan === "FREE_TRIAL" || plan === "PRO") {
       return NextResponse.json(
         { error: "VIP community requires Max or Premium plan", code: "PLAN_LIMIT" },
