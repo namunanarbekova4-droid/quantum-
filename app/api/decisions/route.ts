@@ -3,12 +3,41 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { detectType, runDecisionAnalysis } from "@/lib/analysis";
+import { type Plan, PLAN_LIMITS } from "@/lib/plans";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Plan gating
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { plan: true } });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  const usage = await prisma.planUsage.upsert({
+    where: { userId: session.user.id },
+    create: { userId: session.user.id },
+    update: {},
+  });
+
+  // Reset monthly counter if needed
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  let decisionsThisMonth = usage.decisionsThisMonth;
+  if (usage.resetAt < thirtyDaysAgo) {
+    await prisma.planUsage.update({
+      where: { userId: session.user.id },
+      data: { decisionsThisMonth: 0, mentorRequestsThisMonth: 0, resetAt: new Date() },
+    });
+    decisionsThisMonth = 0;
+  }
+
+  const plan = user.plan as Plan;
+  const limit = PLAN_LIMITS[plan].decisionsPerMonth;
+  if (limit !== -1 && decisionsThisMonth >= limit) {
+    return NextResponse.json({ error: "Decision limit reached", code: "PLAN_LIMIT" }, { status: 403 });
+  }
 
   const body = await req.json();
   const decisionText: string = (body.description || body.title || "").trim();
@@ -52,6 +81,12 @@ export async function POST(req: Request) {
       },
     });
   }
+
+  // Increment decision counter
+  await prisma.planUsage.update({
+    where: { userId: session.user.id },
+    data: { decisionsThisMonth: { increment: 1 } },
+  });
 
   return NextResponse.json({ id: decision.id });
 }

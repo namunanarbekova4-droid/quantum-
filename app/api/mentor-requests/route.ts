@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
+import { type Plan, PLAN_LIMITS } from "@/lib/plans";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -47,21 +49,37 @@ export async function POST(req: Request) {
 
   if (!mentor) return NextResponse.json({ error: "Mentor not found or not approved" }, { status: 404 });
 
-  // Simple plan check: for now allow all authenticated users (no plan field in schema)
-  // Check this month's requests count for a basic limit
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
+  // Plan-based limit check
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { plan: true },
+  });
+  const plan = (user?.plan ?? "FREE_TRIAL") as Plan;
 
-  const { count } = await supabaseAdmin
-    .from("mentor_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("requester_id", session.user.id)
-    .gte("created_at", startOfMonth.toISOString());
+  const usage = await prisma.planUsage.upsert({
+    where: { userId: session.user.id },
+    create: { userId: session.user.id },
+    update: {},
+  });
 
-  // Allow up to 3 requests/month (generous default)
-  if ((count || 0) >= 3) {
-    return NextResponse.json({ error: "Monthly mentor request limit reached. Upgrade for more." }, { status: 429 });
+  // Reset monthly counter if needed
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  let mentorRequestsThisMonth = usage.mentorRequestsThisMonth;
+  if (usage.resetAt < thirtyDaysAgo) {
+    await prisma.planUsage.update({
+      where: { userId: session.user.id },
+      data: { decisionsThisMonth: 0, mentorRequestsThisMonth: 0, resetAt: new Date() },
+    });
+    mentorRequestsThisMonth = 0;
+  }
+
+  const limit = PLAN_LIMITS[plan].mentorRequestsPerMonth;
+  if (limit !== -1 && mentorRequestsThisMonth >= limit) {
+    return NextResponse.json(
+      { error: "Monthly mentor request limit reached. Upgrade for more.", code: "PLAN_LIMIT" },
+      { status: 429 }
+    );
   }
 
   const { data, error } = await supabaseAdmin
@@ -76,5 +94,12 @@ export async function POST(req: Request) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Increment usage counter
+  await prisma.planUsage.update({
+    where: { userId: session.user.id },
+    data: { mentorRequestsThisMonth: { increment: 1 } },
+  });
+
   return NextResponse.json(data, { status: 201 });
 }

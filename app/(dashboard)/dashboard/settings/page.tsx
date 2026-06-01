@@ -3,13 +3,14 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Shield, Bell, Eye, CreditCard, AlertTriangle, Clock, X } from "lucide-react";
+import { User, Shield, Bell, Eye, CreditCard, AlertTriangle, Clock, X, Check } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
+import { type Plan, PLAN_DISPLAY, PLAN_LIMITS } from "@/lib/plans";
 
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
@@ -33,6 +34,42 @@ export default function SettingsPage() {
   ];
 
   const [tab, setTab] = useState("profile");
+
+  // Plan state
+  const [planData, setPlanData] = useState<{
+    plan: Plan;
+    planSince: string;
+    usage: { decisionsThisMonth: number; mentorRequestsThisMonth: number; alertsCount: number };
+    limits: { decisionsPerMonth: number; mentorRequestsPerMonth: number; alerts: number };
+  } | null>(null);
+  const [upgradingPlan, setUpgradingPlan] = useState<Plan | null>(null);
+
+  useEffect(() => {
+    fetch("/api/user/plan")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setPlanData(data); });
+  }, []);
+
+  const handleUpgradePlan = async (plan: Plan) => {
+    setUpgradingPlan(plan);
+    try {
+      const res = await fetch("/api/user/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setPlanData((prev) => prev ? { ...prev, plan: updated.plan } : prev);
+        toast("Plan updated successfully.", "success");
+      } else {
+        toast("Failed to update plan.", "error");
+      }
+    } finally {
+      setUpgradingPlan(null);
+    }
+  };
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
@@ -320,40 +357,131 @@ export default function SettingsPage() {
         )}
 
         {tab === "billing" && (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Current plan + usage */}
             <Card className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-gold/10 border border-gold/20 rounded-lg flex items-center justify-center">
-                  <CreditCard className="w-4 h-4 text-gold" />
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-8 h-8 bg-[#C9A84C]/10 border border-[#C9A84C]/20 rounded-lg flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-[#C9A84C]" />
                 </div>
-                <h2 className="text-base font-semibold text-white">{t.settings.billing.title}</h2>
+                <h2 className="text-base font-semibold text-white">Plan &amp; Usage</h2>
               </div>
-              <div className="p-5 bg-gold/5 border border-gold/20 rounded-lg mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-bold text-gold">{t.settings.billing.earlyAccess}</span>
-                  <span className="px-2 py-0.5 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold">{t.settings.billing.foundingMember}</span>
-                </div>
-                <p className="text-sm text-text-secondary leading-relaxed">{t.settings.billing.earlyAccessDesc}</p>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed">{t.settings.billing.earlyAccessNote}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="text-sm font-semibold text-[#555555] uppercase tracking-wider mb-4">{t.settings.billing.futurePlans}</h3>
-              <p className="text-xs text-text-secondary mb-4">{t.settings.billing.futurePlansDesc}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { name: t.settings.billing.pro, price: "$25/mo", desc: t.settings.billing.proDesc },
-                  { name: t.settings.billing.max, price: "$99/mo", desc: t.settings.billing.maxDesc },
-                  { name: t.settings.billing.premium, price: "Custom", desc: t.settings.billing.premiumDesc },
-                ].map((p) => (
-                  <div key={p.name} className="p-3 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg">
-                    <p className="text-sm font-semibold text-white">{p.name}</p>
-                    <p className="font-mono text-xs text-gold mt-1">{p.price}</p>
-                    <p className="text-xs text-text-secondary mt-1">{p.desc}</p>
+
+              {planData ? (
+                <>
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className={`text-lg font-bold ${PLAN_DISPLAY[planData.plan].color}`}>
+                      {PLAN_DISPLAY[planData.plan].label}
+                    </span>
+                    <span className="px-2 py-0.5 text-xs font-semibold bg-[#C9A84C]/10 border border-[#C9A84C]/20 text-[#C9A84C] rounded-full">
+                      Early Access — FREE
+                    </span>
                   </div>
-                ))}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+                    {[
+                      {
+                        label: "Decisions this month",
+                        used: planData.usage.decisionsThisMonth,
+                        limit: planData.limits.decisionsPerMonth,
+                      },
+                      {
+                        label: "Mentor requests",
+                        used: planData.usage.mentorRequestsThisMonth,
+                        limit: planData.limits.mentorRequestsPerMonth,
+                      },
+                      {
+                        label: "Active alerts",
+                        used: planData.usage.alertsCount,
+                        limit: planData.limits.alerts,
+                      },
+                    ].map((stat) => (
+                      <div key={stat.label} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg p-4">
+                        <p className="text-xs text-[#888] mb-1">{stat.label}</p>
+                        <p className="text-lg font-bold text-white font-mono">
+                          {stat.used}
+                          <span className="text-xs text-[#555] font-sans ml-1">
+                            / {stat.limit === -1 ? "Unlimited" : stat.limit}
+                          </span>
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-3 animate-pulse">
+                  <div className="h-8 bg-[#1a1a1a] rounded w-32" />
+                  <div className="h-16 bg-[#1a1a1a] rounded" />
+                </div>
+              )}
+            </Card>
+
+            {/* Plan selection cards */}
+            <Card className="p-6">
+              <h3 className="text-sm font-semibold text-[#555555] uppercase tracking-wider mb-2">Change Plan</h3>
+              <p className="text-xs text-[#888] mb-5">All plans are free during Early Access. Upgrade to unlock more features.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {(["FREE_TRIAL", "PRO", "MAX", "PREMIUM"] as Plan[]).map((planId) => {
+                  const isCurrent = planData?.plan === planId;
+                  const isMax = planId === "MAX";
+                  const features: Record<Plan, string[]> = {
+                    FREE_TRIAL: ["5 decisions/month", "7-day history"],
+                    PRO: ["50 decisions/month", "3 alerts", "1 private room"],
+                    MAX: ["Unlimited decisions", "Unlimited alerts", "VIP community"],
+                    PREMIUM: ["Everything in Max", "API access", "Account manager"],
+                  };
+                  return (
+                    <div
+                      key={planId}
+                      className={`relative p-4 rounded-lg border ${
+                        isMax ? "border-[#C9A84C]/40 bg-[#C9A84C]/5" : "border-[#1a1a1a] bg-[#0d0d0d]"
+                      } ${isCurrent ? "ring-1 ring-[#C9A84C]/50" : ""}`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`text-sm font-bold ${PLAN_DISPLAY[planId].color}`}>
+                          {PLAN_DISPLAY[planId].label}
+                        </span>
+                        {isCurrent && (
+                          <span className="flex items-center gap-1 text-xs text-[#C9A84C]">
+                            <Check className="w-3 h-3" /> Current
+                          </span>
+                        )}
+                      </div>
+                      <ul className="space-y-1.5 mb-4">
+                        {features[planId].map((f) => (
+                          <li key={f} className="text-xs text-[#888] flex items-start gap-1.5">
+                            <Check className="w-3 h-3 text-[#C9A84C] flex-shrink-0 mt-0.5" />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                      <button
+                        onClick={() => handleUpgradePlan(planId)}
+                        disabled={isCurrent || upgradingPlan === planId}
+                        className={cn(
+                          "w-full py-2 text-xs font-semibold rounded transition-all",
+                          isCurrent
+                            ? "bg-[#C9A84C]/10 text-[#C9A84C] cursor-default border border-[#C9A84C]/20"
+                            : isMax
+                            ? "bg-[#C9A84C] text-[#080808] hover:bg-[#d4b660] disabled:opacity-70"
+                            : "border border-[#C9A84C]/30 text-[#C9A84C] hover:bg-[#C9A84C]/8 disabled:opacity-70"
+                        )}
+                      >
+                        {upgradingPlan === planId ? "Upgrading..." : isCurrent ? "Current Plan" : "Select Plan"}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </Card>
+
+            {/* Early access note */}
+            <div className="p-4 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg">
+              <p className="text-xs text-[#555] leading-relaxed">
+                All plan changes are instant and free during Early Access. No payment required.
+                Paid plans will be introduced after launch with advance notice to all members.
+              </p>
+            </div>
           </div>
         )}
       </motion.div>

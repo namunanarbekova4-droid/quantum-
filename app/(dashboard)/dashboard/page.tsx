@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { type Plan, PLAN_DISPLAY, PLAN_LIMITS } from "@/lib/plans";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -227,6 +228,12 @@ function IntelligencePanel() {
 
 // ─── Dashboard Page ───────────────────────────────────────────────────────────
 
+interface PlanData {
+  plan: Plan;
+  usage: { decisionsThisMonth: number };
+  limits: { decisionsPerMonth: number };
+}
+
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { toast } = useToast();
@@ -235,6 +242,13 @@ export default function DashboardPage() {
   const userName = session?.user?.name?.split(" ")[0] ?? "there";
   const [decision, setDecision] = useState("");
   const [loading, setLoading] = useState(false);
+  const [planData, setPlanData] = useState<PlanData | null>(null);
+
+  useEffect(() => {
+    fetch("/api/user/plan")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setPlanData(data); });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -246,21 +260,49 @@ export default function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ description: decision }),
       });
-      if (!res.ok) throw new Error("Failed");
       const data = await res.json();
+      if (!res.ok) {
+        if (data.code === "PLAN_LIMIT") {
+          toast(
+            "You've reached your plan limit. Upgrade for more decisions.",
+            "error"
+          );
+          return;
+        }
+        throw new Error("Failed");
+      }
       router.push(`/dashboard/decision/${data.id}`);
     } catch {
-      setLoading(false);
       toast("Something went wrong. Please try again.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl font-bold text-white">{t.dashboard.greeting}, {userName}.</h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-2xl font-bold text-white">{t.dashboard.greeting}, {userName}.</h1>
+          {planData && (
+            <span className={`px-2 py-0.5 text-xs font-semibold border border-current rounded-full ${PLAN_DISPLAY[planData.plan].color}`}>
+              {PLAN_DISPLAY[planData.plan].label}
+            </span>
+          )}
+        </div>
         <p className="text-text-secondary mt-1">{t.dashboard.subtitle}</p>
       </motion.div>
+
+      {planData && planData.plan === "FREE_TRIAL" && planData.usage.decisionsThisMonth >= 3 && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-4 bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-lg px-4 py-3 flex items-center justify-between gap-4">
+          <p className="text-sm text-[#C9A84C]">
+            You&apos;ve used {planData.usage.decisionsThisMonth} of {PLAN_LIMITS.FREE_TRIAL.decisionsPerMonth} free decisions.{" "}
+            <Link href="/pricing" className="underline font-semibold hover:text-[#d4b660] transition-colors">
+              Upgrade for unlimited access.
+            </Link>
+          </p>
+        </motion.div>
+      )}
 
       <div className="mt-8 grid grid-cols-1 xl:grid-cols-5 gap-8">
         <div className="xl:col-span-3 space-y-6">
