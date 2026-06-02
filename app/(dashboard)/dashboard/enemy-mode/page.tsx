@@ -123,6 +123,7 @@ export default function EnemyModePage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -141,6 +142,7 @@ export default function EnemyModePage() {
   const callChat = useCallback(
     async (userMessage: string, currentHistory: Message[]) => {
       setIsTyping(true);
+      setChatError(null);
       try {
         const res = await fetch("/api/enemy-mode/chat", {
           method: "POST",
@@ -154,6 +156,10 @@ export default function EnemyModePage() {
           }),
         });
         const data = await res.json();
+        if (!res.ok) {
+          setChatError(data.error || `Error ${res.status}`);
+          return;
+        }
         if (data.reply) {
           const newMessages: Message[] = [
             ...currentHistory,
@@ -170,7 +176,7 @@ export default function EnemyModePage() {
           }
         }
       } catch (err) {
-        console.error(err);
+        setChatError(err instanceof Error ? err.message : "Failed to connect");
       } finally {
         setIsTyping(false);
       }
@@ -386,6 +392,13 @@ export default function EnemyModePage() {
           {isTyping && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
               <TypingIndicator />
+            </motion.div>
+          )}
+          {chatError && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
+              <div className="max-w-[80%] bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-red-400 text-sm">
+                ⚠️ {chatError}
+              </div>
             </motion.div>
           )}
           <div ref={messagesEndRef} />
