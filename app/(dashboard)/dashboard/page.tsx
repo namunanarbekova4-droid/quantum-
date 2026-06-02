@@ -11,6 +11,7 @@ import { useLanguage } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { type Plan, PLAN_DISPLAY, PLAN_LIMITS } from "@/lib/plans";
+import { StrategicToolsHub } from "@/components/dashboard/StrategicToolsHub";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -388,6 +389,16 @@ export default function DashboardPage() {
           </motion.div>
         </div>
       </div>
+
+      {/* Strategic Tools Hub */}
+      {planData && (
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.5 }} className="mt-8">
+          <StrategicToolsHub
+            role={((session?.user as { role?: string })?.role ?? "FOUNDER") as "FOUNDER" | "INVESTOR" | "EXECUTIVE"}
+            plan={planData.plan}
+          />
+        </motion.div>
+      )}
     </div>
   );
 }

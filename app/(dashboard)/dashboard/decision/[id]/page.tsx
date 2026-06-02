@@ -7,6 +7,7 @@ import {
   TrendingUp, TrendingDown, Lightbulb, Target, ChevronRight,
   ShieldAlert, BarChart2, Brain, ThumbsUp, ThumbsDown, HelpCircle, RefreshCw,
   ChevronDown, MessageCircle, ThumbsUp as UpIcon, GraduationCap, Loader2,
+  Scale, Eye, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -774,6 +775,122 @@ function MentorRequestSection({ decisionId }: { decisionId: string }) {
   );
 }
 
+// ─── Second Opinion ──────────────────────────────────────────────────────────
+
+interface SecondOpinion {
+  weaknesses: string[];
+  hiddenRisks: string[];
+  strongestCounterarguments: string[];
+  alternativeApproaches: string[];
+  verdict: "RECONSIDER" | "PROCEED_WITH_CAUTION" | "SOLID_DECISION";
+  verdictReasoning: string;
+}
+
+function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
+  decisionId: string;
+  decisionText: string;
+  recommendation?: string;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [opinion, setOpinion] = useState<SecondOpinion | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const verdictConfig = {
+    RECONSIDER: { label: "Reconsider", color: "text-red-400", bg: "bg-red-400/10 border-red-400/20" },
+    PROCEED_WITH_CAUTION: { label: "Proceed with Caution", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
+    SOLID_DECISION: { label: "Solid Decision", color: "text-green-400", bg: "bg-green-400/10 border-green-400/20" },
+  };
+
+  async function getSecondOpinion() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/tools/second-opinion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decisionId, decisionText, originalRecommendation: recommendation }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setOpinion(data.opinion);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to get second opinion");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Scale className="w-4 h-4 text-gold flex-shrink-0" />
+        <h2 className="text-sm font-semibold text-white">Second Opinion</h2>
+      </div>
+
+      {!opinion && !loading && (
+        <div className="text-center py-4 space-y-3">
+          <p className="text-xs text-text-secondary leading-relaxed">
+            Get a devil&apos;s advocate perspective. AI challenges your decision from every angle to expose hidden risks.
+          </p>
+          {error && (
+            <p className="text-xs text-red-400 flex items-center justify-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5" /> {error}
+            </p>
+          )}
+          <button
+            onClick={getSecondOpinion}
+            className="w-full py-3 rounded-lg bg-[#C9A84C]/10 hover:bg-[#C9A84C]/20 border border-[#C9A84C]/20 hover:border-[#C9A84C]/40 text-[#C9A84C] text-sm font-semibold transition-all flex items-center justify-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            Get Second Opinion
+          </button>
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex items-center justify-center py-8 gap-3 text-text-secondary">
+          <Loader2 className="w-4 h-4 animate-spin text-gold" />
+          <span className="text-sm">Challenging your decision...</span>
+        </div>
+      )}
+
+      {opinion && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <div className={cn("border rounded-lg p-3", verdictConfig[opinion.verdict].bg)}>
+            <p className={cn("text-sm font-bold", verdictConfig[opinion.verdict].color)}>{verdictConfig[opinion.verdict].label}</p>
+            <p className="text-xs text-text-secondary mt-1 leading-relaxed">{opinion.verdictReasoning}</p>
+          </div>
+
+          {[
+            { label: "Weaknesses", items: opinion.weaknesses, color: "text-red-400" },
+            { label: "Hidden Risks", items: opinion.hiddenRisks, color: "text-orange-400" },
+            { label: "Strongest Counterarguments", items: opinion.strongestCounterarguments, color: "text-amber-400" },
+            { label: "Alternative Approaches", items: opinion.alternativeApproaches, color: "text-blue-400" },
+          ].map((section) => (
+            <div key={section.label} className="space-y-2">
+              <p className={cn("text-xs font-semibold uppercase tracking-wider", section.color)}>{section.label}</p>
+              <ul className="space-y-1.5">
+                {section.items.map((item, i) => (
+                  <li key={i} className="text-sm text-text-secondary flex items-start gap-2">
+                    <span className={cn("mt-1 flex-shrink-0", section.color)}>·</span> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <button
+            onClick={() => { setOpinion(null); setError(null); }}
+            className="text-xs text-text-secondary hover:text-white flex items-center gap-1.5 transition-colors"
+          >
+            <RefreshCw className="w-3 h-3" /> Get another second opinion
+          </button>
+        </motion.div>
+      )}
+    </Card>
+  );
+}
+
 export default function DecisionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -1141,6 +1258,15 @@ export default function DecisionPage() {
         {/* Mentor Request */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.39 }}>
           <MentorRequestSection decisionId={decision.id} />
+        </motion.div>
+
+        {/* Second Opinion */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.42 }}>
+          <SecondOpinionSection
+            decisionId={decision.id}
+            decisionText={decision.description}
+            recommendation={decision.recommendation ?? undefined}
+          />
         </motion.div>
       </div>
     </div>
