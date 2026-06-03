@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Globe, TrendingUp, TrendingDown, Loader2, RefreshCw, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface Article {
   title: string;
@@ -42,6 +43,7 @@ function ChangeTag({ value }: { value: number }) {
 }
 
 export default function MarketPage() {
+  const { t } = useLanguage();
   const [articles, setArticles] = useState<Article[]>([]);
   const [ticker, setTicker] = useState<TickerData | null>(null);
   const [indicators, setIndicators] = useState<Indicator[]>([]);
@@ -49,13 +51,13 @@ export default function MarketPage() {
   const [refreshing, setRefreshing] = useState(false);
 
   async function load() {
-    const [a, t, ind] = await Promise.allSettled([
+    const [a, tickerRes, ind] = await Promise.allSettled([
       fetch("/api/news").then((r) => r.json()),
       fetch("/api/market-ticker").then((r) => r.json()),
       fetch("/api/economic-indicators").then((r) => r.json()),
     ]);
     if (a.status === "fulfilled" && Array.isArray(a.value)) setArticles(a.value);
-    if (t.status === "fulfilled" && !t.value.error) setTicker(t.value);
+    if (tickerRes.status === "fulfilled" && !tickerRes.value.error) setTicker(tickerRes.value);
     if (ind.status === "fulfilled" && Array.isArray(ind.value)) setIndicators(ind.value);
     setLoading(false);
     setRefreshing(false);
@@ -70,13 +72,13 @@ export default function MarketPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Globe className="w-6 h-6 text-[#C9A84C]" />
-              <h1 className="text-2xl font-bold text-white">Market Intelligence</h1>
+              <h1 className="text-2xl font-bold text-white">{t.market.title}</h1>
             </div>
-            <p className="text-[#888888] text-sm">Live market data, economic indicators, and business news.</p>
+            <p className="text-[#888888] text-sm">{t.market.subtitle}</p>
           </div>
           <button onClick={() => { setRefreshing(true); load(); }} disabled={refreshing || loading}
             className="flex items-center gap-2 px-3 py-2 border border-[#1a1a1a] text-[#888888] hover:text-white hover:border-[#C9A84C]/30 rounded-lg text-xs transition-all">
-            <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} /> Refresh
+            <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} /> {t.market.refresh}
           </button>
         </div>
 
@@ -85,10 +87,10 @@ export default function MarketPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-3">
-              <h2 className="text-sm font-semibold text-white">Business News</h2>
+              <h2 className="text-sm font-semibold text-white">{t.market.businessNews}</h2>
               {articles.length === 0 ? (
                 <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-8 text-center text-[#888888] text-sm">
-                  Add NEWS_API_KEY to Vercel environment variables to enable live news.
+                  {t.market.noNewsKey}
                 </div>
               ) : articles.slice(0, 10).map((article, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
@@ -113,10 +115,10 @@ export default function MarketPage() {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-sm font-semibold text-white">Live Markets</h2>
+              <h2 className="text-sm font-semibold text-white">{t.market.liveMarkets}</h2>
               {!ticker ? (
                 <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-6 text-center text-[#888888] text-sm">
-                  Add NEXT_PUBLIC_ALPHA_VANTAGE_KEY for live stock data.
+                  {t.market.noMarketKey}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -138,7 +140,7 @@ export default function MarketPage() {
 
                   {ticker.crypto.length > 0 && (
                     <div className="space-y-2">
-                      <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider">Crypto</p>
+                      <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider">{t.market.crypto}</p>
                       {ticker.crypto.map((c) => (
                         <div key={c.symbol} className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-3 flex justify-between items-center">
                           <span className="text-xs text-[#888888] uppercase">{c.symbol} — {c.name}</span>
@@ -153,7 +155,7 @@ export default function MarketPage() {
 
                   {ticker.movers.gainers.length > 0 && (
                     <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-3 space-y-2">
-                      <p className="text-xs font-semibold text-green-400 uppercase tracking-wider">Top Gainers</p>
+                      <p className="text-xs font-semibold text-green-400 uppercase tracking-wider">{t.market.topGainers}</p>
                       {ticker.movers.gainers.slice(0, 4).map((g) => (
                         <div key={g.ticker} className="flex justify-between text-xs">
                           <span className="text-white">{g.ticker}</span>
@@ -167,7 +169,7 @@ export default function MarketPage() {
 
               {indicators.length > 0 && (
                 <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-4 space-y-3">
-                  <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider">US Economic Indicators</p>
+                  <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider">{t.market.economicIndicators}</p>
                   {indicators.map((ind, i) => (
                     <div key={i} className="flex justify-between items-center">
                       <span className="text-xs text-[#888888]">{ind.indicator}</span>
