@@ -31,7 +31,9 @@ export default function SignInPage() {
     const result = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
     if (result?.error) {
-      setError(`Error: ${result.error}`);
+      setError(result.error === "CredentialsSignin"
+        ? "Invalid email or password. Please try again."
+        : `Error: ${result.error}`);
     } else if (!result?.ok) {
       setError("Something went wrong. Please try again.");
     } else {
