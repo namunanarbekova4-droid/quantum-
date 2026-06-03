@@ -57,7 +57,8 @@ export const authOptions: NextAuthOptions = {
             onboarded: user.onboarded,
           } as ExtendedUser;
         } catch (err) {
-          console.error("[AUTH] authorize error:", err instanceof Error ? err.message : String(err));
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error("[AUTH] authorize error:", msg);
           return null;
         }
       },
