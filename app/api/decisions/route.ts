@@ -87,14 +87,19 @@ export async function POST(req: Request) {
   return NextResponse.json({ id: decision.id });
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { searchParams } = new URL(req.url);
+  const limitParam = searchParams.get("limit");
+  const take = limitParam ? parseInt(limitParam) : undefined;
 
   const decisions = await prisma.decision.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    select: { id: true, title: true, type: true, status: true, riskScore: true, recommendation: true, createdAt: true, report: true },
+    ...(take ? { take } : {}),
+    select: { id: true, title: true, description: true, type: true, status: true, riskScore: true, recommendation: true, createdAt: true, report: true },
   });
 
   return NextResponse.json(decisions);
