@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/lib/i18n";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Beaker, Loader2, AlertTriangle, RotateCcw, Download, TrendingUp } from "lucide-react";
@@ -97,6 +98,7 @@ function buildChart(result: SimulationResult) {
 }
 
 export default function SimulatorPage() {
+  const { t } = useLanguage();
   const [description, setDescription] = useState("");
   const [variable, setVariable] = useState(VARIABLES[0]);
   const [variableChange, setVariableChange] = useState(0);
@@ -171,15 +173,15 @@ export default function SimulatorPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <Beaker className="w-6 h-6 text-[#C9A84C]" />
-            <h1 className="text-2xl font-bold text-white">Scenario Simulator</h1>
+            <h1 className="text-2xl font-bold text-white">{t.simulator.title}</h1>
           </div>
-          <p className="text-[#888888] text-sm">Model best, base, and worst case scenarios with AI analysis.</p>
+          <p className="text-[#888888] text-sm">{t.simulator.subtitle}</p>
         </div>
 
         {!result && (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs text-[#888888]">Scenario Description *</label>
+              <label className="text-xs text-[#888888]">{t.simulator.decisionLabel} *</label>
               <textarea value={description} onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the business situation you want to model. E.g. 'We are considering entering the European market with our SaaS product next quarter...'"
                 rows={4}
@@ -188,14 +190,14 @@ export default function SimulatorPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs text-[#888888]">Key Variable</label>
+                <label className="text-xs text-[#888888]">{t.simulator.variablesLabel}</label>
                 <select value={variable} onChange={(e) => setVariable(e.target.value)}
                   className="w-full bg-[#111111] border border-[#1a1a1a] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#C9A84C]/40 appearance-none">
                   {VARIABLES.map((v) => <option key={v}>{v}</option>)}
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs text-[#888888]">Time Horizon</label>
+                <label className="text-xs text-[#888888]">{t.simulator.horizonLabel}</label>
                 <select value={timeHorizon} onChange={(e) => setTimeHorizon(e.target.value)}
                   className="w-full bg-[#111111] border border-[#1a1a1a] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#C9A84C]/40 appearance-none">
                   {HORIZONS.map((h) => <option key={h}>{h}</option>)}
@@ -226,7 +228,7 @@ export default function SimulatorPage() {
             <button onClick={simulate} disabled={!description || loading}
               className={cn("w-full py-3 rounded-lg text-sm font-semibold transition-all",
                 description && !loading ? "bg-[#C9A84C] text-[#080808] hover:bg-[#C9A84C]/90" : "bg-[#1a1a1a] text-[#444] cursor-not-allowed")}>
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin inline mr-2" />Running simulation...</> : "Run Simulation"}
+              {loading ? <><Loader2 className="w-4 h-4 animate-spin inline mr-2" />{t.simulator.running}</> : t.simulator.run}
             </button>
           </div>
         )}
@@ -239,7 +241,7 @@ export default function SimulatorPage() {
                 <div className="flex gap-2 flex-shrink-0">
                   <button onClick={exportReport}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A84C] text-[#080808] rounded-lg text-xs font-semibold hover:bg-[#C9A84C]/90 transition-all">
-                    <Download className="w-3.5 h-3.5" /> Export
+                    <Download className="w-3.5 h-3.5" /> {t.simulator.exportPdf}
                   </button>
                   <button onClick={() => { setResult(null); setError(null); }}
                     className="flex items-center gap-1.5 px-3 py-1.5 border border-[#1a1a1a] text-[#888888] rounded-lg text-xs hover:text-white hover:border-[#C9A84C]/30 transition-all">
@@ -252,7 +254,7 @@ export default function SimulatorPage() {
               <div className="bg-[#C9A84C]/5 border border-[#C9A84C]/20 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="w-4 h-4 text-[#C9A84C]" />
-                  <p className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider">Overall Assessment</p>
+                  <p className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider">{t.simulator.scenarioLabel}</p>
                 </div>
                 <p className="text-sm text-white">{result.overallAssessment}</p>
                 <div className="flex flex-wrap gap-2 mt-3">

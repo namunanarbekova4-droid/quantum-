@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/lib/i18n";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, CheckCircle, XCircle, MinusCircle, Loader2, ChevronDown, ChevronUp, AlertTriangle, Brain } from "lucide-react";
@@ -114,6 +115,7 @@ function ReviewModal({ item, onSave, onClose }: {
 }
 
 export default function TimelinePage() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [insights, setInsights] = useState<Insights | null>(null);
@@ -156,9 +158,9 @@ export default function TimelinePage() {
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <Clock className="w-6 h-6 text-[#C9A84C]" />
-            <h1 className="text-2xl font-bold text-white">Decision Timeline</h1>
+            <h1 className="text-2xl font-bold text-white">{t.timeline.title}</h1>
           </div>
-          <p className="text-[#888888] text-sm">Track outcomes and learn from every decision.</p>
+          <p className="text-[#888888] text-sm">{t.timeline.subtitle}</p>
         </div>
 
         {/* Stats */}
@@ -214,7 +216,7 @@ export default function TimelinePage() {
               {!insights && (
                 <button onClick={loadInsights} disabled={loadingInsights}
                   className="text-xs text-[#C9A84C] hover:text-[#C9A84C]/80 transition-colors">
-                  {loadingInsights ? <Loader2 className="w-3.5 h-3.5 animate-spin inline" /> : "Analyze Patterns"}
+                  {loadingInsights ? <Loader2 className="w-3.5 h-3.5 animate-spin inline" /> : t.timeline.getInsights}
                 </button>
               )}
             </div>
@@ -252,12 +254,12 @@ export default function TimelinePage() {
         ) : items.length === 0 ? (
           <div className="bg-[#111111] border border-dashed border-[#1a1a1a] rounded-lg p-16 text-center">
             <Clock className="w-10 h-10 text-[#333] mx-auto mb-4" />
-            <p className="text-white font-medium mb-1">No decisions yet</p>
-            <p className="text-[#888888] text-sm">Make decisions from the dashboard to build your timeline.</p>
+            <p className="text-white font-medium mb-1">{t.timeline.noDecisions}</p>
+            <p className="text-[#888888] text-sm">{t.timeline.noDecisionsDesc}</p>
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider">All Decisions</p>
+            <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider">{t.nav.history}</p>
             {items.map((item) => {
               const outcfg = item.outcome ? outcomeConfig[item.outcome.outcome] : null;
               const OutIcon = outcfg?.icon;

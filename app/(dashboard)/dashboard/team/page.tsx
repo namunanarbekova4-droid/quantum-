@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/lib/i18n";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Plus, Loader2, X, ThumbsUp, ThumbsDown, Minus, Brain, Mail } from "lucide-react";
@@ -199,6 +200,7 @@ function DecisionCard({ decision, onVote, onAnalyze }: {
 }
 
 export default function TeamPage() {
+  const { t } = useLanguage();
   const [teams, setTeams] = useState<{ team_id: string; role: string; teams: Team }[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [decisions, setDecisions] = useState<TeamDecision[]>([]);
@@ -237,9 +239,9 @@ export default function TeamPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Users className="w-6 h-6 text-[#C9A84C]" />
-              <h1 className="text-2xl font-bold text-white">Team Decisions</h1>
+              <h1 className="text-2xl font-bold text-white">{t.team.title}</h1>
             </div>
-            <p className="text-[#888888] text-sm">Collaborate on decisions with your team.</p>
+            <p className="text-[#888888] text-sm">{t.team.subtitle}</p>
           </div>
           <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2 bg-[#C9A84C] text-[#080808] rounded-lg text-sm font-semibold hover:bg-[#C9A84C]/90 transition-all">
             <Plus className="w-4 h-4" /> New Team
@@ -251,9 +253,9 @@ export default function TeamPage() {
         ) : teams.length === 0 ? (
           <div className="bg-[#111111] border border-dashed border-[#1a1a1a] rounded-lg p-16 text-center">
             <Users className="w-10 h-10 text-[#333] mx-auto mb-4" />
-            <p className="text-white font-medium mb-1">No teams yet</p>
-            <p className="text-[#888888] text-sm mb-4">Create a team to start collaborative decision-making.</p>
-            <button onClick={() => setShowCreate(true)} className="px-5 py-2 bg-[#C9A84C] text-[#080808] rounded-lg text-sm font-semibold">Create Team</button>
+            <p className="text-white font-medium mb-1">{t.team.noTeams}</p>
+            <p className="text-[#888888] text-sm mb-4">{t.team.noTeamsDesc}</p>
+            <button onClick={() => setShowCreate(true)} className="px-5 py-2 bg-[#C9A84C] text-[#080808] rounded-lg text-sm font-semibold">{t.team.createTeam}</button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -273,11 +275,11 @@ export default function TeamPage() {
                 {/* Invite + Submit */}
                 <div className="flex gap-3">
                   <div className="flex flex-1 gap-2">
-                    <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="Invite by email"
+                    <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder={t.team.emailPlaceholder}
                       className="flex-1 bg-[#111111] border border-[#1a1a1a] rounded-lg px-3 py-2 text-white text-sm placeholder-[#444] focus:outline-none focus:border-[#C9A84C]/40" />
                     <button onClick={invite} disabled={!inviteEmail}
                       className={cn("flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-all", inviteEmail ? "bg-[#C9A84C]/10 text-[#C9A84C] border border-[#C9A84C]/20 hover:bg-[#C9A84C]/20" : "bg-[#1a1a1a] text-[#444] cursor-not-allowed")}>
-                      <Mail className="w-3.5 h-3.5" /> Invite
+                      <Mail className="w-3.5 h-3.5" /> {t.team.invite}
                     </button>
                   </div>
                   <button onClick={() => setShowSubmit(true)}

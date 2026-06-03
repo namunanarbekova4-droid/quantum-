@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/lib/i18n";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Newspaper, Loader2, AlertTriangle, RefreshCw, ChevronDown, ChevronUp, Zap } from "lucide-react";
@@ -84,6 +85,7 @@ function EventCard({ event, index }: { event: BriefingEvent; index: number }) {
 }
 
 export default function BriefingPage() {
+  const { t } = useLanguage();
   const [briefing, setBriefing] = useState<Briefing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,10 +126,10 @@ export default function BriefingPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-3">
               <Newspaper className="w-6 h-6 text-[#C9A84C]" />
-              <h1 className="text-2xl font-bold text-white">Daily Briefing</h1>
+              <h1 className="text-2xl font-bold text-white">{t.briefing.title}</h1>
             </div>
             <p className="text-[#888888] text-sm">
-              {generatedTime ? `Generated today at ${generatedTime}` : "Personalized intelligence briefing"}
+              {generatedTime ? `${t.briefing.title} · ${generatedTime}` : t.briefing.subtitle}
             </p>
           </div>
           <button
@@ -136,7 +138,7 @@ export default function BriefingPage() {
             className="flex items-center gap-2 px-3 py-2 border border-[#1a1a1a] text-[#888888] hover:text-white hover:border-[#C9A84C]/30 rounded-lg text-xs transition-all"
           >
             <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
-            Refresh
+            {t.briefing.refresh}
           </button>
         </div>
 
@@ -154,7 +156,7 @@ export default function BriefingPage() {
             ))}
             <div className="flex items-center justify-center gap-2 text-[#888888] text-xs pt-2">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-[#C9A84C]" />
-              Generating your personalized briefing...
+              {t.briefing.generating}
             </div>
           </div>
         )}
@@ -163,7 +165,7 @@ export default function BriefingPage() {
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
             <div>
-              <p className="text-red-400 text-sm font-medium">Briefing unavailable</p>
+              <p className="text-red-400 text-sm font-medium">{t.briefing.noBriefing}</p>
               <p className="text-[#888888] text-xs mt-0.5">{error}</p>
             </div>
           </div>
@@ -176,7 +178,7 @@ export default function BriefingPage() {
               <Zap className="w-4 h-4 text-[#C9A84C] flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-white font-semibold text-sm">{briefing.summary}</p>
-                <p className="text-[#888888] text-xs mt-1">{briefing.eventCount} events analyzed for your role</p>
+                <p className="text-[#888888] text-xs mt-1">{briefing.eventCount} {t.briefing.eventsLabel}</p>
               </div>
             </div>
 
