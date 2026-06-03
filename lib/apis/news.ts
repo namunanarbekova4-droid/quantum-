@@ -30,7 +30,7 @@ export async function fetchNews(options: {
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data;
 
-  if (!KEY) return getFallbackNews();
+  if (!KEY) return [];
 
   try {
     const params = new URLSearchParams({
@@ -49,7 +49,7 @@ export async function fetchNews(options: {
     cache.set(cacheKey, { data: articles, ts: Date.now() });
     return articles;
   } catch {
-    return getFallbackNews();
+    return [];
   }
 }
 
@@ -62,23 +62,4 @@ export async function fetchNewsByRole(role: string, industry?: string): Promise<
   const base = queries[role] || "business markets";
   const q = industry ? `${base} ${industry}` : base;
   return fetchNews({ query: q, pageSize: 10 });
-}
-
-function getFallbackNews(): NewsArticle[] {
-  return [
-    {
-      title: "Markets Show Resilience Amid Economic Uncertainty",
-      description: "Global markets demonstrated stability as investors weigh macroeconomic signals.",
-      url: "#",
-      publishedAt: new Date().toISOString(),
-      source: { name: "Market Watch" },
-    },
-    {
-      title: "Tech Sector Leads Growth in Q4",
-      description: "Technology companies continue to outperform broader market indices.",
-      url: "#",
-      publishedAt: new Date().toISOString(),
-      source: { name: "Financial Times" },
-    },
-  ];
 }
