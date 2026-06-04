@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { type Plan, PLAN_DISPLAY, PLAN_LIMITS } from "@/lib/plans";
 import { StrategicToolsHub } from "@/components/dashboard/StrategicToolsHub";
+import { WizardModal, type QA } from "@/components/decision/WizardModal";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -276,6 +277,7 @@ export default function DashboardPage() {
   const userName = session?.user?.name?.split(" ")[0] ?? "there";
   const [decision, setDecision] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [planData, setPlanData] = useState<PlanData | null>(null);
   const [decisions, setDecisions] = useState<DecisionItem[]>([]);
   const [loadingDecisions, setLoadingDecisions] = useState(true);
@@ -294,12 +296,17 @@ export default function DashboardPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!decision.trim()) return;
+    setShowWizard(true);
+  };
+
+  const submitDecision = async (qa: QA[]) => {
+    setShowWizard(false);
     setLoading(true);
     try {
       const res = await fetch("/api/decisions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: decision }),
+        body: JSON.stringify({ description: decision, questionsAndAnswers: qa }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -336,6 +343,13 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+      {showWizard && (
+        <WizardModal
+          decisionText={decision}
+          onComplete={submitDecision}
+          onCancel={() => setShowWizard(false)}
+        />
+      )}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-2xl font-bold text-white">{t.dashboard.greeting}, {userName}.</h1>

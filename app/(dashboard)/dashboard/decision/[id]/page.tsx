@@ -7,7 +7,7 @@ import {
   TrendingUp, TrendingDown, Lightbulb, Target, ChevronRight,
   ShieldAlert, BarChart2, Brain, ThumbsUp, ThumbsDown, HelpCircle, RefreshCw,
   ChevronDown, MessageCircle, ThumbsUp as UpIcon, GraduationCap, Loader2,
-  Scale, Eye, AlertTriangle,
+  Scale, Eye, AlertTriangle, Clock, Map, Activity, Radar,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -17,6 +17,16 @@ import { getRiskColor, cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
 interface DecisionReport {
+  // New fields (from rebuilt engine)
+  verdict?: string;
+  executiveSummary?: string;
+  strongestCaseFor?: string;
+  strongestCaseAgainst?: string;
+  hiddenRisks?: string[];
+  actionPlan?: { immediate?: string[]; thisWeek?: string[]; thisMonth?: string[] };
+  decisionMap?: { ifProceed?: string; ifNotProceed?: string };
+  whatToMonitor?: string[];
+  // Legacy / backward-compat fields
   summary?: string;
   recommendation?: string;
   riskScore?: number;
@@ -891,6 +901,68 @@ function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
   );
 }
 
+// ─── Action Plan (tabbed) ─────────────────────────────────────────────────────
+
+function ActionPlanSection({ actionPlan }: {
+  actionPlan: { immediate?: string[]; thisWeek?: string[]; thisMonth?: string[] };
+}) {
+  const [activeTab, setActiveTab] = useState<"immediate" | "thisWeek" | "thisMonth">("immediate");
+
+  const tabs: { key: "immediate" | "thisWeek" | "thisMonth"; label: string; color: string }[] = [
+    { key: "immediate", label: "Immediate (48h)", color: "text-red-400" },
+    { key: "thisWeek",  label: "This Week",       color: "text-amber-400" },
+    { key: "thisMonth", label: "This Month",      color: "text-green-400" },
+  ];
+
+  const activeItems = actionPlan[activeTab] ?? [];
+
+  return (
+    <Card className="p-5 sm:p-6 border-gold/20">
+      <div className="flex items-center gap-2 mb-5">
+        <Target className="w-4 h-4 text-gold flex-shrink-0" />
+        <h2 className="text-sm font-semibold text-white">Action Plan</h2>
+      </div>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-5 bg-[#0d0d0d] rounded-lg p-1">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={cn(
+              "flex-1 text-xs font-medium rounded py-2 transition-all",
+              activeTab === tab.key
+                ? `bg-[#1a1a1a] ${tab.color} border border-[#2a2a2a]`
+                : "text-text-secondary hover:text-white"
+            )}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {/* Items */}
+      <AnimatePresence mode="wait">
+        <motion.ul
+          key={activeTab}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="space-y-3"
+        >
+          {activeItems.length === 0 ? (
+            <li className="text-sm text-text-secondary text-center py-2">No actions defined for this phase.</li>
+          ) : activeItems.map((s, i) => (
+            <li key={i} className="flex items-start gap-3 text-sm text-white">
+              <span className="text-gold font-mono text-xs mt-1 flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
+              {s}
+            </li>
+          ))}
+        </motion.ul>
+      </AnimatePresence>
+    </Card>
+  );
+}
+
 export default function DecisionPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -929,9 +1001,25 @@ export default function DecisionPage() {
     }
   };
 
-  const recLabel = decision?.recommendation === "YES" ? t.decision.recommended : decision?.recommendation === "NO" ? t.decision.notRecommended : t.decision.conditional;
+  // Unified verdict — prefer new `report.verdict`, fall back to DB recommendation
+  const rawVerdict = decision
+    ? ((decision.report?.verdict as string) ?? decision.recommendation ?? "CONDITIONAL")
+    : "CONDITIONAL";
+
+  const VERDICT_CONFIG: Record<string, { label: string; color: string; border: string; bg: string; Icon: React.ElementType }> = {
+    PROCEED:     { label: "PROCEED",     color: "text-green-400",  border: "border-green-400/30",  bg: "bg-green-400/8",  Icon: CheckCircle },
+    YES:         { label: "PROCEED",     color: "text-green-400",  border: "border-green-400/30",  bg: "bg-green-400/8",  Icon: CheckCircle },
+    RECONSIDER:  { label: "RECONSIDER",  color: "text-red-400",    border: "border-red-400/30",    bg: "bg-red-400/8",    Icon: XCircle },
+    NO:          { label: "RECONSIDER",  color: "text-red-400",    border: "border-red-400/30",    bg: "bg-red-400/8",    Icon: XCircle },
+    WAIT:        { label: "WAIT",        color: "text-amber-400",  border: "border-amber-400/30",  bg: "bg-amber-400/8",  Icon: Clock },
+    CONDITIONAL: { label: "CONDITIONAL", color: "text-[#C9A84C]",  border: "border-[#C9A84C]/30",  bg: "bg-[#C9A84C]/8",  Icon: AlertCircle },
+  };
+  const verdictCfg = VERDICT_CONFIG[rawVerdict] ?? VERDICT_CONFIG.CONDITIONAL;
+
+  // For legacy Badge usage
   const recVariant = decision?.recommendation === "YES" ? "success" : decision?.recommendation === "NO" ? "danger" : "warning";
-  const RecIcon = decision?.recommendation === "YES" ? CheckCircle : decision?.recommendation === "NO" ? XCircle : AlertCircle;
+  const recLabel = decision?.recommendation === "YES" ? t.decision.recommended : decision?.recommendation === "NO" ? t.decision.notRecommended : t.decision.conditional;
+  const RecIcon = verdictCfg.Icon;
 
   const PageHeader = () => (
     <div className="border-b border-[#1a1a1a] px-4 sm:px-6 py-4 flex items-center gap-4">
@@ -1024,35 +1112,46 @@ export default function DecisionPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-white leading-snug break-words">{decision.title}</h1>
         </motion.div>
 
-        {/* Metrics row */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <Card className="p-4 sm:p-5 flex items-center gap-3 col-span-2 sm:col-span-1">
-            <RecIcon className={`w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0 ${decision.recommendation === "YES" ? "text-success" : decision.recommendation === "NO" ? "text-danger" : "text-gold"}`} />
-            <div className="min-w-0">
-              <p className="text-xs text-text-secondary mb-1">{t.decision.verdict}</p>
-              <Badge variant={recVariant}>{recLabel}</Badge>
+        {/* ── Verdict Hero ─────────────────────────────────────── */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <div className={`rounded-xl border p-6 sm:p-8 ${verdictCfg.border}`}
+            style={{ background: `color-mix(in srgb, transparent 92%, ${rawVerdict === "PROCEED" || rawVerdict === "YES" ? "#22c55e" : rawVerdict === "RECONSIDER" || rawVerdict === "NO" ? "#ef4444" : rawVerdict === "WAIT" ? "#f59e0b" : "#C9A84C"} 8%)` }}>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+              {/* Verdict badge */}
+              <div className="flex items-center gap-4 flex-1">
+                <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border flex items-center justify-center flex-shrink-0 ${verdictCfg.border}`}
+                  style={{ background: "rgba(0,0,0,0.3)" }}>
+                  <verdictCfg.Icon className={`w-7 h-7 sm:w-8 sm:h-8 ${verdictCfg.color}`} />
+                </div>
+                <div>
+                  <p className="text-xs text-[#555] uppercase tracking-widest mb-1">Quantum Verdict</p>
+                  <p className={`text-3xl sm:text-4xl font-black tracking-tight ${verdictCfg.color}`}>{verdictCfg.label}</p>
+                </div>
+              </div>
+              {/* Score strip */}
+              <div className="flex gap-6 sm:gap-8">
+                <div className="text-center">
+                  <p className="text-xs text-[#555] uppercase tracking-wider mb-1">Risk</p>
+                  <p className="font-mono text-2xl font-bold" style={{ color: decision.riskScore !== null ? getRiskColor(decision.riskScore) : "#888" }}>
+                    {decision.riskScore ?? "—"}
+                  </p>
+                  <p className="text-[10px] text-[#444]">/ 100</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-[#555] uppercase tracking-wider mb-1">Confidence</p>
+                  <p className="font-mono text-2xl font-bold text-[#C9A84C]">{confidence?.score ?? "—"}</p>
+                  <p className="text-[10px] text-[#444]">/ 100</p>
+                </div>
+                {benchmark?.successRate !== undefined && (
+                  <div className="text-center">
+                    <p className="text-xs text-[#555] uppercase tracking-wider mb-1">Success rate</p>
+                    <p className="font-mono text-2xl font-bold text-white">{benchmark.successRate}%</p>
+                    <p className="text-[10px] text-[#444]">comparable</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </Card>
-          <Card className="p-4 sm:p-5">
-            <p className="text-xs text-text-secondary mb-1">{t.decision.riskScore}</p>
-            <p className="font-mono text-2xl sm:text-3xl font-bold" style={{ color: decision.riskScore !== null ? getRiskColor(decision.riskScore) : "#888" }}>
-              {decision.riskScore ?? "—"}
-            </p>
-            <p className="text-xs text-[#444444] mt-0.5">/ 100</p>
-          </Card>
-          <Card className="p-4 sm:p-5">
-            <p className="text-xs text-text-secondary mb-1">{t.decision.aiConfidence}</p>
-            <p className="font-mono text-2xl sm:text-3xl font-bold text-gold">{confidence?.score ?? "—"}</p>
-            <p className="text-xs text-[#444444] mt-0.5">/ 100</p>
-          </Card>
-          {benchmark?.successRate !== undefined && (
-            <Card className="p-4 sm:p-5">
-              <p className="text-xs text-text-secondary mb-1">{t.decision.benchmark}</p>
-              <p className="font-mono text-2xl sm:text-3xl font-bold text-white">{benchmark.successRate}%</p>
-              <p className="text-xs text-[#444444] mt-0.5">{t.decision.successRate}</p>
-            </Card>
-          )}
+          </div>
         </motion.div>
 
         {/* Strategic Memory (Historical Context) */}
@@ -1078,12 +1177,37 @@ export default function DecisionPage() {
         )}
 
         {/* Executive Summary */}
-        {report.summary && (
+        {(report.executiveSummary || report.summary) && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="p-5 sm:p-6">
-              <h2 className="text-xs font-semibold text-gold mb-3 uppercase tracking-wider">{t.decision.executiveSummary}</h2>
-              <p className="text-sm text-white leading-relaxed">{report.summary}</p>
+            <Card className="p-5 sm:p-6 border-[#C9A84C]/20">
+              <h2 className="text-xs font-semibold text-[#C9A84C] mb-3 uppercase tracking-wider">{t.decision.executiveSummary}</h2>
+              <p className="text-base text-white leading-relaxed font-medium">{report.executiveSummary ?? report.summary}</p>
             </Card>
+          </motion.div>
+        )}
+
+        {/* Strongest Case FOR / AGAINST */}
+        {(report.strongestCaseFor || report.strongestCaseAgainst) && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {report.strongestCaseFor && (
+              <div className="bg-green-400/5 border border-green-400/20 rounded-xl p-5 sm:p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingUp className="w-4 h-4 text-green-400 flex-shrink-0" />
+                  <h2 className="text-xs font-semibold text-green-400 uppercase tracking-wider">Strongest Case FOR</h2>
+                </div>
+                <p className="text-sm text-white leading-relaxed">{report.strongestCaseFor}</p>
+              </div>
+            )}
+            {report.strongestCaseAgainst && (
+              <div className="bg-red-400/5 border border-red-400/20 rounded-xl p-5 sm:p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <h2 className="text-xs font-semibold text-red-400 uppercase tracking-wider">Strongest Case AGAINST</h2>
+                </div>
+                <p className="text-sm text-white leading-relaxed">{report.strongestCaseAgainst}</p>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -1207,8 +1331,32 @@ export default function DecisionPage() {
           </motion.div>
         )}
 
-        {/* Next Steps */}
-        {report.nextSteps && report.nextSteps.length > 0 && (
+        {/* Hidden Risks */}
+        {report.hiddenRisks && report.hiddenRisks.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+            <Card className="p-5 sm:p-6 border-orange-400/20">
+              <div className="flex items-center gap-2 mb-4">
+                <Radar className="w-4 h-4 text-orange-400 flex-shrink-0" />
+                <h2 className="text-sm font-semibold text-white">Hidden Risks</h2>
+                <span className="ml-auto text-xs text-orange-400/70 bg-orange-400/10 border border-orange-400/20 rounded px-2 py-0.5">Blind spots</span>
+              </div>
+              <ul className="space-y-2.5">
+                {report.hiddenRisks.map((r, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-text-secondary">
+                    <span className="text-orange-400 mt-0.5 flex-shrink-0">◈</span> {r}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Action Plan */}
+        {report.actionPlan ? (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}>
+            <ActionPlanSection actionPlan={report.actionPlan} />
+          </motion.div>
+        ) : report.nextSteps && report.nextSteps.length > 0 ? (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.27 }}>
             <Card className="p-5 sm:p-6 border-gold/20">
               <div className="flex items-center gap-2 mb-4">
@@ -1222,6 +1370,52 @@ export default function DecisionPage() {
                   </li>
                 ))}
               </ul>
+            </Card>
+          </motion.div>
+        ) : null}
+
+        {/* Decision Map */}
+        {report.decisionMap && (report.decisionMap.ifProceed || report.decisionMap.ifNotProceed) && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.29 }}>
+            <Card className="p-5 sm:p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <Map className="w-4 h-4 text-[#C9A84C] flex-shrink-0" />
+                <h2 className="text-sm font-semibold text-white">Decision Map</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {report.decisionMap.ifProceed && (
+                  <div className="bg-green-400/5 border border-green-400/20 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-green-400 uppercase tracking-wider mb-2">If you PROCEED</p>
+                    <p className="text-sm text-text-secondary leading-relaxed">{report.decisionMap.ifProceed}</p>
+                  </div>
+                )}
+                {report.decisionMap.ifNotProceed && (
+                  <div className="bg-red-400/5 border border-red-400/20 rounded-lg p-4">
+                    <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2">If you DON&apos;T proceed</p>
+                    <p className="text-sm text-text-secondary leading-relaxed">{report.decisionMap.ifNotProceed}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* What To Monitor */}
+        {report.whatToMonitor && report.whatToMonitor.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <Card className="p-5 sm:p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Activity className="w-4 h-4 text-[#C9A84C] flex-shrink-0" />
+                <h2 className="text-sm font-semibold text-white">What To Monitor</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {report.whatToMonitor.map((m, i) => (
+                  <div key={i} className="bg-[#111111] border border-[#1a1a1a] rounded-lg px-4 py-3 flex items-start gap-2.5">
+                    <span className="text-[#C9A84C] mt-0.5 flex-shrink-0 text-xs font-mono">{String(i + 1).padStart(2, "0")}</span>
+                    <p className="text-sm text-text-secondary">{m}</p>
+                  </div>
+                ))}
+              </div>
             </Card>
           </motion.div>
         )}

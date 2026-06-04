@@ -36,11 +36,11 @@ export async function POST(_req: Request, { params }: { params: { id: string } }
   });
 
   try {
-    const report = await runDecisionAnalysis(decision.description, decision.type as string, userRole);
+    const report = await runDecisionAnalysis(decision.description, decision.type as string, { role: userRole });
     const riskScore = Math.min(95, Math.max(1, Math.round(Number(report.riskScore))));
-    const recommendation = ["YES", "NO", "CONDITIONAL"].includes(String(report.recommendation))
-      ? String(report.recommendation)
-      : "CONDITIONAL";
+    const VERDICT_TO_DB: Record<string, string> = { PROCEED: "YES", RECONSIDER: "NO", WAIT: "CONDITIONAL", CONDITIONAL: "CONDITIONAL", YES: "YES", NO: "NO" };
+    const verdict = String(report.verdict ?? report.recommendation ?? "CONDITIONAL");
+    const recommendation = VERDICT_TO_DB[verdict] ?? "CONDITIONAL";
 
     const updated = await prisma.decision.update({
       where: { id: params.id },
