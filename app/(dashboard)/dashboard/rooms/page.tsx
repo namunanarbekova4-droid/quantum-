@@ -4,22 +4,24 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toast";
+import { useLanguage } from "@/lib/i18n";
 
 export default function RoomsPage() {
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Private Decision Rooms</h1>
-          <p className="text-text-secondary mt-1">Your confidential space for collaborative decisions.</p>
+          <h1 className="text-2xl font-bold text-white">{t.rooms.title}</h1>
+          <p className="text-text-secondary mt-1">{t.rooms.subtitle}</p>
         </div>
         <Button
           onClick={() => toast("Private Rooms are coming soon. You'll be notified when this feature is available.", "info")}
           className="gap-2"
         >
-          <Lock className="w-4 h-4" /> New Room
+          <Lock className="w-4 h-4" /> {t.rooms.createRoom}
         </Button>
       </motion.div>
 

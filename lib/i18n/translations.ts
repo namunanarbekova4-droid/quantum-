@@ -712,6 +712,29 @@ export const en = {
     score: "Score",
     you: "You",
   },
+
+  tools: {
+    title: "Your Strategic Tools",
+    subtitle: "AI systems designed for your role.",
+    openTool: "Open Tool",
+    availableOn: "Available on",
+    upgradeEarlyAccess: "Upgrade Free During Early Access",
+    founder: {
+      runwayCalculator: { title: "Runway Calculator", description: "Model 3 financial scenarios with AI cash preservation advice.", features: ["Cash runway projection", "3 scenario models", "AI cost-reduction advice", "Fundraise timing"] },
+      pitchAnalyzer: { title: "Pitch Analyzer", description: "Get slide-by-slide AI feedback on your investor deck.", features: ["Slide-by-slide scoring", "Investor red flags", "Rewrite suggestions", "Overall pitch score"] },
+      investorMatch: { title: "Investor Match", description: "Find the 20 best-fit investors for your raise.", features: ["Match score %", "Why they fit", "Check size filter", "Outreach strategy"] },
+    },
+    investor: {
+      dealAnalyzer: { title: "Deal Analyzer", description: "Deep AI analysis of pitch decks with invest/pass recommendation.", features: ["Team & market scoring", "Risk factor analysis", "INVEST/PASS/DUE DILIGENCE", "Confidence level"] },
+      portfolioHealth: { title: "Portfolio Health", description: "Monitor your portfolio companies with AI risk assessment.", features: ["Risk status (GREEN/YELLOW/RED)", "AI signal detection", "Threat scoring", "Weekly monitoring"] },
+      investorMatch: { title: "Investor Match", description: "Find founders that match your investment thesis.", features: ["Match score %", "Thesis alignment", "Stage & industry filter", "Outreach tips"] },
+    },
+    executive: {
+      competitorIntelligence: { title: "Competitor Intelligence", description: "Track up to 10 competitors with AI-powered risk monitoring.", features: ["Risk levels (LOW→CRITICAL)", "Strategic implications", "Product & hiring signals", "Response recommendations"] },
+      boardReport: { title: "Board Report Generator", description: "Generate professional board-ready reports from your KPIs.", features: ["Executive summary", "Financial highlights", "Risk & mitigation", "Download as text"] },
+      marketEntry: { title: "Market Entry Analyzer", description: "Analyze expansion into new markets with full strategic assessment.", features: ["Market size & growth", "Regulatory overview", "Entry strategy options", "Budget & timeline"] },
+    },
+  },
 };
 
 export const ru: TranslationKeys = {
@@ -1399,6 +1422,29 @@ export const ru: TranslationKeys = {
     decisions: "Решений",
     score: "Рейтинг",
     you: "Вы",
+  },
+
+  tools: {
+    title: "Ваши стратегические инструменты",
+    subtitle: "ИИ-системы, разработанные для вашей роли.",
+    openTool: "Открыть инструмент",
+    availableOn: "Доступно на",
+    upgradeEarlyAccess: "Бесплатное обновление в период раннего доступа",
+    founder: {
+      runwayCalculator: { title: "Калькулятор взлётной полосы", description: "Моделируйте 3 финансовых сценария с советами ИИ по сохранению средств.", features: ["Прогноз запаса денег", "3 сценарных модели", "Советы по сокращению затрат", "Тайминг привлечения инвестиций"] },
+      pitchAnalyzer: { title: "Анализатор питча", description: "Получите обратную связь ИИ по каждому слайду вашей презентации.", features: ["Оценка каждого слайда", "Красные флаги инвесторов", "Предложения по переработке", "Общая оценка питча"] },
+      investorMatch: { title: "Подбор инвесторов", description: "Найдите 20 лучших инвесторов для вашего раунда.", features: ["Показатель соответствия %", "Почему они подходят", "Фильтр по размеру чека", "Стратегия выхода на связь"] },
+    },
+    investor: {
+      dealAnalyzer: { title: "Анализатор сделок", description: "Глубокий анализ ИИ питч-деков с рекомендацией инвестировать/отказать.", features: ["Оценка команды и рынка", "Анализ факторов риска", "ИНВЕСТИРОВАТЬ/ОТКАЗАТЬ/ДЬЮ ДИЛИДЖЕНС", "Уровень уверенности"] },
+      portfolioHealth: { title: "Здоровье портфеля", description: "Мониторинг портфельных компаний с оценкой рисков ИИ.", features: ["Статус риска (ЗЕЛЁНЫЙ/ЖЁЛТЫЙ/КРАСНЫЙ)", "Обнаружение сигналов ИИ", "Оценка угроз", "Еженедельный мониторинг"] },
+      investorMatch: { title: "Подбор инвесторов", description: "Найдите основателей, соответствующих вашей инвестиционной тезе.", features: ["Показатель соответствия %", "Соответствие тезе", "Фильтр по стадии и отрасли", "Советы по работе с основателями"] },
+    },
+    executive: {
+      competitorIntelligence: { title: "Разведка конкурентов", description: "Отслеживайте до 10 конкурентов с мониторингом рисков ИИ.", features: ["Уровни риска (НИЗКИЙ→КРИТИЧЕСКИЙ)", "Стратегические последствия", "Сигналы продуктов и найма", "Рекомендации по реагированию"] },
+      boardReport: { title: "Генератор отчётов совету", description: "Создавайте профессиональные отчёты для совета директоров из ваших KPI.", features: ["Управленческое резюме", "Финансовые показатели", "Риски и меры по смягчению", "Загрузить как текст"] },
+      marketEntry: { title: "Анализатор выхода на рынок", description: "Анализируйте расширение на новые рынки с полной стратегической оценкой.", features: ["Размер и рост рынка", "Обзор регулирования", "Варианты стратегии входа", "Бюджет и сроки"] },
+    },
   },
 };
 
@@ -2088,6 +2134,29 @@ export const es: TranslationKeys = {
     score: "Puntuación",
     you: "Tú",
   },
+
+  tools: {
+    title: "Tus herramientas estratégicas",
+    subtitle: "Sistemas de IA diseñados para tu rol.",
+    openTool: "Abrir herramienta",
+    availableOn: "Disponible en",
+    upgradeEarlyAccess: "Actualización gratuita durante el acceso anticipado",
+    founder: {
+      runwayCalculator: { title: "Calculadora de runway", description: "Modela 3 escenarios financieros con consejos de IA para preservar el efectivo.", features: ["Proyección de runway", "3 modelos de escenarios", "Consejos de reducción de costos con IA", "Momento de recaudación"] },
+      pitchAnalyzer: { title: "Analizador de pitch", description: "Obtén feedback de IA diapositiva por diapositiva en tu deck de inversión.", features: ["Puntuación por diapositiva", "Señales de alerta para inversores", "Sugerencias de reescritura", "Puntuación general del pitch"] },
+      investorMatch: { title: "Match de inversores", description: "Encuentra los 20 mejores inversores para tu ronda.", features: ["Puntuación de compatibilidad %", "Por qué encajan", "Filtro por tamaño de cheque", "Estrategia de contacto"] },
+    },
+    investor: {
+      dealAnalyzer: { title: "Analizador de deals", description: "Análisis profundo de IA de pitch decks con recomendación de inversión.", features: ["Puntuación de equipo y mercado", "Análisis de factores de riesgo", "INVERTIR/PASAR/DUE DILIGENCE", "Nivel de confianza"] },
+      portfolioHealth: { title: "Salud del portafolio", description: "Monitorea tus empresas de portafolio con evaluación de riesgos de IA.", features: ["Estado de riesgo (VERDE/AMARILLO/ROJO)", "Detección de señales con IA", "Puntuación de amenazas", "Monitoreo semanal"] },
+      investorMatch: { title: "Match de inversores", description: "Encuentra fundadores que coincidan con tu tesis de inversión.", features: ["Puntuación de compatibilidad %", "Alineación con tesis", "Filtro por etapa e industria", "Consejos de contacto"] },
+    },
+    executive: {
+      competitorIntelligence: { title: "Inteligencia competitiva", description: "Monitorea hasta 10 competidores con seguimiento de riesgos de IA.", features: ["Niveles de riesgo (BAJO→CRÍTICO)", "Implicaciones estratégicas", "Señales de producto y contratación", "Recomendaciones de respuesta"] },
+      boardReport: { title: "Generador de informes para junta", description: "Genera informes profesionales para la junta directiva a partir de tus KPIs.", features: ["Resumen ejecutivo", "Aspectos financieros clave", "Riesgos y mitigación", "Descargar como texto"] },
+      marketEntry: { title: "Analizador de entrada al mercado", description: "Analiza la expansión a nuevos mercados con evaluación estratégica completa.", features: ["Tamaño y crecimiento del mercado", "Resumen regulatorio", "Opciones de estrategia de entrada", "Presupuesto y cronograma"] },
+    },
+  },
 };
 
 export const zh: TranslationKeys = {
@@ -2775,6 +2844,29 @@ export const zh: TranslationKeys = {
     decisions: "决策数",
     score: "评分",
     you: "您",
+  },
+
+  tools: {
+    title: "您的战略工具",
+    subtitle: "专为您的角色设计的AI系统。",
+    openTool: "打开工具",
+    availableOn: "适用于",
+    upgradeEarlyAccess: "早期访问期间免费升级",
+    founder: {
+      runwayCalculator: { title: "资金跑道计算器", description: "用AI现金保存建议模拟3种财务场景。", features: ["现金跑道预测", "3种情景模型", "AI成本削减建议", "融资时机"] },
+      pitchAnalyzer: { title: "路演分析器", description: "获取AI对投资者演示文稿的逐页反馈。", features: ["逐页评分", "投资者红旗", "重写建议", "整体路演评分"] },
+      investorMatch: { title: "投资者匹配", description: "为您的融资轮找到20个最合适的投资者。", features: ["匹配度%", "为何适合", "支票规模过滤", "外联策略"] },
+    },
+    investor: {
+      dealAnalyzer: { title: "交易分析器", description: "对路演材料进行深度AI分析，提供投资/放弃建议。", features: ["团队和市场评分", "风险因素分析", "投资/放弃/尽职调查", "置信度"] },
+      portfolioHealth: { title: "投资组合健康度", description: "通过AI风险评估监控您的投资组合公司。", features: ["风险状态（绿/黄/红）", "AI信号检测", "威胁评分", "每周监控"] },
+      investorMatch: { title: "投资者匹配", description: "找到符合您投资主题的创始人。", features: ["匹配度%", "主题契合度", "阶段和行业过滤", "外联建议"] },
+    },
+    executive: {
+      competitorIntelligence: { title: "竞争对手情报", description: "通过AI风险监控追踪最多10个竞争对手。", features: ["风险等级（低→严重）", "战略影响", "产品和招聘信号", "应对建议"] },
+      boardReport: { title: "董事会报告生成器", description: "从您的KPI生成专业的董事会级报告。", features: ["执行摘要", "财务亮点", "风险与缓解措施", "下载为文本"] },
+      marketEntry: { title: "市场进入分析器", description: "通过全面战略评估分析向新市场扩张。", features: ["市场规模与增长", "监管概述", "进入策略选项", "预算与时间表"] },
+    },
   },
 };
 

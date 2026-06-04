@@ -4,107 +4,36 @@ import { motion } from "framer-motion";
 import { Lock, Calculator, FileText, Users, TrendingUp, Building2, Search, Eye, ClipboardList, Globe, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type Plan, planRank, EARLY_ACCESS } from "@/lib/plans";
+import { useLanguage } from "@/lib/i18n";
 
 type UserRole = "FOUNDER" | "INVESTOR" | "EXECUTIVE";
 
 interface Tool {
   id: string;
-  title: string;
-  description: string;
-  features: string[];
+  titleKey: string;
+  descKey: string;
+  featuresKey: string;
   requiredPlan: Plan;
   href: string;
   icon: React.ElementType;
 }
 
 const FOUNDER_TOOLS: Tool[] = [
-  {
-    id: "runway-calculator",
-    title: "Runway Calculator",
-    description: "Model 3 financial scenarios with AI cash preservation advice.",
-    features: ["Cash runway projection", "3 scenario models", "AI cost-reduction advice", "Fundraise timing"],
-    requiredPlan: "FREE_TRIAL",
-    href: "/dashboard/founder/runway-calculator",
-    icon: Calculator,
-  },
-  {
-    id: "pitch-analyzer",
-    title: "Pitch Analyzer",
-    description: "Get slide-by-slide AI feedback on your investor deck.",
-    features: ["Slide-by-slide scoring", "Investor red flags", "Rewrite suggestions", "Overall pitch score"],
-    requiredPlan: "PRO",
-    href: "/dashboard/founder/pitch-analyzer",
-    icon: FileText,
-  },
-  {
-    id: "investor-match",
-    title: "Investor Match",
-    description: "Find the 20 best-fit investors for your raise.",
-    features: ["Match score %", "Why they fit", "Check size filter", "Outreach strategy"],
-    requiredPlan: "PRO",
-    href: "/dashboard/founder/investor-match",
-    icon: Users,
-  },
+  { id: "runway-calculator", titleKey: "runwayCalculator", descKey: "runwayCalculator", featuresKey: "runwayCalculator", requiredPlan: "FREE_TRIAL", href: "/dashboard/founder/runway-calculator", icon: Calculator },
+  { id: "pitch-analyzer", titleKey: "pitchAnalyzer", descKey: "pitchAnalyzer", featuresKey: "pitchAnalyzer", requiredPlan: "PRO", href: "/dashboard/founder/pitch-analyzer", icon: FileText },
+  { id: "investor-match", titleKey: "investorMatch", descKey: "investorMatch", featuresKey: "investorMatch", requiredPlan: "PRO", href: "/dashboard/founder/investor-match", icon: Users },
 ];
 
 const INVESTOR_TOOLS: Tool[] = [
-  {
-    id: "deal-analyzer",
-    title: "Deal Analyzer",
-    description: "Deep AI analysis of pitch decks with invest/pass recommendation.",
-    features: ["Team & market scoring", "Risk factor analysis", "INVEST/PASS/DUE DILIGENCE", "Confidence level"],
-    requiredPlan: "PRO",
-    href: "/dashboard/investor/deal-analyzer",
-    icon: TrendingUp,
-  },
-  {
-    id: "portfolio-health",
-    title: "Portfolio Health",
-    description: "Monitor your portfolio companies with AI risk assessment.",
-    features: ["Risk status (GREEN/YELLOW/RED)", "AI signal detection", "Threat scoring", "Weekly monitoring"],
-    requiredPlan: "MAX",
-    href: "/dashboard/investor/portfolio-health",
-    icon: Building2,
-  },
-  {
-    id: "investor-match",
-    title: "Investor Match",
-    description: "Find founders that match your investment thesis.",
-    features: ["Match score %", "Thesis alignment", "Stage & industry filter", "Outreach tips"],
-    requiredPlan: "MAX",
-    href: "/dashboard/investor/investor-match",
-    icon: Search,
-  },
+  { id: "deal-analyzer", titleKey: "dealAnalyzer", descKey: "dealAnalyzer", featuresKey: "dealAnalyzer", requiredPlan: "PRO", href: "/dashboard/investor/deal-analyzer", icon: TrendingUp },
+  { id: "portfolio-health", titleKey: "portfolioHealth", descKey: "portfolioHealth", featuresKey: "portfolioHealth", requiredPlan: "MAX", href: "/dashboard/investor/portfolio-health", icon: Building2 },
+  { id: "investor-match", titleKey: "investorMatch", descKey: "investorMatch", featuresKey: "investorMatch", requiredPlan: "MAX", href: "/dashboard/investor/investor-match", icon: Search },
 ];
 
 const EXECUTIVE_TOOLS: Tool[] = [
-  {
-    id: "competitor-intelligence",
-    title: "Competitor Intelligence",
-    description: "Track up to 10 competitors with AI-powered risk monitoring.",
-    features: ["Risk levels (LOW→CRITICAL)", "Strategic implications", "Product & hiring signals", "Response recommendations"],
-    requiredPlan: "MAX",
-    href: "/dashboard/executive/competitor-intelligence",
-    icon: Eye,
-  },
-  {
-    id: "board-report",
-    title: "Board Report Generator",
-    description: "Generate professional board-ready reports from your KPIs.",
-    features: ["Executive summary", "Financial highlights", "Risk & mitigation", "Download as text"],
-    requiredPlan: "MAX",
-    href: "/dashboard/executive/board-report",
-    icon: ClipboardList,
-  },
-  {
-    id: "market-entry",
-    title: "Market Entry Analyzer",
-    description: "Analyze expansion into new markets with full strategic assessment.",
-    features: ["Market size & growth", "Regulatory overview", "Entry strategy options", "Budget & timeline"],
-    requiredPlan: "PRO",
-    href: "/dashboard/executive/market-entry",
-    icon: Globe,
-  },
+  { id: "competitor-intelligence", titleKey: "competitorIntelligence", descKey: "competitorIntelligence", featuresKey: "competitorIntelligence", requiredPlan: "MAX", href: "/dashboard/executive/competitor-intelligence", icon: Eye },
+  { id: "board-report", titleKey: "boardReport", descKey: "boardReport", featuresKey: "boardReport", requiredPlan: "MAX", href: "/dashboard/executive/board-report", icon: ClipboardList },
+  { id: "market-entry", titleKey: "marketEntry", descKey: "marketEntry", featuresKey: "marketEntry", requiredPlan: "PRO", href: "/dashboard/executive/market-entry", icon: Globe },
 ];
 
 function getTools(role: UserRole): Tool[] {
@@ -124,12 +53,18 @@ interface ToolCardProps {
   tool: Tool;
   userPlan: Plan;
   index: number;
+  role: UserRole;
 }
 
-function ToolCard({ tool, userPlan, index }: ToolCardProps) {
+function ToolCard({ tool, userPlan, index, role }: ToolCardProps) {
+  const { t } = useLanguage();
   const Icon = tool.icon;
   const hasAccess = EARLY_ACCESS || planRank(userPlan) >= planRank(tool.requiredPlan);
   const isLocked = !hasAccess;
+
+  const roleKey = role === "INVESTOR" ? "investor" : role === "EXECUTIVE" ? "executive" : "founder";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const toolT = (t.tools as any)[roleKey][tool.titleKey] as { title: string; description: string; features: string[] };
 
   return (
     <motion.div
@@ -147,9 +82,9 @@ function ToolCard({ tool, userPlan, index }: ToolCardProps) {
         <div className="absolute inset-0 bg-[#080808]/60 flex items-center justify-center z-10 backdrop-blur-[2px] rounded-lg">
           <div className="text-center px-4 py-3 space-y-2">
             <Lock className="w-5 h-5 text-[#C9A84C] mx-auto" />
-            <p className="text-xs text-white font-medium">Available on {planLabel[tool.requiredPlan]}+</p>
+            <p className="text-xs text-white font-medium">{t.tools.availableOn} {planLabel[tool.requiredPlan]}+</p>
             <span className="text-xs text-[#C9A84C] border border-[#C9A84C]/30 px-3 py-1 rounded-full">
-              Upgrade Free During Early Access
+              {t.tools.upgradeEarlyAccess}
             </span>
           </div>
         </div>
@@ -171,12 +106,12 @@ function ToolCard({ tool, userPlan, index }: ToolCardProps) {
         </div>
 
         <div className="space-y-1.5">
-          <h3 className="text-sm font-bold text-white">{tool.title}</h3>
-          <p className="text-xs text-[#888888] leading-relaxed">{tool.description}</p>
+          <h3 className="text-sm font-bold text-white">{toolT.title}</h3>
+          <p className="text-xs text-[#888888] leading-relaxed">{toolT.description}</p>
         </div>
 
         <ul className="space-y-1.5">
-          {tool.features.map((f) => (
+          {toolT.features.map((f) => (
             <li key={f} className="flex items-center gap-2 text-xs text-[#888888]">
               <span className="w-1 h-1 rounded-full bg-[#C9A84C]/60 flex-shrink-0" />
               {f}
@@ -189,7 +124,7 @@ function ToolCard({ tool, userPlan, index }: ToolCardProps) {
             href={tool.href}
             className="flex items-center justify-between w-full px-3 py-2 bg-[#C9A84C]/10 hover:bg-[#C9A84C]/20 border border-[#C9A84C]/20 hover:border-[#C9A84C]/40 rounded-lg text-xs font-semibold text-[#C9A84C] transition-all group"
           >
-            Open Tool
+            {t.tools.openTool}
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         )}
@@ -204,17 +139,18 @@ interface Props {
 }
 
 export function StrategicToolsHub({ role, plan }: Props) {
+  const { t } = useLanguage();
   const tools = getTools(role);
 
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-base font-semibold text-white">Your Strategic Tools</h2>
-        <p className="text-xs text-[#888888] mt-0.5">AI systems designed for your role.</p>
+        <h2 className="text-base font-semibold text-white">{t.tools.title}</h2>
+        <p className="text-xs text-[#888888] mt-0.5">{t.tools.subtitle}</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {tools.map((tool, i) => (
-          <ToolCard key={tool.id} tool={tool} userPlan={plan} index={i} />
+          <ToolCard key={tool.id} tool={tool} userPlan={plan} index={i} role={role} />
         ))}
       </div>
     </div>
