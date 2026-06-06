@@ -34,7 +34,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
   const closeAll = () => { setNotifOpen(false); setUserOpen(false); setLangOpen(false); };
 
   return (
-    <div className="h-16 bg-[#080808] border-b border-[#1a1a1a] flex items-center justify-between px-6 flex-shrink-0">
+    <div className="h-16 bg-[#06040F] border-b border-[#1A1040] flex items-center justify-between px-6 flex-shrink-0">
       <div />
 
       <div className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
         <div className="relative">
           <button
             onClick={() => { setLangOpen(!langOpen); setNotifOpen(false); setUserOpen(false); }}
-            className="flex items-center gap-1.5 px-2.5 py-2 text-text-secondary hover:text-white hover:bg-[#111111] rounded transition-all duration-200 text-sm"
+            className="flex items-center gap-1.5 px-2.5 py-2 text-text-secondary hover:text-white hover:bg-[#0F0A1F] rounded transition-all duration-200 text-sm"
             title={t.topbar.language}
           >
             <Globe className="w-4 h-4" />
@@ -52,7 +52,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
           {langOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={closeAll} />
-              <div className="absolute right-0 top-full mt-2 w-44 bg-[#111111] border border-[#1a1a1a] rounded-lg shadow-surface z-20 overflow-hidden py-1">
+              <div className="absolute right-0 top-full mt-2 w-44 bg-[#0F0A1F] border border-[#1A1040] rounded-lg shadow-surface z-20 overflow-hidden py-1">
                 {(Object.keys(localeLabels) as Locale[]).map((loc) => {
                   const info = localeLabels[loc];
                   return (
@@ -63,7 +63,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
                         "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
                         locale === loc
                           ? "text-gold bg-gold/5"
-                          : "text-text-secondary hover:text-white hover:bg-[#161616]"
+                          : "text-text-secondary hover:text-white hover:bg-[#160D2E]"
                       )}
                     >
                       <span className="text-base">{info.flag}</span>
@@ -83,15 +83,15 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
         <div className="relative">
           <button
             onClick={() => { setNotifOpen(!notifOpen); setUserOpen(false); setLangOpen(false); }}
-            className="relative w-9 h-9 flex items-center justify-center text-text-secondary hover:text-white hover:bg-[#111111] rounded transition-all duration-200"
+            className="relative w-9 h-9 flex items-center justify-center text-text-secondary hover:text-white hover:bg-[#0F0A1F] rounded transition-all duration-200"
           >
             <Bell className="w-4 h-4" />
           </button>
           {notifOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setNotifOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-80 bg-[#111111] border border-[#1a1a1a] rounded-lg shadow-surface z-20">
-                <div className="p-4 border-b border-[#1a1a1a]">
+              <div className="absolute right-0 top-full mt-2 w-80 bg-[#0F0A1F] border border-[#1A1040] rounded-lg shadow-surface z-20">
+                <div className="p-4 border-b border-[#1A1040]">
                   <span className="text-sm font-semibold text-white">{t.topbar.notifications}</span>
                 </div>
                 <div className="p-8 text-center">
@@ -108,7 +108,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
         <div className="relative">
           <button
             onClick={() => { setUserOpen(!userOpen); setNotifOpen(false); setLangOpen(false); }}
-            className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#111111] rounded transition-all duration-200"
+            className="flex items-center gap-2.5 px-3 py-2 hover:bg-[#0F0A1F] rounded transition-all duration-200"
           >
             <div className="w-7 h-7 bg-gold/20 border border-gold/30 rounded-full overflow-hidden flex items-center justify-center text-gold text-xs font-bold">
               {profileImage ? (
@@ -126,14 +126,14 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
           {userOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setUserOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-48 bg-[#111111] border border-[#1a1a1a] rounded-lg shadow-surface z-20 overflow-hidden">
-                <a href="/dashboard/settings" className="flex items-center gap-2.5 px-4 py-3 text-sm text-text-secondary hover:text-white hover:bg-[#161616] transition-colors">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-[#0F0A1F] border border-[#1A1040] rounded-lg shadow-surface z-20 overflow-hidden">
+                <a href="/dashboard/settings" className="flex items-center gap-2.5 px-4 py-3 text-sm text-text-secondary hover:text-white hover:bg-[#160D2E] transition-colors">
                   <Settings className="w-4 h-4" /> {t.topbar.settings}
                 </a>
-                <a href="/dashboard/settings" className="flex items-center gap-2.5 px-4 py-3 text-sm text-text-secondary hover:text-white hover:bg-[#161616] transition-colors">
+                <a href="/dashboard/settings" className="flex items-center gap-2.5 px-4 py-3 text-sm text-text-secondary hover:text-white hover:bg-[#160D2E] transition-colors">
                   <User className="w-4 h-4" /> {t.topbar.profile}
                 </a>
-                <div className="border-t border-[#1a1a1a]" />
+                <div className="border-t border-[#1A1040]" />
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
                   className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-danger hover:bg-danger/5 transition-colors"

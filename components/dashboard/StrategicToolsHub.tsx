@@ -56,12 +56,12 @@ function ToolCard({ tool, userPlan, index }: ToolCardProps) {
       className={cn(
         "relative rounded-lg border transition-all duration-200 overflow-hidden",
         isLocked
-          ? "border-[#1a1a1a] bg-[#111111] opacity-60"
-          : "border-[#C9A84C]/30 bg-[#111111] hover:border-[#C9A84C]/60 hover:shadow-[0_0_20px_rgba(201,168,76,0.08)]"
+          ? "border-[#1A1040] bg-[#0F0A1F] opacity-60"
+          : "border-[#C9A84C]/30 bg-[#0F0A1F] hover:border-[#C9A84C]/60 hover:shadow-[0_0_20px_rgba(201,168,76,0.08)]"
       )}
     >
       {isLocked && (
-        <div className="absolute inset-0 bg-[#080808]/60 flex items-center justify-center z-10 backdrop-blur-[2px] rounded-lg">
+        <div className="absolute inset-0 bg-[#06040F]/80 flex items-center justify-center z-10 backdrop-blur-[2px] rounded-lg">
           <div className="text-center px-4 py-3 space-y-2">
             <Lock className="w-5 h-5 text-[#C9A84C] mx-auto" />
             <p className="text-xs text-white font-medium">{t.tools.availableOn} {planLabel[tool.requiredPlan]}+</p>

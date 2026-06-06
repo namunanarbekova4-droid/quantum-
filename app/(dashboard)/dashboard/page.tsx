@@ -85,13 +85,13 @@ function IntelligencePanel() {
   const impactColors: Record<string, string> = {
     high: "text-red-400 bg-red-400/10 border-red-400/20",
     medium: "text-amber-400 bg-amber-400/10 border-amber-400/20",
-    low: "text-[#888] bg-[#1a1a1a] border-[#2a2a2a]",
+    low: "text-[#888] bg-[#1A1040] border-[#1A1040]",
   };
 
   const severityColors: Record<string, string> = {
     high: "text-red-400 bg-red-400/10 border-red-400/20",
     medium: "text-amber-400 bg-amber-400/10 border-amber-400/20",
-    low: "text-[#888] bg-[#1a1a1a] border-[#2a2a2a]",
+    low: "text-[#888] bg-[#1A1040] border-[#1A1040]",
   };
 
   const hasScore = intel && intel.totalDecisions > 0;
@@ -105,14 +105,14 @@ function IntelligencePanel() {
           <h2 className="text-sm font-semibold text-white">{t.dashboard.quantumIntelligence}</h2>
         </div>
 
-        <div className="flex gap-1 mb-5 bg-[#0d0d0d] rounded p-1">
+        <div className="flex gap-1 mb-5 bg-[#0F0A1F] rounded p-1">
           {(["score", "insights"] as const).map((tabKey) => (
             <button
               key={tabKey}
               onClick={() => setTab(tabKey)}
               className={cn(
                 "flex-1 text-xs py-1.5 rounded transition-all font-medium",
-                tab === tabKey ? "bg-[#1a1a1a] text-white" : "text-[#888] hover:text-white"
+                tab === tabKey ? "bg-[#1A1040] text-white" : "text-[#888] hover:text-white"
               )}
             >
               {tabKey === "score" ? t.dashboard.tabScore : t.dashboard.tabInsights}
@@ -124,13 +124,13 @@ function IntelligencePanel() {
           <div>
             {loadingIntel ? (
               <div className="space-y-3 animate-pulse">
-                <div className="h-16 bg-[#1a1a1a] rounded w-32" />
-                <div className="h-3 bg-[#1a1a1a] rounded" />
-                <div className="h-3 bg-[#1a1a1a] rounded w-3/4" />
+                <div className="h-16 bg-[#1A1040] rounded w-32" />
+                <div className="h-3 bg-[#1A1040] rounded" />
+                <div className="h-3 bg-[#1A1040] rounded w-3/4" />
               </div>
             ) : !hasScore ? (
               <div className="text-center py-6">
-                <div className="w-10 h-10 rounded-lg bg-[#0d0d0d] border border-[#1a1a1a] flex items-center justify-center mx-auto mb-3">
+                <div className="w-10 h-10 rounded-lg bg-[#0F0A1F] border border-[#1A1040] flex items-center justify-center mx-auto mb-3">
                   <Brain className="w-4 h-4 text-[#444]" />
                 </div>
                 <p className="text-sm font-semibold text-white mb-1">No strategic profile yet</p>
@@ -164,7 +164,7 @@ function IntelligencePanel() {
                           <span className="text-[#888]">{label}</span>
                           <span className="text-white font-mono">{val}</span>
                         </div>
-                        <div className="h-1 bg-[#1a1a1a] rounded-full overflow-hidden">
+                        <div className="h-1 bg-[#1A1040] rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${val}%` }}
@@ -185,8 +185,8 @@ function IntelligencePanel() {
           <div className="space-y-3">
             {loadingIntel ? (
               <div className="space-y-2 animate-pulse">
-                <div className="h-12 bg-[#1a1a1a] rounded" />
-                <div className="h-12 bg-[#1a1a1a] rounded" />
+                <div className="h-12 bg-[#1A1040] rounded" />
+                <div className="h-12 bg-[#1A1040] rounded" />
               </div>
             ) : !intel || intel.blindSpots.length === 0 ? (
               <div className="text-center py-4">
@@ -195,7 +195,7 @@ function IntelligencePanel() {
               </div>
             ) : (
               intel.blindSpots.map((spot, i) => (
-                <div key={i} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded p-3">
+                <div key={i} className="bg-[#0F0A1F] border border-[#1A1040] rounded p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-white">{spot.pattern}</span>
                     <span className={cn("text-xs px-2 py-0.5 rounded border", severityColors[spot.severity] ?? severityColors.low)}>
@@ -220,9 +220,9 @@ function IntelligencePanel() {
 
         {loadingSignals ? (
           <div className="space-y-3 animate-pulse">
-            <div className="h-14 bg-[#1a1a1a] rounded" />
-            <div className="h-14 bg-[#1a1a1a] rounded" />
-            <div className="h-14 bg-[#1a1a1a] rounded" />
+            <div className="h-14 bg-[#1A1040] rounded" />
+            <div className="h-14 bg-[#1A1040] rounded" />
+            <div className="h-14 bg-[#1A1040] rounded" />
           </div>
         ) : signals.length === 0 ? (
           <div className="text-center py-4">
@@ -231,7 +231,7 @@ function IntelligencePanel() {
         ) : (
           <div className="space-y-3">
             {signals.slice(0, 3).map((signal) => (
-              <div key={signal.id} className="bg-[#0d0d0d] border border-[#1a1a1a] rounded p-3">
+              <div key={signal.id} className="bg-[#0F0A1F] border border-[#1A1040] rounded p-3">
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="text-xs font-medium text-white leading-tight">{signal.title}</p>
                   <span className={cn("text-xs px-1.5 py-0.5 rounded border flex-shrink-0", impactColors[signal.impact] ?? impactColors.low)}>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const { t } = useLanguage();
   const router = useRouter();
-  const userName = session?.user?.name?.split(" ")[0] ?? "there";
+  const userName = session?.user?.name?.split(" ")[0] ?? "Founder";
   const [decision, setDecision] = useState("");
   const [loading, setLoading] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
@@ -359,7 +359,7 @@ export default function DashboardPage() {
             </span>
           )}
         </div>
-        <p className="text-text-secondary mt-1">{t.dashboard.subtitle}</p>
+        <p className="text-text-secondary mt-1">{t.dashboard.subtitle.replace("{name}", userName)}</p>
       </motion.div>
 
       {planData && planData.plan === "FREE_TRIAL" && planData.usage.decisionsThisMonth >= 3 && (
@@ -384,7 +384,7 @@ export default function DashboardPage() {
                   value={decision}
                   onChange={(e) => setDecision(e.target.value)}
                   placeholder={t.dashboard.placeholder}
-                  className="w-full h-32 bg-[#0d0d0d] border border-[#1a1a1a] text-white text-sm rounded-lg p-4 resize-none focus:outline-none focus:border-gold/50 focus:shadow-[0_0_0_2px_rgba(201,168,76,0.08)] placeholder:text-[#444444] transition-all duration-200"
+                  className="w-full h-32 bg-[#0F0A1F] border border-[#7C3AED]/30 text-white text-sm rounded-lg p-4 resize-none focus:outline-none focus:border-[#7C3AED]/60 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.3)] placeholder:text-[#4B5563] transition-all duration-200"
                 />
                 <div className="flex flex-wrap gap-2 mt-3 mb-4">
                   {t.dashboard.quickActions.map((action) => (
@@ -392,7 +392,7 @@ export default function DashboardPage() {
                       key={action}
                       type="button"
                       onClick={() => setDecision(action + ": ")}
-                      className="px-3 py-1 text-xs font-medium text-text-secondary border border-[#1a1a1a] rounded hover:border-gold/30 hover:text-gold transition-all duration-200"
+                      className="px-3 py-1 text-xs font-medium text-[#A855F7] border border-[#7C3AED]/30 bg-[#7C3AED]/10 rounded hover:border-[#7C3AED]/60 hover:bg-[#7C3AED]/20 transition-all duration-200"
                     >
                       {action}
                     </button>
@@ -434,7 +434,7 @@ export default function DashboardPage() {
                 {decisions.map((d) => (
                   <div
                     key={d.id}
-                    className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-4 hover:border-gold/20 cursor-pointer transition-colors"
+                    className="bg-[#0F0A1F] border border-[#1A1040] rounded-lg p-4 hover:border-[#7C3AED]/40 hover:shadow-[0_0_20px_rgba(124,58,237,0.1)] cursor-pointer transition-all"
                     onClick={() => router.push(`/dashboard/decision/${d.id}`)}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -496,7 +496,7 @@ export default function DashboardPage() {
           {/* Enemy Mode card */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.5 }}>
             <Link href="/dashboard/enemy-mode">
-              <Card className="p-4 border-[#1a1a1a] hover:border-[#C9A84C]/30 transition-colors cursor-pointer group">
+              <Card className="p-4 border-[#1A1040] hover:border-[#C9A84C]/30 transition-colors cursor-pointer group">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center flex-shrink-0 group-hover:bg-[#C9A84C]/15 transition-colors">
                     <ShieldAlert className="w-4 h-4 text-[#C9A84C]" />
