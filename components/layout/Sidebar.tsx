@@ -206,7 +206,7 @@ export function Sidebar({ plan }: SidebarProps) {
 
       {collapsed && (
         <div className="p-2 border-t border-[#1A1040] flex justify-center flex-shrink-0">
-          <Star className="w-4 h-4 text-[#C9A84C]" title="Founding Member" />
+          <Star className="w-4 h-4 text-[#C9A84C]" aria-label="Founding Member" />
         </div>
       )}
     </div>
