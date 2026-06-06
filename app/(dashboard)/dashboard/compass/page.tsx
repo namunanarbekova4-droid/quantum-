@@ -1,0 +1,283 @@
+"use client";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Compass, ArrowLeft, Send } from "lucide-react";
+
+const SITUATIONS = [
+  { id: "stupid", label: "Is my idea stupid?", emoji: "🤔" },
+  { id: "pitch", label: "Am I ready to pitch?", emoji: "🎯" },
+  { id: "quit", label: "Should I quit or keep going?", emoji: "⚡" },
+  { id: "decision", label: "I'm choosing between two decisions and I'm terrified", emoji: "🔀" },
+  { id: "alone", label: "I feel completely alone right now", emoji: "🌑" },
+];
+
+type Message = { role: "user" | "assistant"; content: string };
+type Stage = "landing" | "input" | "questions" | "response";
+
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-8">
+      <div className="w-10 h-10 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin" />
+    </div>
+  );
+}
+
+export default function CompassPage() {
+  const [stage, setStage] = useState<Stage>("landing");
+  const [selectedSituation, setSelectedSituation] = useState<string>("");
+  const [initialText, setInitialText] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentAnswer, setCurrentAnswer] = useState("");
+  const [currentQuestion, setCurrentQuestion] = useState("");
+  const [finalResponse, setFinalResponse] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const userMessages = messages.filter((m) => m.role === "user");
+
+  async function callAPI(newMessages: Message[]) {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/compass", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ situation: selectedSituation, messages: newMessages }),
+      });
+      if (!res.ok) throw new Error("Request failed");
+      const data = await res.json();
+      if (data.type === "question") {
+        setCurrentQuestion(data.content);
+        setMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
+        setStage("questions");
+      } else {
+        setFinalResponse(data.content);
+        setMessages((prev) => [...prev, { role: "assistant", content: data.content }]);
+        setStage("response");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleSituationClick(situation: string) {
+    setSelectedSituation(situation);
+    setStage("input");
+  }
+
+  async function handleInitialSubmit() {
+    if (!initialText.trim()) return;
+    const newMessages: Message[] = [{ role: "user", content: initialText }];
+    setMessages(newMessages);
+    setCurrentAnswer("");
+    await callAPI(newMessages);
+  }
+
+  async function handleAnswerSubmit() {
+    if (!currentAnswer.trim()) return;
+    const newMessages: Message[] = [...messages, { role: "user", content: currentAnswer }];
+    setMessages(newMessages);
+    setCurrentAnswer("");
+    await callAPI(newMessages);
+  }
+
+  function reset() {
+    setStage("landing");
+    setSelectedSituation("");
+    setInitialText("");
+    setMessages([]);
+    setCurrentAnswer("");
+    setCurrentQuestion("");
+    setFinalResponse("");
+    setError("");
+  }
+
+  return (
+    <div className="min-h-screen p-6 lg:p-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+        <div className="flex items-center gap-3 mb-2">
+          {stage !== "landing" && (
+            <button onClick={reset} className="text-[#8B7CF8] hover:text-white transition-colors mr-1">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
+          <Compass className="w-7 h-7 text-[#7C3AED]" />
+          <h1 className="text-3xl font-bold text-white">Quantum Compass</h1>
+        </div>
+        <p className="text-[#8B7CF8] text-sm ml-10">
+          Emotional and strategic support when you need it most
+        </p>
+      </motion.div>
+
+      <AnimatePresence mode="wait">
+        {/* LANDING STATE */}
+        {stage === "landing" && (
+          <motion.div
+            key="landing"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <p className="text-white/60 text-center mb-8 text-lg">What's happening right now?</p>
+            <div className="grid gap-4">
+              {SITUATIONS.map((s, i) => (
+                <motion.button
+                  key={s.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  onClick={() => handleSituationClick(s.label)}
+                  className="flex items-center gap-5 p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl hover:border-[#7C3AED]/60 hover:shadow-[0_0_30px_rgba(124,58,237,0.15)] transition-all text-left group"
+                >
+                  <span className="text-3xl">{s.emoji}</span>
+                  <span className="text-white text-lg font-medium group-hover:text-[#8B7CF8] transition-colors">
+                    {s.label}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* INPUT STATE */}
+        {stage === "input" && (
+          <motion.div
+            key="input"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="max-w-2xl mx-auto"
+          >
+            <div className="mb-6">
+              <div className="inline-block px-4 py-2 bg-[#7C3AED]/20 border border-[#7C3AED]/40 rounded-full text-[#8B7CF8] text-sm mb-4">
+                {selectedSituation}
+              </div>
+              <h2 className="text-2xl font-bold text-white">Tell me what&apos;s happening...</h2>
+            </div>
+            <textarea
+              value={initialText}
+              onChange={(e) => setInitialText(e.target.value)}
+              placeholder="Don't hold back. The more specific you are, the more useful this will be..."
+              rows={6}
+              className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#C9A84C]/50 rounded-xl p-4 text-white placeholder-white/30 resize-none outline-none transition-colors text-base"
+            />
+            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleInitialSubmit}
+                disabled={loading || !initialText.trim()}
+                className="flex items-center gap-2 px-6 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                Submit
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* QUESTIONS STATE */}
+        {stage === "questions" && !loading && (
+          <motion.div
+            key="questions"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="max-w-2xl mx-auto"
+          >
+            {/* Progress dots */}
+            <div className="flex items-center gap-2 mb-8 justify-center">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${
+                    i < userMessages.length
+                      ? "bg-[#7C3AED] scale-110"
+                      : i === userMessages.length - 1
+                      ? "bg-[#7C3AED]"
+                      : "bg-[#1A1040]"
+                  }`}
+                />
+              ))}
+              <span className="text-[#8B7CF8] text-sm ml-2">
+                Question {Math.min(userMessages.length, 3)} of 3
+              </span>
+            </div>
+
+            <div className="mb-6 p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)]">
+              <p className="text-white text-xl leading-relaxed">{currentQuestion}</p>
+            </div>
+
+            <textarea
+              value={currentAnswer}
+              onChange={(e) => setCurrentAnswer(e.target.value)}
+              placeholder="Be honest..."
+              rows={5}
+              className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED]/50 rounded-xl p-4 text-white placeholder-white/30 resize-none outline-none transition-colors text-base"
+            />
+            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleAnswerSubmit}
+                disabled={loading || !currentAnswer.trim()}
+                className="flex items-center gap-2 px-6 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors"
+              >
+                {loading ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                Continue
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* LOADING */}
+        {loading && (
+          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <LoadingSpinner />
+            <p className="text-center text-[#8B7CF8] text-sm">Quantum is thinking...</p>
+          </motion.div>
+        )}
+
+        {/* FINAL RESPONSE */}
+        {stage === "response" && !loading && (
+          <motion.div
+            key="response"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="max-w-2xl mx-auto"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Compass className="w-5 h-5 text-[#7C3AED]" />
+              <span className="text-[#8B7CF8] font-medium">Quantum Compass</span>
+            </div>
+            <div className="relative">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#7C3AED] to-[#C9A84C] rounded-full" />
+              <div className="pl-6 p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)]">
+                <p className="text-white text-base leading-relaxed whitespace-pre-line">{finalResponse}</p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={reset}
+                className="px-6 py-3 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-xl text-[#8B7CF8] hover:text-white transition-colors text-sm"
+              >
+                Start a new situation
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
