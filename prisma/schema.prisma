@@ -30,6 +30,12 @@ model User {
   alerts     Alert[]
   roomMembers RoomMember[]
   messages   Message[]
+  compassSessions   CompassSession[]
+  pitchBuilds       PitchBuild[]
+  onePagers         OnePager[]
+  investorEmails    InvestorEmail[]
+  ideaValidations   IdeaValidation[]
+  cofounderProfile  CofounderProfile?
 }
 
 enum UserRole {
@@ -259,4 +265,69 @@ model PasswordResetToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model CompassSession {
+  id           String   @id @default(cuid())
+  userId       String
+  situation    String
+  conversation Json     @default("[]")
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PitchBuild {
+  id             String   @id @default(cuid())
+  userId         String
+  voiceProfile   Json     @default("{}")
+  answers        Json     @default("[]")
+  generatedPitch Json     @default("{}")
+  score          Int?
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OnePager {
+  id        String   @id @default(cuid())
+  userId    String
+  input     Json     @default("{}")
+  output    Json     @default("{}")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model InvestorEmail {
+  id           String   @id @default(cuid())
+  userId       String
+  investorName String
+  fund         String
+  emails       Json     @default("{}")
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model IdeaValidation {
+  id        String   @id @default(cuid())
+  userId    String
+  answers   Json     @default("[]")
+  result    Json     @default("{}")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CofounderProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  skills           Json     @default("[]")
+  neededSkills     Json     @default("[]")
+  ideaDescription  String
+  stage            String
+  commitment       String
+  locationPref     String?
+  equityExpectation String?
+  personality      String?
+  workStyle        String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

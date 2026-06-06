@@ -5,9 +5,9 @@
 @tailwind utilities;
 
 :root {
-  --background: #080808;
-  --surface: #111111;
-  --border-color: #1a1a1a;
+  --background: #06040F;
+  --surface: #0F0A1F;
+  --border-color: #1A1040;
   --gold: #C9A84C;
   --gold-light: #E8C97A;
   --gold-dark: #A07830;
@@ -22,7 +22,7 @@ html {
 }
 
 body {
-  background-color: #080808;
+  background-color: #06040F;
   color: #FFFFFF;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -34,7 +34,7 @@ body {
   height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #080808;
+  background: #06040F;
 }
 ::-webkit-scrollbar-thumb {
   background: #2a2a2a;

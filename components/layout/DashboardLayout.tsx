@@ -15,7 +15,7 @@ export function DashboardLayout({ children, userName, userRole, plan }: Dashboar
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-[#080808] overflow-hidden">
+    <div className="flex h-screen bg-[#06040F] overflow-hidden">
       <div className="hidden lg:flex flex-shrink-0">
         <Sidebar plan={plan} />
       </div>

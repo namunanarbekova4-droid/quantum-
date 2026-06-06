@@ -1,12 +1,10 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Lock, Calculator, FileText, Users, TrendingUp, Building2, Search, Eye, ClipboardList, Globe, ArrowRight } from "lucide-react";
+import { Lock, Calculator, FileText, Users, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { type Plan, planRank, EARLY_ACCESS } from "@/lib/plans";
 import { useLanguage } from "@/lib/i18n";
-
-type UserRole = "FOUNDER" | "INVESTOR" | "EXECUTIVE";
 
 interface Tool {
   id: string;
@@ -24,21 +22,7 @@ const FOUNDER_TOOLS: Tool[] = [
   { id: "investor-match", titleKey: "investorMatch", descKey: "investorMatch", featuresKey: "investorMatch", requiredPlan: "PRO", href: "/dashboard/founder/investor-match", icon: Users },
 ];
 
-const INVESTOR_TOOLS: Tool[] = [
-  { id: "deal-analyzer", titleKey: "dealAnalyzer", descKey: "dealAnalyzer", featuresKey: "dealAnalyzer", requiredPlan: "PRO", href: "/dashboard/investor/deal-analyzer", icon: TrendingUp },
-  { id: "portfolio-health", titleKey: "portfolioHealth", descKey: "portfolioHealth", featuresKey: "portfolioHealth", requiredPlan: "MAX", href: "/dashboard/investor/portfolio-health", icon: Building2 },
-  { id: "investor-match", titleKey: "investorMatch", descKey: "investorMatch", featuresKey: "investorMatch", requiredPlan: "MAX", href: "/dashboard/investor/investor-match", icon: Search },
-];
-
-const EXECUTIVE_TOOLS: Tool[] = [
-  { id: "competitor-intelligence", titleKey: "competitorIntelligence", descKey: "competitorIntelligence", featuresKey: "competitorIntelligence", requiredPlan: "MAX", href: "/dashboard/executive/competitor-intelligence", icon: Eye },
-  { id: "board-report", titleKey: "boardReport", descKey: "boardReport", featuresKey: "boardReport", requiredPlan: "MAX", href: "/dashboard/executive/board-report", icon: ClipboardList },
-  { id: "market-entry", titleKey: "marketEntry", descKey: "marketEntry", featuresKey: "marketEntry", requiredPlan: "PRO", href: "/dashboard/executive/market-entry", icon: Globe },
-];
-
-function getTools(role: UserRole): Tool[] {
-  if (role === "INVESTOR") return INVESTOR_TOOLS;
-  if (role === "EXECUTIVE") return EXECUTIVE_TOOLS;
+function getTools(): Tool[] {
   return FOUNDER_TOOLS;
 }
 
@@ -53,18 +37,16 @@ interface ToolCardProps {
   tool: Tool;
   userPlan: Plan;
   index: number;
-  role: UserRole;
 }
 
-function ToolCard({ tool, userPlan, index, role }: ToolCardProps) {
+function ToolCard({ tool, userPlan, index }: ToolCardProps) {
   const { t } = useLanguage();
   const Icon = tool.icon;
   const hasAccess = EARLY_ACCESS || planRank(userPlan) >= planRank(tool.requiredPlan);
   const isLocked = !hasAccess;
 
-  const roleKey = role === "INVESTOR" ? "investor" : role === "EXECUTIVE" ? "executive" : "founder";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const toolT = (t.tools as any)[roleKey][tool.titleKey] as { title: string; description: string; features: string[] };
+  const toolT = (t.tools as any).founder[tool.titleKey] as { title: string; description: string; features: string[] };
 
   return (
     <motion.div
@@ -134,13 +116,13 @@ function ToolCard({ tool, userPlan, index, role }: ToolCardProps) {
 }
 
 interface Props {
-  role: UserRole;
+  role?: string;
   plan: Plan;
 }
 
-export function StrategicToolsHub({ role, plan }: Props) {
+export function StrategicToolsHub({ plan }: Props) {
   const { t } = useLanguage();
-  const tools = getTools(role);
+  const tools = getTools();
 
   return (
     <div className="space-y-5">
@@ -150,7 +132,7 @@ export function StrategicToolsHub({ role, plan }: Props) {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {tools.map((tool, i) => (
-          <ToolCard key={tool.id} tool={tool} userPlan={plan} index={i} role={role} />
+          <ToolCard key={tool.id} tool={tool} userPlan={plan} index={i} />
         ))}
       </div>
     </div>

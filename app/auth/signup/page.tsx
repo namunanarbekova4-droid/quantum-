@@ -17,8 +17,6 @@ export default function SignUpPage() {
 
   const roles = [
     { id: "FOUNDER", label: t.auth.signup.founder, desc: t.auth.signup.founderDesc },
-    { id: "INVESTOR", label: t.auth.signup.investor, desc: t.auth.signup.investorDesc },
-    { id: "EXECUTIVE", label: t.auth.signup.executive, desc: t.auth.signup.executiveDesc },
   ];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -84,7 +82,7 @@ export default function SignUpPage() {
         </div>
 
         <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-8">
-          <h1 className="text-xl font-bold text-white mb-1">{t.auth.signup.title}</h1>
+          <h1 className="text-xl font-bold text-white mb-1">Join Quantum — Your AI co-founder from day one</h1>
           <p className="text-sm text-[#888888] mb-6">{t.auth.signup.subtitle}</p>
 
           {error && (
@@ -125,8 +123,8 @@ export default function SignUpPage() {
             />
 
             <div>
-              <label className="text-sm font-medium text-[#888888] mb-2 block">{t.auth.signup.selectRole}</label>
-              <div className="grid grid-cols-3 gap-2">
+              <label className="text-sm font-medium text-[#888888] mb-2 block">You're building something. Let's start.</label>
+              <div className="grid grid-cols-1 gap-2">
                 {roles.map((r) => (
                   <button
                     key={r.id}
