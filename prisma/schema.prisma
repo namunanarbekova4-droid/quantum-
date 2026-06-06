@@ -19,6 +19,7 @@ model User {
   company       String?
   industry      String?
   country       String?
+  language      String?   @default("en")
   onboarded     Boolean   @default(false)
   publicProfile Boolean   @default(false)
   createdAt     DateTime  @default(now())
