@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, Copy, Check, Zap, Target, DollarSign, Users, TrendingUp, HelpCircle } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface OnePagerData {
   headline: string;
@@ -64,6 +65,8 @@ function FormField({
 }
 
 export default function OnePagerPage() {
+  const { t, locale } = useLanguage();
+  const fo = t.features.onePager;
   const [form, setForm] = useState({
     startupName: "",
     tagline: "",
@@ -92,7 +95,7 @@ export default function OnePagerPage() {
       const res = await fetch("/api/one-pager", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, locale }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -159,26 +162,26 @@ export default function OnePagerPage() {
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10 max-w-6xl mx-auto">
         <div className="flex items-center gap-3 mb-2">
           <FileText className="w-7 h-7 text-[#C9A84C]" />
-          <h1 className="text-3xl font-bold text-white">One Pager Generator</h1>
+          <h1 className="text-3xl font-bold text-white">{fo.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          Turn your startup details into a compelling investor one-pager
+          {fo.subtitle}
         </p>
       </motion.div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* LEFT: Form */}
         <div className="space-y-4">
-          <FormField label="Startup Name" placeholder="Quantum" value={form.startupName} onChange={setField("startupName")} />
-          <FormField label="Tagline" placeholder="One line that says it all" value={form.tagline} onChange={setField("tagline")} />
-          <FormField label="Problem" placeholder="What problem are you solving? (2-3 sentences)" value={form.problem} onChange={setField("problem")} multiline />
-          <FormField label="Solution" placeholder="How do you solve it? (2-3 sentences)" value={form.solution} onChange={setField("solution")} multiline />
-          <FormField label="Target Market" placeholder="Who are your customers?" value={form.targetMarket} onChange={setField("targetMarket")} />
-          <FormField label="Business Model" placeholder="How do you make money?" value={form.businessModel} onChange={setField("businessModel")} />
-          <FormField label="Traction" placeholder="What have you built or achieved?" value={form.traction} onChange={setField("traction")} multiline />
-          <FormField label="Team" placeholder="Founders and their backgrounds" value={form.team} onChange={setField("team")} multiline />
-          <FormField label="Amount Raising" placeholder="e.g. $500K pre-seed" value={form.amountRaising} onChange={setField("amountRaising")} />
-          <FormField label="Use of Funds" placeholder="How will you use the money?" value={form.useOfFunds} onChange={setField("useOfFunds")} multiline />
+          <FormField label={fo.startupName} placeholder="Quantum" value={form.startupName} onChange={setField("startupName")} />
+          <FormField label={fo.tagline} placeholder="One line that says it all" value={form.tagline} onChange={setField("tagline")} />
+          <FormField label={fo.problem} placeholder="What problem are you solving? (2-3 sentences)" value={form.problem} onChange={setField("problem")} multiline />
+          <FormField label={fo.solution} placeholder="How do you solve it? (2-3 sentences)" value={form.solution} onChange={setField("solution")} multiline />
+          <FormField label={fo.targetMarket} placeholder="Who are your customers?" value={form.targetMarket} onChange={setField("targetMarket")} />
+          <FormField label={fo.businessModel} placeholder="How do you make money?" value={form.businessModel} onChange={setField("businessModel")} />
+          <FormField label={fo.traction} placeholder="What have you built or achieved?" value={form.traction} onChange={setField("traction")} multiline />
+          <FormField label={fo.team} placeholder="Founders and their backgrounds" value={form.team} onChange={setField("team")} multiline />
+          <FormField label={fo.amountRaising} placeholder="e.g. $500K pre-seed" value={form.amountRaising} onChange={setField("amountRaising")} />
+          <FormField label={fo.useOfFunds} placeholder="How will you use the money?" value={form.useOfFunds} onChange={setField("useOfFunds")} multiline />
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 

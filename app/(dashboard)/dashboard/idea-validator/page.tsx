@@ -196,28 +196,28 @@ export default function IdeaValidatorPage() {
             <div className="p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)]">
               <h3 className="text-white font-semibold mb-6 text-center">Scores</h3>
               <div className="flex justify-around">
-                <ScoreGauge label="Problem" score={result.problem_score} />
-                <ScoreGauge label="Solution" score={result.solution_score} />
-                <ScoreGauge label="Market" score={result.market_score} />
-                <ScoreGauge label="Overall" score={result.overall_score} />
+                <ScoreGauge label={fv.problemScore} score={result.problem_score} />
+                <ScoreGauge label={fv.solutionScore} score={result.solution_score} />
+                <ScoreGauge label={fv.marketScore} score={result.market_score} />
+                <ScoreGauge label={fv.overallScore} score={result.overall_score} />
               </div>
             </div>
 
             {/* Strength & Risk */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-5 bg-green-500/10 border border-green-500/30 rounded-2xl">
-                <p className="text-green-400 font-semibold text-sm mb-2">Biggest Strength</p>
+                <p className="text-green-400 font-semibold text-sm mb-2">{fv.biggestStrength}</p>
                 <p className="text-white text-sm leading-relaxed">{result.biggest_strength}</p>
               </div>
               <div className="p-5 bg-red-500/10 border border-red-500/30 rounded-2xl">
-                <p className="text-red-400 font-semibold text-sm mb-2">Biggest Risk</p>
+                <p className="text-red-400 font-semibold text-sm mb-2">{fv.biggestRisk}</p>
                 <p className="text-white text-sm leading-relaxed">{result.biggest_risk}</p>
               </div>
             </div>
 
             {/* 3 Things to Validate */}
             <div className="p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)]">
-              <h3 className="text-[#7C3AED] font-semibold mb-4">3 Things to Validate Next</h3>
+              <h3 className="text-[#7C3AED] font-semibold mb-4">{fv.thingsToValidate}</h3>
               <ol className="space-y-3">
                 {result.three_things_to_validate.map((item, i) => (
                   <li key={i} className="flex gap-3">
@@ -232,7 +232,7 @@ export default function IdeaValidatorPage() {
 
             {/* Honest Feedback */}
             <div className="p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)]">
-              <h3 className="text-white font-semibold mb-4">Honest Feedback</h3>
+              <h3 className="text-white font-semibold mb-4">{fv.honestFeedback}</h3>
               <p className="text-white/80 text-sm leading-relaxed whitespace-pre-line">{result.honest_feedback}</p>
             </div>
 
@@ -242,7 +242,7 @@ export default function IdeaValidatorPage() {
                 className="flex items-center gap-2 px-6 py-3 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-xl text-[#8B7CF8] hover:text-white transition-colors text-sm"
               >
                 <RotateCcw className="w-4 h-4" />
-                Validate another idea
+                {fv.startOver}
               </button>
             </div>
           </motion.div>
