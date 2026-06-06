@@ -7,6 +7,9 @@ export async function POST(req: NextRequest) {
 
     if (body.action === "find") {
       const { industry, country, stage, description } = body;
+      const locale: string = body.locale ?? "en";
+      const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+      const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
       const grants = await generateJSON<{
         grants: {
           name: string;
@@ -28,12 +31,15 @@ Return a JSON object with a "grants" array of 6 grants. Each grant has:
 - amount: funding amount (e.g. "Up to $50,000")
 - deadline: deadline (e.g. "Rolling" or "March 31, 2025")
 - eligibility: one-liner eligibility requirement
-- description: 2-sentence description of the grant`);
+- description: 2-sentence description of the grant${langInstruction}`);
       return NextResponse.json(grants);
     }
 
     if (body.action === "write") {
       const { grantName, grantOrg, startupDescription, founderBackground } = body;
+      const locale: string = body.locale ?? "en";
+      const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+      const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
       const application = await generateJSON<{
         sections: {
           title: string;
@@ -55,7 +61,7 @@ Return a JSON object with a "sections" array. Include these sections:
 
 Each section has:
 - title: section title
-- content: 2-3 paragraphs of professional, compelling grant writing content`);
+- content: 2-3 paragraphs of professional, compelling grant writing content${langInstruction}`);
       return NextResponse.json(application);
     }
 

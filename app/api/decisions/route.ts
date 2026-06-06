@@ -45,6 +45,7 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json();
+  const locale: string = body.locale ?? "en";
   const decisionText: string = (body.description || body.title || "").trim();
   if (!decisionText) return NextResponse.json({ error: "Decision text required" }, { status: 400 });
 
@@ -67,6 +68,7 @@ export async function POST(req: Request) {
     industry: user?.industry,
     company: user?.company,
     country: user?.country,
+    locale,
   };
 
   const decision = await prisma.decision.create({

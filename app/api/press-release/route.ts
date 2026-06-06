@@ -19,6 +19,7 @@ export async function POST(req: Request) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const body = await req.json();
   const {
     announcement,
     significance,
@@ -26,7 +27,16 @@ export async function POST(req: Request) {
     keyFacts,
     targetMedia,
     announcementDate,
-  } = await req.json();
+  } = body;
+  const locale: string = body.locale ?? "en";
+
+  const LANG_MAP: Record<string, string> = {
+    en: "English",
+    ru: "Russian",
+    es: "Spanish",
+    zh: "Chinese",
+  };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
   const prompt = `You are a PR expert who writes press releases that actually get picked up by journalists.
 
@@ -47,7 +57,7 @@ Return ONLY a JSON object:
   "boilerplate": "About [Company]: 2-3 sentence boilerplate description"
 }
 
-Headlines should be compelling for journalists. Body should follow inverted pyramid structure. Quote should sound human, not corporate.`;
+Headlines should be compelling for journalists. Body should follow inverted pyramid structure. Quote should sound human, not corporate.${langInstruction}`;
 
   const result = await generateJSON<PressReleaseResult>(prompt);
   return NextResponse.json(result);

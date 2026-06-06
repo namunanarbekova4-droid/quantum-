@@ -27,7 +27,17 @@ export async function POST(req: Request) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { answers } = await req.json();
+  const body = await req.json();
+  const { answers } = body;
+  const locale: string = body.locale ?? "en";
+
+  const LANG_MAP: Record<string, string> = {
+    en: "English",
+    ru: "Russian",
+    es: "Spanish",
+    zh: "Chinese",
+  };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
   const qa = QUESTIONS.map((q, i) => `Q: ${q}\nA: ${answers[i] || "(no answer)"}`).join("\n\n");
 
@@ -52,7 +62,7 @@ Create a powerful company manifesto and brand foundations. Return ONLY a JSON ob
   "culturePrinciples": ["short principle 1", "short principle 2", "short principle 3", "short principle 4", "short principle 5"]
 }
 
-Make it specific to their answers. No generic startup platitudes. This should feel unmistakably like THEM.`;
+Make it specific to their answers. No generic startup platitudes. This should feel unmistakably like THEM.${langInstruction}`;
 
   const result = await generateJSON<ManifestoResult>(prompt);
   return NextResponse.json(result);

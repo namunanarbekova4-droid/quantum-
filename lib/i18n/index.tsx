@@ -21,12 +21,31 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    if (stored && locales[stored]) setLocaleState(stored);
+    if (stored && locales[stored]) {
+      setLocaleState(stored);
+    } else {
+      // Try to load from profile
+      fetch("/api/user/profile")
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.language && locales[data.language as Locale]) {
+            setLocaleState(data.language as Locale);
+            localStorage.setItem(STORAGE_KEY, data.language);
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     localStorage.setItem(STORAGE_KEY, next);
+    // Persist to profile (fire and forget)
+    fetch("/api/user/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ language: next }),
+    }).catch(() => {});
   }, []);
 
   return (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lightbulb, ChevronRight, RotateCcw } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 const QUESTIONS = [
   "What's your startup idea? Describe it like you'd explain to a stranger at a coffee shop.",
@@ -58,6 +59,8 @@ function ScoreGauge({ label, score }: { label: string; score: number }) {
 }
 
 export default function IdeaValidatorPage() {
+  const { t, locale } = useLanguage();
+  const fv = t.features.ideaValidator;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(8).fill(""));
   const [currentInput, setCurrentInput] = useState("");
@@ -86,7 +89,7 @@ export default function IdeaValidatorPage() {
       const res = await fetch("/api/idea-validator", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: finalAnswers }),
+        body: JSON.stringify({ answers: finalAnswers, locale }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -114,10 +117,10 @@ export default function IdeaValidatorPage() {
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <Lightbulb className="w-7 h-7 text-[#C9A84C]" />
-          <h1 className="text-3xl font-bold text-white">Idea Validator</h1>
+          <h1 className="text-3xl font-bold text-white">{fv.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          8 questions that reveal if your idea has what it takes
+          {fv.subtitle}
         </p>
       </motion.div>
 
@@ -128,7 +131,7 @@ export default function IdeaValidatorPage() {
             {/* Progress bar */}
             <div className="mb-8">
               <div className="flex justify-between text-[#8B7CF8] text-xs mb-2">
-                <span>Question {currentQuestion + 1} of {QUESTIONS.length}</span>
+                <span>{fv.questionOf} {currentQuestion + 1} {fv.of} {QUESTIONS.length}</span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className="h-1.5 bg-[#1A1040] rounded-full overflow-hidden">
@@ -162,7 +165,7 @@ export default function IdeaValidatorPage() {
                 disabled={!currentInput.trim()}
                 className="flex items-center gap-2 px-6 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors"
               >
-                {currentQuestion === QUESTIONS.length - 1 ? "Get Results" : "Next"}
+                {currentQuestion === QUESTIONS.length - 1 ? fv.validate : fv.nextQuestion}
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -186,7 +189,7 @@ export default function IdeaValidatorPage() {
               <div className={`text-4xl font-black mb-1 ${VERDICT_CONFIG[result.verdict].color}`}>
                 {VERDICT_CONFIG[result.verdict].label}
               </div>
-              <p className="text-white/50 text-sm">Overall verdict</p>
+              <p className="text-white/50 text-sm">{fv.verdict}</p>
             </div>
 
             {/* Score gauges */}

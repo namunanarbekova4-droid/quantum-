@@ -28,7 +28,11 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { description, variable, variableChange, timeHorizon } = await req.json();
+  const body = await req.json();
+  const { description, variable, variableChange, timeHorizon } = body;
+  const locale: string = body.locale ?? "en";
+  const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
   if (!description) return NextResponse.json({ error: "Scenario description required" }, { status: 400 });
 
   const prompt = `You are a strategic scenario planning expert. Simulate three scenarios for this business situation.
@@ -68,7 +72,7 @@ Generate best, base, and worst case scenarios. Return JSON:
   },
   "overallAssessment": "<2-3 sentence strategic assessment>",
   "keyDrivers": ["<driver 1>", "<driver 2>", "<driver 3>"]
-}`;
+}${langInstruction}`;
 
   try {
     const result = await generateJSON<SimulationResult>(prompt);

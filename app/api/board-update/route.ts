@@ -9,6 +9,9 @@ export async function POST(req: NextRequest) {
       wins, challenges, decisions, needs, goals,
       founderName, companyName,
     } = body;
+    const locale: string = body.locale ?? "en";
+    const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+    const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
     const update = await generateJSON<{
       subjectLine: string;
@@ -40,7 +43,7 @@ Return JSON with:
 - decisionsSection: clear prose about decisions made
 - asksSection: clear, specific asks from investors
 - nextMonthFocus: prose for next month objectives
-- closingLine: warm professional closing sentence`);
+- closingLine: warm professional closing sentence${langInstruction}`);
 
     return NextResponse.json(update);
   } catch (err) {

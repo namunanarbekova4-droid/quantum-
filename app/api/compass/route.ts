@@ -12,7 +12,17 @@ export async function POST(req: Request) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { situation, messages } = await req.json();
+  const body = await req.json();
+  const { situation, messages } = body;
+  const locale: string = body.locale ?? "en";
+
+  const LANG_MAP: Record<string, string> = {
+    en: "English",
+    ru: "Russian",
+    es: "Spanish",
+    zh: "Chinese",
+  };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
   const userMessages = (messages || []).filter(
     (m: { role: string }) => m.role === "user"
@@ -33,7 +43,7 @@ The founder selected this situation: "${situation}"
 
 ${conversationText ? `Conversation so far:\n${conversationText}\n\n` : ""}
 
-This is follow-up question ${questionNumber} of 3. Ask ONE specific, probing question to understand their situation more deeply. No pleasantries. Go straight to the question. Make it uncomfortable if needed — the truth matters. Return ONLY the question, nothing else.`;
+This is follow-up question ${questionNumber} of 3. Ask ONE specific, probing question to understand their situation more deeply. No pleasantries. Go straight to the question. Make it uncomfortable if needed — the truth matters. Return ONLY the question, nothing else.${langInstruction}`;
   } else {
     // Final response
     prompt = `${SYSTEM_PROMPT}
@@ -43,7 +53,7 @@ The founder selected this situation: "${situation}"
 Full conversation:
 ${conversationText}
 
-Now give your final response. Be direct, specific, and honest. No bullet points. No lists. Speak in flowing paragraphs. Max 3 paragraphs. This is the moment they need real guidance — give it to them.`;
+Now give your final response. Be direct, specific, and honest. No bullet points. No lists. Speak in flowing paragraphs. Max 3 paragraphs. This is the moment they need real guidance — give it to them.${langInstruction}`;
   }
 
   const content = await generateWithRetry(prompt);

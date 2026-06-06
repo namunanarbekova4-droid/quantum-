@@ -31,6 +31,7 @@ export type UserContext = {
   industry?: string | null;
   company?: string | null;
   country?: string | null;
+  locale?: string | null;
 };
 
 export type QA = {
@@ -126,6 +127,10 @@ ${hasHistory ? `Past decisions for pattern context:\n${histLines}` : "No prior d
     ? `\nCRITICAL CONTEXT PROVIDED BY USER — treat as high-signal inputs:\n${answeredQA.map((q) => `Q: ${q.question}\nA: ${q.answer}`).join("\n\n")}`
     : "";
 
+  const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+  const lang = LANG_MAP[userCtx.locale ?? "en"] ?? "English";
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${lang}. Never mix languages in your response.`;
+
   return `You are Quantum Intelligence — an elite strategic AI advisor to ${roleLabel}. You give verdicts, not essays.
 
 ${privateBlock}
@@ -187,7 +192,7 @@ Return ONLY raw JSON. No markdown. No code fences. No explanation.
     "summary": "1–2 sentence summary of relevant patterns from past decisions",
     "similarDecisions": ["description of similar past decision with timing"]
   }` : ""}
-}`;
+}${langInstruction}`;
 }
 
 // ── Analysis runner ───────────────────────────────────────────────────────────

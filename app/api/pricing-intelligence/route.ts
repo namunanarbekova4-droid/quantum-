@@ -5,6 +5,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { product, targetCustomer, competitors, costs, coreValue, stage } = body;
+    const locale: string = body.locale ?? "en";
+    const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+    const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
     const result = await generateJSON<{
       recommendedPrice: string;
@@ -41,7 +44,7 @@ Return JSON with:
 - freeVsPaid: {free: [list of 4 free features], paid: [list of 4 paid features]}
 - revenueProjections: array of 3 rows: 100 users, 1000 users, 10000 users — each with {users, monthly, annual}
 - pricingMistakes: array of 5 specific pricing mistakes to avoid for this product
-- freeTierRecommendation: 2-sentence recommendation on free tier strategy`);
+- freeTierRecommendation: 2-sentence recommendation on free tier strategy${langInstruction}`);
 
     return NextResponse.json(result);
   } catch (err) {

@@ -23,6 +23,7 @@ export async function POST(req: Request) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const body = await req.json();
   const {
     investorName,
     fundName,
@@ -30,7 +31,16 @@ export async function POST(req: Request) {
     startup,
     traction,
     amountRaising,
-  } = await req.json();
+  } = body;
+  const locale: string = body.locale ?? "en";
+
+  const LANG_MAP: Record<string, string> = {
+    en: "English",
+    ru: "Russian",
+    es: "Spanish",
+    zh: "Chinese",
+  };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
   const prompt = `You are an expert at writing cold investor outreach emails that actually get responses. Write 3 versions of an investor email.
 
@@ -58,7 +68,7 @@ Return ONLY a JSON object:
   }
 }
 
-Each email should feel authentic, specific to this investor, and avoid all clichés. Sign off with just [Your Name].`;
+Each email should feel authentic, specific to this investor, and avoid all clichés. Sign off with just [Your Name].${langInstruction}`;
 
   const result = await generateJSON<InvestorEmailResult>(prompt);
   return NextResponse.json(result);

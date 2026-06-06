@@ -43,6 +43,7 @@ export async function POST(req: Request) {
       decisionContext,
       userRole,
       pastDecisions = [],
+      locale = "en",
     } = body as {
       message: string;
       personality: string;
@@ -50,7 +51,11 @@ export async function POST(req: Request) {
       decisionContext: string;
       userRole: string;
       pastDecisions?: { title: string; type: string }[];
+      locale?: string;
     };
+
+    const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+    const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
     const p = PERSONALITIES[personality] ?? PERSONALITIES["brutal-strategist"];
 
@@ -73,7 +78,7 @@ The decision/strategy being debated:
 ${decisionContext}
 """
 
-Keep responses to 2-5 sentences. Be specific to the exact decision context. Never be generic. You are the adversary — challenge, probe, stress-test. If this is the opening of the debate (no prior conversation), open with a sharp, specific challenging question about the decision.`;
+Keep responses to 2-5 sentences. Be specific to the exact decision context. Never be generic. You are the adversary — challenge, probe, stress-test. If this is the opening of the debate (no prior conversation), open with a sharp, specific challenging question about the decision.${langInstruction}`;
 
     const trimmedHistory = history.slice(-20);
 

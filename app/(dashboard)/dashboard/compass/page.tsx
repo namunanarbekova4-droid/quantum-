@@ -3,14 +3,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Compass, ArrowLeft, Send } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
-const SITUATIONS = [
-  { id: "stupid", label: "Is my idea stupid?", emoji: "🤔" },
-  { id: "pitch", label: "Am I ready to pitch?", emoji: "🎯" },
-  { id: "quit", label: "Should I quit or keep going?", emoji: "⚡" },
-  { id: "decision", label: "I'm choosing between two decisions and I'm terrified", emoji: "🔀" },
-  { id: "alone", label: "I feel completely alone right now", emoji: "🌑" },
-];
+const SITUATION_EMOJIS = ["🤔", "🎯", "⚡", "🔀", "🌑"];
 
 type Message = { role: "user" | "assistant"; content: string };
 type Stage = "landing" | "input" | "questions" | "response";
@@ -24,6 +19,9 @@ function LoadingSpinner() {
 }
 
 export default function CompassPage() {
+  const { t, locale } = useLanguage();
+  const fc = t.features.compass;
+  const SITUATIONS = fc.situations.map((label, i) => ({ id: String(i), label, emoji: SITUATION_EMOJIS[i] }));
   const [stage, setStage] = useState<Stage>("landing");
   const [selectedSituation, setSelectedSituation] = useState<string>("");
   const [initialText, setInitialText] = useState("");
@@ -43,7 +41,7 @@ export default function CompassPage() {
       const res = await fetch("/api/compass", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ situation: selectedSituation, messages: newMessages }),
+        body: JSON.stringify({ situation: selectedSituation, messages: newMessages, locale }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -106,10 +104,10 @@ export default function CompassPage() {
             </button>
           )}
           <Compass className="w-7 h-7 text-[#7C3AED]" />
-          <h1 className="text-3xl font-bold text-white">Quantum Compass</h1>
+          <h1 className="text-3xl font-bold text-white">{fc.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          Emotional and strategic support when you need it most
+          {fc.subtitle}
         </p>
       </motion.div>
 
@@ -122,7 +120,7 @@ export default function CompassPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <p className="text-white/60 text-center mb-8 text-lg">What's happening right now?</p>
+            <p className="text-white/60 text-center mb-8 text-lg">{fc.situationPrompt}</p>
             <div className="grid gap-4">
               {SITUATIONS.map((s, i) => (
                 <motion.button
@@ -156,12 +154,12 @@ export default function CompassPage() {
               <div className="inline-block px-4 py-2 bg-[#7C3AED]/20 border border-[#7C3AED]/40 rounded-full text-[#8B7CF8] text-sm mb-4">
                 {selectedSituation}
               </div>
-              <h2 className="text-2xl font-bold text-white">Tell me what&apos;s happening...</h2>
+              <h2 className="text-2xl font-bold text-white">{fc.situationPrompt}</h2>
             </div>
             <textarea
               value={initialText}
               onChange={(e) => setInitialText(e.target.value)}
-              placeholder="Don't hold back. The more specific you are, the more useful this will be..."
+              placeholder={fc.answerPlaceholder}
               rows={6}
               className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#C9A84C]/50 rounded-xl p-4 text-white placeholder-white/30 resize-none outline-none transition-colors text-base"
             />
@@ -207,7 +205,7 @@ export default function CompassPage() {
                 />
               ))}
               <span className="text-[#8B7CF8] text-sm ml-2">
-                Question {Math.min(userMessages.length, 3)} of 3
+                {fc.questionOf} {Math.min(userMessages.length, 3)} {fc.of} 3
               </span>
             </div>
 
@@ -218,7 +216,7 @@ export default function CompassPage() {
             <textarea
               value={currentAnswer}
               onChange={(e) => setCurrentAnswer(e.target.value)}
-              placeholder="Be honest..."
+              placeholder={fc.answerPlaceholder}
               rows={5}
               className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED]/50 rounded-xl p-4 text-white placeholder-white/30 resize-none outline-none transition-colors text-base"
             />
@@ -234,7 +232,7 @@ export default function CompassPage() {
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-                Continue
+                {fc.continue}
               </button>
             </div>
           </motion.div>
@@ -244,7 +242,7 @@ export default function CompassPage() {
         {loading && (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <LoadingSpinner />
-            <p className="text-center text-[#8B7CF8] text-sm">Quantum is thinking...</p>
+            <p className="text-center text-[#8B7CF8] text-sm">{fc.thinking}</p>
           </motion.div>
         )}
 

@@ -47,6 +47,14 @@ export async function GET() {
   // Generate new briefing
   const role = (session as { user: { role?: string } }).user?.role ?? "FOUNDER";
 
+  // Get user language preference
+  const userProfile = await prisma.user.findUnique({
+    where: { id: session.user.id },
+  });
+  const locale = (userProfile as Record<string, unknown> & { language?: string })?.language ?? "en";
+  const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+
   // Get recent decisions for context
   const recentDecisions = await prisma.decision.findMany({
     where: { userId: session.user.id },
@@ -91,7 +99,7 @@ Analyze which news items matter most for this specific user's role and context. 
   "generatedAt": "${new Date().toISOString()}"
 }
 
-Include 3-5 most relevant events. Be specific and actionable.`;
+Include 3-5 most relevant events. Be specific and actionable.${langInstruction}`;
 
   try {
     const briefing = await generateJSON<Briefing>(prompt);

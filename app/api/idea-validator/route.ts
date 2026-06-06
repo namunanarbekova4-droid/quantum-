@@ -33,7 +33,17 @@ export async function POST(req: Request) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { answers } = await req.json();
+  const body = await req.json();
+  const { answers } = body;
+  const locale: string = body.locale ?? "en";
+
+  const LANG_MAP: Record<string, string> = {
+    en: "English",
+    ru: "Russian",
+    es: "Spanish",
+    zh: "Chinese",
+  };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
   const qa = QUESTIONS.map((q, i) => `Q${i + 1}: ${q}\nA: ${answers[i] || "(no answer)"}`).join("\n\n");
 
@@ -54,7 +64,7 @@ Return ONLY a JSON object with this exact structure:
   "honest_feedback": "3 paragraphs of direct, specific, honest feedback. No bullet points. No flattery. Treat them like a smart adult."
 }
 
-Be brutally honest. Scores should reflect reality, not encouragement.`;
+Be brutally honest. Scores should reflect reality, not encouragement.${langInstruction}`;
 
   const result = await generateJSON<IdeaValidatorResult>(prompt);
   return NextResponse.json(result);

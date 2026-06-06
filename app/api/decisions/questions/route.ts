@@ -7,7 +7,11 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { decisionText } = await req.json();
+  const body = await req.json();
+  const { decisionText } = body;
+  const locale: string = body.locale ?? "en";
+  const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
   if (!decisionText?.trim()) return NextResponse.json({ questions: [] });
 
   const apiKey = process.env.GEMINI_API_KEY;
@@ -35,7 +39,7 @@ RULES:
 - Good example: "Do you already have paying customers in that market?" — specific, changes recommendation
 
 Return ONLY a raw JSON array of strings. No markdown. No code fences.
-["Question 1?", "Question 2?", "Question 3?"]`;
+["Question 1?", "Question 2?", "Question 3?"]${langInstruction}`;
 
     const result = await model.generateContent(prompt);
     const raw = result.response

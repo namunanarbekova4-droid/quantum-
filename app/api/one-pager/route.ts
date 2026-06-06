@@ -25,6 +25,7 @@ export async function POST(req: Request) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const body = await req.json();
   const {
     startupName,
     tagline,
@@ -36,7 +37,16 @@ export async function POST(req: Request) {
     team,
     amountRaising,
     useOfFunds,
-  } = await req.json();
+  } = body;
+  const locale: string = body.locale ?? "en";
+
+  const LANG_MAP: Record<string, string> = {
+    en: "English",
+    ru: "Russian",
+    es: "Spanish",
+    zh: "Chinese",
+  };
+  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
   const prompt = `You are a world-class startup pitch writer. Create a compelling one-pager for this startup.
 
@@ -65,7 +75,7 @@ Return ONLY a JSON object with this exact structure:
     "useOfFunds": "2-3 sentences on fund allocation",
     "closingStatement": "1-2 powerful closing sentences that leave investors wanting more"
   }
-}`;
+}${langInstruction}`;
 
   const result = await generateJSON<OnePagerResult>(prompt);
   return NextResponse.json(result);

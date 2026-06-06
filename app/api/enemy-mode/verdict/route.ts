@@ -36,12 +36,16 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { personality, decisionContext, history = [], userRole } = body as {
+    const { personality, decisionContext, history = [], userRole, locale = "en" } = body as {
       personality: string;
       decisionContext: string;
       history: { role: string; content: string }[];
       userRole: string;
+      locale?: string;
     };
+
+    const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+    const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
     const p = PERSONALITIES[personality] ?? PERSONALITIES["brutal-strategist"];
 
@@ -69,7 +73,7 @@ Based on the entire conversation, produce a final verdict as a JSON object with 
   "recommendationLabel": "Exactly one of: Strong Move | Proceed Carefully | Weak Strategy | High Risk | Not Ready Yet"
 }
 
-Respond ONLY with valid JSON. No markdown, no explanation, no code fences.`;
+Respond ONLY with valid JSON. No markdown, no explanation, no code fences.${langInstruction}`;
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
