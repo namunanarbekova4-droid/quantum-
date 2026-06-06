@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Copy, Check } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface EmailVersion {
   subjects: string[];
@@ -71,6 +72,8 @@ function FormField({
 }
 
 export default function InvestorEmailPage() {
+  const { t, locale } = useLanguage();
+  const fie = t.features.investorEmail;
   const [form, setForm] = useState({
     investorName: "",
     fundName: "",
@@ -95,7 +98,7 @@ export default function InvestorEmailPage() {
       const res = await fetch("/api/investor-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, locale }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -114,22 +117,22 @@ export default function InvestorEmailPage() {
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <Mail className="w-7 h-7 text-[#7C3AED]" />
-          <h1 className="text-3xl font-bold text-white">Investor Email Writer</h1>
+          <h1 className="text-3xl font-bold text-white">{fie.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          3 personalized cold email versions that actually get replies
+          {fie.subtitle}
         </p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form */}
         <div className="space-y-4">
-          <FormField label="Investor Name" placeholder="Sarah Chen" value={form.investorName} onChange={setField("investorName")} />
-          <FormField label="Fund Name" placeholder="Sequoia Capital" value={form.fundName} onChange={setField("fundName")} />
-          <FormField label="Why this investor?" placeholder="Why are you specifically reaching out to them?" value={form.whyThisInvestor} onChange={setField("whyThisInvestor")} multiline />
-          <FormField label="Your Startup" placeholder="One line description" value={form.startup} onChange={setField("startup")} />
-          <FormField label="Traction" placeholder="Key metrics, milestones, proof points" value={form.traction} onChange={setField("traction")} multiline />
-          <FormField label="Amount Raising" placeholder="e.g. $750K pre-seed" value={form.amountRaising} onChange={setField("amountRaising")} />
+          <FormField label={fie.investorName} placeholder="Sarah Chen" value={form.investorName} onChange={setField("investorName")} />
+          <FormField label={fie.fund} placeholder="Sequoia Capital" value={form.fundName} onChange={setField("fundName")} />
+          <FormField label={fie.whyInvestor} placeholder="Why are you specifically reaching out to them?" value={form.whyThisInvestor} onChange={setField("whyThisInvestor")} multiline />
+          <FormField label={fie.startup} placeholder="One line description" value={form.startup} onChange={setField("startup")} />
+          <FormField label={fie.traction} placeholder="Key metrics, milestones, proof points" value={form.traction} onChange={setField("traction")} multiline />
+          <FormField label={fie.amount} placeholder="e.g. $750K pre-seed" value={form.amountRaising} onChange={setField("amountRaising")} />
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
@@ -141,10 +144,10 @@ export default function InvestorEmailPage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Writing emails...
+                {fie.generating}
               </span>
             ) : (
-              "Generate 3 Email Versions"
+              fie.generate
             )}
           </button>
         </div>
@@ -180,7 +183,7 @@ export default function InvestorEmailPage() {
                           : "text-[#8B7CF8] hover:text-white"
                       }`}
                     >
-                      {tab.label}
+                      {tab.key === "direct" ? fie.direct : tab.key === "warm" ? fie.warm : fie.dataDriven}
                     </button>
                   ))}
                 </div>
@@ -189,7 +192,7 @@ export default function InvestorEmailPage() {
                   <div className="p-5 space-y-5">
                     {/* Subject lines */}
                     <div>
-                      <p className="text-[#8B7CF8] text-xs font-semibold uppercase tracking-wider mb-3">Subject Lines (click to copy)</p>
+                      <p className="text-[#8B7CF8] text-xs font-semibold uppercase tracking-wider mb-3">{fie.subjectLines}</p>
                       <div className="space-y-2">
                         {activeEmail.subjects.map((subject, i) => (
                           <button
@@ -208,7 +211,7 @@ export default function InvestorEmailPage() {
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-[#8B7CF8] text-xs font-semibold uppercase tracking-wider">Email Body</p>
                         <div className="flex items-center gap-3">
-                          <span className="text-white/30 text-xs">{activeEmail.body.split(/\s+/).length} words</span>
+                          <span className="text-white/30 text-xs">{activeEmail.body.split(/\s+/).length} {fie.wordCount}</span>
                           <CopyButton text={activeEmail.body} small />
                         </div>
                       </div>

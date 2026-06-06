@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Copy, Check } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 const DEMO_LENGTHS = ["3min", "5min", "10min"] as const;
 type DemoLength = typeof DEMO_LENGTHS[number];
@@ -77,6 +78,8 @@ function formatScript(script: string) {
 }
 
 export default function DemoScriptPage() {
+  const { t, locale } = useLanguage();
+  const fds = t.features.demoScript;
   const [form, setForm] = useState({
     productDescription: "",
     mainFeatures: "",
@@ -101,7 +104,7 @@ export default function DemoScriptPage() {
       const res = await fetch("/api/demo-script", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, demoLength }),
+        body: JSON.stringify({ ...form, demoLength, locale }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -124,21 +127,21 @@ export default function DemoScriptPage() {
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <Play className="w-7 h-7 text-[#7C3AED]" />
-          <h1 className="text-3xl font-bold text-white">Demo Script Writer</h1>
+          <h1 className="text-3xl font-bold text-white">{fds.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          Word-for-word scripts with exact timing, clicks, and transitions
+          {fds.subtitle}
         </p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form */}
         <div className="space-y-4">
-          <FormField label="Product Description" placeholder="What does your product do?" value={form.productDescription} onChange={setField("productDescription")} multiline />
+          <FormField label={fds.productDescription} placeholder="What does your product do?" value={form.productDescription} onChange={setField("productDescription")} multiline />
 
           {/* Demo length tabs */}
           <div>
-            <label className="block text-[#8B7CF8] text-sm font-medium mb-1.5">Demo Length</label>
+            <label className="block text-[#8B7CF8] text-sm font-medium mb-1.5">{fds.demoLength}</label>
             <div className="flex gap-2">
               {DEMO_LENGTHS.map((len) => (
                 <button
@@ -150,16 +153,16 @@ export default function DemoScriptPage() {
                       : "bg-[#0F0A1F] border-[#1A1040] text-[#8B7CF8] hover:border-[#7C3AED]/40"
                   }`}
                 >
-                  {len}
+                  {len === "3min" ? fds.min3 : len === "5min" ? fds.min5 : fds.min10}
                 </button>
               ))}
             </div>
           </div>
 
-          <FormField label="Main Features to Show" placeholder="List the key features you want to demo" value={form.mainFeatures} onChange={setField("mainFeatures")} multiline />
-          <FormField label="Target Audience" placeholder="Who are you demoing to?" value={form.targetAudience} onChange={setField("targetAudience")} />
-          <FormField label="The Wow Moment" placeholder="What's the single moment that makes people say 'whoa'?" value={form.wowMoment} onChange={setField("wowMoment")} />
-          <FormField label="Common Objections" placeholder="What questions/pushback do you usually get?" value={form.commonObjections} onChange={setField("commonObjections")} multiline />
+          <FormField label={fds.mainFeatures} placeholder="List the key features you want to demo" value={form.mainFeatures} onChange={setField("mainFeatures")} multiline />
+          <FormField label={fds.targetAudience} placeholder="Who are you demoing to?" value={form.targetAudience} onChange={setField("targetAudience")} />
+          <FormField label={fds.wowMoment} placeholder="What's the single moment that makes people say 'whoa'?" value={form.wowMoment} onChange={setField("wowMoment")} />
+          <FormField label={fds.commonObjections} placeholder="What questions/pushback do you usually get?" value={form.commonObjections} onChange={setField("commonObjections")} multiline />
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
@@ -171,10 +174,10 @@ export default function DemoScriptPage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Writing script...
+                {fds.generating}
               </span>
             ) : (
-              "Generate Demo Script"
+              fds.generate
             )}
           </button>
         </div>
@@ -210,7 +213,7 @@ export default function DemoScriptPage() {
                     className="flex items-center gap-1.5 px-3 py-1.5 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-lg text-[#8B7CF8] hover:text-white transition-colors text-xs"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copied ? "Copied" : "Copy script"}
+                    {copied ? fds.copied : fds.copy}
                   </button>
                 </div>
                 <div className="p-5 max-h-[70vh] overflow-y-auto">

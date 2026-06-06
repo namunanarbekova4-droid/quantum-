@@ -193,10 +193,10 @@ export default function OnePagerPage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Generating...
+                {fo.generating}
               </span>
             ) : (
-              "Generate One Pager"
+              fo.generate
             )}
           </button>
         </div>
@@ -263,7 +263,7 @@ export default function OnePagerPage() {
                     className="w-full flex items-center justify-center gap-2 py-3 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-xl text-[#8B7CF8] hover:text-white transition-colors text-sm"
                   >
                     {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                    {copied ? "Copied!" : "Copy as text"}
+                    {copied ? fo.copied : fo.copy}
                   </button>
                 </div>
               </motion.div>

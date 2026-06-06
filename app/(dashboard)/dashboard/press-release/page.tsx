@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Newspaper, Copy, Check } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface PressReleaseResult {
   headlines: string[];
@@ -61,6 +62,8 @@ function CopyBlock({ text }: { text: string }) {
 }
 
 export default function PressReleasePage() {
+  const { t, locale } = useLanguage();
+  const fpr = t.features.pressRelease;
   const [form, setForm] = useState({
     announcement: "",
     significance: "",
@@ -86,7 +89,7 @@ export default function PressReleasePage() {
       const res = await fetch("/api/press-release", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, locale }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -125,22 +128,22 @@ export default function PressReleasePage() {
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <Newspaper className="w-7 h-7 text-[#C9A84C]" />
-          <h1 className="text-3xl font-bold text-white">Press Release AI</h1>
+          <h1 className="text-3xl font-bold text-white">{fpr.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          Professional press releases that journalists actually want to read
+          {fpr.subtitle}
         </p>
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form */}
         <div className="space-y-4">
-          <FormField label="What's the announcement?" placeholder="We just raised $1M, launched our product, hit 1000 users..." value={form.announcement} onChange={setField("announcement")} multiline />
-          <FormField label="Why is it significant?" placeholder="Why does this matter to the world?" value={form.significance} onChange={setField("significance")} multiline />
-          <FormField label="Your quote (raw thoughts)" placeholder="What do you want to say in your own words?" value={form.rawQuote} onChange={setField("rawQuote")} multiline />
-          <FormField label="Key facts & numbers" placeholder="Stats, metrics, milestones that support the announcement" value={form.keyFacts} onChange={setField("keyFacts")} multiline />
-          <FormField label="Target media" placeholder="TechCrunch, local press, industry publications..." value={form.targetMedia} onChange={setField("targetMedia")} />
-          <FormField label="Announcement date" placeholder="June 15, 2025" value={form.announcementDate} onChange={setField("announcementDate")} />
+          <FormField label={fpr.announcement} placeholder="We just raised $1M, launched our product, hit 1000 users..." value={form.announcement} onChange={setField("announcement")} multiline />
+          <FormField label={fpr.significance} placeholder="Why does this matter to the world?" value={form.significance} onChange={setField("significance")} multiline />
+          <FormField label={fpr.quote} placeholder="What do you want to say in your own words?" value={form.rawQuote} onChange={setField("rawQuote")} multiline />
+          <FormField label={fpr.keyFacts} placeholder="Stats, metrics, milestones that support the announcement" value={form.keyFacts} onChange={setField("keyFacts")} multiline />
+          <FormField label={fpr.targetMedia} placeholder="TechCrunch, local press, industry publications..." value={form.targetMedia} onChange={setField("targetMedia")} />
+          <FormField label={fpr.launchDate} placeholder="June 15, 2025" value={form.announcementDate} onChange={setField("announcementDate")} />
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
@@ -152,10 +155,10 @@ export default function PressReleasePage() {
             {loading ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Writing press release...
+                {fpr.generating}
               </span>
             ) : (
-              "Generate Press Release"
+              fpr.generate
             )}
           </button>
         </div>
@@ -186,14 +189,14 @@ export default function PressReleasePage() {
                     className="flex items-center gap-1.5 px-3 py-1.5 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-lg text-[#8B7CF8] hover:text-white transition-colors text-xs"
                   >
                     {copiedAll ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copiedAll ? "Copied" : "Copy all"}
+                    {copiedAll ? fpr.copied : fpr.copyAll}
                   </button>
                 </div>
 
                 <div className="p-5 max-h-[75vh] overflow-y-auto space-y-6">
                   {/* Headline options */}
                   <div>
-                    <p className="text-[#8B7CF8] text-xs font-semibold uppercase tracking-wider mb-3">Headlines (click to select)</p>
+                    <p className="text-[#8B7CF8] text-xs font-semibold uppercase tracking-wider mb-3">{fpr.headlines}</p>
                     <div className="space-y-2">
                       {result.headlines.map((h, i) => (
                         <button

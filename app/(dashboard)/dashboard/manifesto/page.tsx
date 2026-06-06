@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronRight, Copy, Check, RotateCcw } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 const QUESTIONS = [
   "What does your company exist to do in the world? Not what it sells — what it DOES.",
@@ -40,6 +41,8 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function ManifestoPage() {
+  const { t, locale } = useLanguage();
+  const fm = t.features.manifesto;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(6).fill(""));
   const [currentInput, setCurrentInput] = useState("");
@@ -67,7 +70,7 @@ export default function ManifestoPage() {
       const res = await fetch("/api/manifesto", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: finalAnswers }),
+        body: JSON.stringify({ answers: finalAnswers, locale }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -114,10 +117,10 @@ export default function ManifestoPage() {
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <Flame className="w-7 h-7 text-[#C9A84C]" />
-          <h1 className="text-3xl font-bold text-white">Manifesto Builder</h1>
+          <h1 className="text-3xl font-bold text-white">{fm.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          Define who you are, what you stand for, and why it matters
+          {fm.subtitle}
         </p>
       </motion.div>
 
@@ -128,7 +131,7 @@ export default function ManifestoPage() {
             {/* Progress bar */}
             <div className="mb-8">
               <div className="flex justify-between text-[#8B7CF8] text-xs mb-2">
-                <span>Question {currentQuestion + 1} of {QUESTIONS.length}</span>
+                <span>{fm.questionOf} {currentQuestion + 1} {fm.of} {QUESTIONS.length}</span>
                 <span>{Math.round((currentQuestion / QUESTIONS.length) * 100)}%</span>
               </div>
               <div className="h-1.5 bg-[#1A1040] rounded-full overflow-hidden">
@@ -161,7 +164,7 @@ export default function ManifestoPage() {
                 disabled={!currentInput.trim()}
                 className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#B8973B] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors"
               >
-                {currentQuestion === QUESTIONS.length - 1 ? "Build Manifesto" : "Next"}
+                {currentQuestion === QUESTIONS.length - 1 ? fm.generate : fm.nextQuestion}
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -183,11 +186,11 @@ export default function ManifestoPage() {
             {/* Mission & Vision */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-5 bg-[#0F0A1F] border border-[#7C3AED]/30 rounded-2xl">
-                <p className="text-[#7C3AED] text-xs font-semibold uppercase tracking-wider mb-2">Mission</p>
+                <p className="text-[#7C3AED] text-xs font-semibold uppercase tracking-wider mb-2">{fm.mission}</p>
                 <p className="text-white text-sm leading-relaxed">{result.missionStatement}</p>
               </div>
               <div className="p-5 bg-[#0F0A1F] border border-[#C9A84C]/30 rounded-2xl">
-                <p className="text-[#C9A84C] text-xs font-semibold uppercase tracking-wider mb-2">Vision</p>
+                <p className="text-[#C9A84C] text-xs font-semibold uppercase tracking-wider mb-2">{fm.vision}</p>
                 <p className="text-white text-sm leading-relaxed">{result.visionStatement}</p>
               </div>
             </div>
@@ -195,7 +198,7 @@ export default function ManifestoPage() {
             {/* Manifesto */}
             <div className="p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)]">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-white font-bold text-lg">Manifesto</h3>
+                <h3 className="text-white font-bold text-lg">{fm.manifesto}</h3>
                 <CopyButton text={result.manifesto} />
               </div>
               <p className="text-white/80 text-sm leading-relaxed whitespace-pre-line">{result.manifesto}</p>
@@ -203,7 +206,7 @@ export default function ManifestoPage() {
 
             {/* Core Values */}
             <div className="p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)]">
-              <h3 className="text-white font-bold mb-5">Core Values</h3>
+              <h3 className="text-white font-bold mb-5">{fm.coreValues}</h3>
               <div className="space-y-4">
                 {result.coreValues.map((v, i) => (
                   <div key={i} className="flex gap-4">
@@ -221,7 +224,7 @@ export default function ManifestoPage() {
 
             {/* Culture Principles */}
             <div className="p-6 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)]">
-              <h3 className="text-white font-bold mb-4">Culture Principles</h3>
+              <h3 className="text-white font-bold mb-4">{fm.culture}</h3>
               <div className="space-y-2">
                 {result.culturePrinciples.map((p, i) => (
                   <div key={i} className="flex items-start gap-3 py-2 border-b border-[#1A1040] last:border-0">
@@ -239,7 +242,7 @@ export default function ManifestoPage() {
                 className="flex items-center gap-2 px-5 py-2.5 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-xl text-[#8B7CF8] hover:text-white transition-colors text-sm"
               >
                 <RotateCcw className="w-4 h-4" />
-                Start over
+                {fm.startOver}
               </button>
             </div>
           </motion.div>
