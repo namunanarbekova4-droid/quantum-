@@ -5,16 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lightbulb, ChevronRight, RotateCcw } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
-const QUESTIONS = [
-  "What's your startup idea? Describe it like you'd explain to a stranger at a coffee shop.",
-  "What problem does it solve? Be specific — whose problem, exactly?",
-  "Why does this problem exist right now? What makes today different from 5 years ago?",
-  "Who is your first paying customer and why would they pay on day one?",
-  "What have you built or tested so far?",
-  "Who are your top 3 competitors and what's your unfair advantage?",
-  "How do you make money?",
-  "Why are YOU the right person to solve this?",
-];
 
 interface ValidatorResult {
   verdict: "STRONG" | "PROMISING" | "NEEDS_WORK" | "PIVOT";
@@ -61,6 +51,7 @@ function ScoreGauge({ label, score }: { label: string; score: number }) {
 export default function IdeaValidatorPage() {
   const { t, locale } = useLanguage();
   const fv = t.features.ideaValidator;
+  const QUESTIONS = fv.questions;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(8).fill(""));
   const [currentInput, setCurrentInput] = useState("");

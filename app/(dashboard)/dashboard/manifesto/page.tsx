@@ -5,14 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronRight, Copy, Check, RotateCcw } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
-const QUESTIONS = [
-  "What does your company exist to do in the world? Not what it sells — what it DOES.",
-  "What do you believe about your industry that most people disagree with?",
-  "What kind of people do you want to work with? What makes someone fit here?",
-  "What are you willing to say NO to, even if it means losing money?",
-  "What does the world look like in 10 years if you succeed completely?",
-  "What's the one sentence that would make the right person say 'I need to be part of this'?",
-];
 
 interface ManifestoResult {
   manifesto: string;
@@ -43,6 +35,7 @@ function CopyButton({ text }: { text: string }) {
 export default function ManifestoPage() {
   const { t, locale } = useLanguage();
   const fm = t.features.manifesto;
+  const QUESTIONS = fm.questions;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(6).fill(""));
   const [currentInput, setCurrentInput] = useState("");
@@ -151,7 +144,7 @@ export default function ManifestoPage() {
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) handleNext(); }}
-              placeholder="Go deep. This becomes your company's DNA..."
+              placeholder={fm.answerPlaceholder}
               rows={6}
               autoFocus
               className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED]/50 rounded-xl p-5 text-white placeholder-white/30 resize-none outline-none transition-colors text-base"
@@ -175,8 +168,7 @@ export default function ManifestoPage() {
         {loading && (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-20">
             <div className="w-14 h-14 border-2 border-[#C9A84C]/30 border-t-[#C9A84C] rounded-full animate-spin mx-auto mb-6" />
-            <p className="text-[#8B7CF8] text-lg">Forging your manifesto...</p>
-            <p className="text-white/30 text-sm mt-2">This may take 15 seconds</p>
+            <p className="text-[#8B7CF8] text-lg">{fm.generating}</p>
           </motion.div>
         )}
 

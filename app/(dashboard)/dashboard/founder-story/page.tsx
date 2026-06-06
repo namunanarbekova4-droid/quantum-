@@ -5,14 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ChevronRight, Copy, Check, RotateCcw } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
-const QUESTIONS = [
-  "What did you do before this startup?",
-  "When did you personally experience the problem you're solving?",
-  "What was the exact moment you decided to build this?",
-  "What have you given up to make this real?",
-  "What's the biggest lesson you've learned so far?",
-  "What do you want people to feel when they hear your story?",
-];
 
 interface FounderStoryResult {
   linkedinPost: string;
@@ -51,6 +43,7 @@ function CopyButton({ text }: { text: string }) {
 export default function FounderStoryPage() {
   const { t, locale } = useLanguage();
   const ffs = t.features.founderStory;
+  const QUESTIONS = ffs.questions;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(6).fill(""));
   const [currentInput, setCurrentInput] = useState("");
