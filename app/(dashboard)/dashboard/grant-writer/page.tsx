@@ -5,6 +5,7 @@ import {
   FileText, Search, ChevronDown, ChevronUp, Copy, Check,
   ArrowLeft, Loader2, Sparkles, Calendar, Building2, DollarSign,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface Grant {
   name: string;
@@ -70,6 +71,8 @@ function SectionCard({ section }: { section: ApplicationSection }) {
 }
 
 export default function GrantWriterPage() {
+  const { t, locale } = useLanguage();
+  const fgw = t.features.grantWriter;
   const [step, setStep] = useState<"find" | "write">("find");
   const [loading, setLoading] = useState(false);
   const [grants, setGrants] = useState<Grant[]>([]);
@@ -90,7 +93,7 @@ export default function GrantWriterPage() {
       const res = await fetch("/api/grant-writer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "find", ...form }),
+        body: JSON.stringify({ action: "find", ...form, locale }),
       });
       const data = await res.json();
       setGrants(data.grants || []);
@@ -116,6 +119,7 @@ export default function GrantWriterPage() {
           grantOrg: g.organization,
           startupDescription: form.description,
           founderBackground,
+          locale,
         }),
       });
       const data = await res.json();
@@ -142,9 +146,9 @@ export default function GrantWriterPage() {
             <FileText className="w-5 h-5 text-[#A855F7]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Grant Writer</h1>
+            <h1 className="text-2xl font-bold text-white">{fgw.title}</h1>
             <p className="text-[#8B7CF8] text-sm mt-0.5">
-              {step === "find" ? "Find relevant grants and write your application" : `Writing application for: ${selectedGrant?.name}`}
+              {step === "find" ? fgw.subtitle : `${fgw.writeApplication}: ${selectedGrant?.name}`}
             </p>
           </div>
         </div>
@@ -159,7 +163,7 @@ export default function GrantWriterPage() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Industry</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fgw.industry}</label>
                   <input
                     value={form.industry}
                     onChange={e => setForm(p => ({ ...p, industry: e.target.value }))}
@@ -168,7 +172,7 @@ export default function GrantWriterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Country</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fgw.country}</label>
                   <input
                     value={form.country}
                     onChange={e => setForm(p => ({ ...p, country: e.target.value }))}
@@ -178,7 +182,7 @@ export default function GrantWriterPage() {
                 </div>
               </div>
               <div className="mb-4">
-                <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Startup Stage</label>
+                <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fgw.stage}</label>
                 <div className="flex gap-2">
                   {["idea", "MVP", "revenue"].map(s => (
                     <button
@@ -196,7 +200,7 @@ export default function GrantWriterPage() {
                 </div>
               </div>
               <div className="mb-4">
-                <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Brief Description</label>
+                <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fgw.description}</label>
                 <textarea
                   value={form.description}
                   onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
@@ -220,7 +224,7 @@ export default function GrantWriterPage() {
                 className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {loading ? "Finding Grants..." : "Find Relevant Grants"}
+                {loading ? fgw.finding : fgw.findGrants}
               </button>
             </div>
 
@@ -269,7 +273,7 @@ export default function GrantWriterPage() {
                           onClick={() => writeApplication(grant)}
                           className="shrink-0 px-4 py-2 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-semibold text-sm rounded-lg transition-all"
                         >
-                          Write Application
+                          {fgw.writeApplication}
                         </button>
                       </div>
                     </motion.div>
@@ -294,7 +298,7 @@ export default function GrantWriterPage() {
                   className="ml-auto flex items-center gap-2 px-4 py-1.5 bg-[#7C3AED]/20 hover:bg-[#7C3AED]/30 border border-[#7C3AED]/30 text-[#A855F7] rounded-lg text-xs font-medium transition-all disabled:opacity-50"
                 >
                   {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  Regenerate All Sections
+                  {fgw.regenerate}
                 </button>
               </div>
             )}

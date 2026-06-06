@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, ChevronRight, Copy, Check, RotateCcw } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 const QUESTIONS = [
   "What did you do before this startup?",
@@ -48,6 +49,8 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function FounderStoryPage() {
+  const { t, locale } = useLanguage();
+  const ffs = t.features.founderStory;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(6).fill(""));
   const [currentInput, setCurrentInput] = useState("");
@@ -76,7 +79,7 @@ export default function FounderStoryPage() {
       const res = await fetch("/api/founder-story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: finalAnswers }),
+        body: JSON.stringify({ answers: finalAnswers, locale }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
@@ -102,10 +105,10 @@ export default function FounderStoryPage() {
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           <BookOpen className="w-7 h-7 text-[#7C3AED]" />
-          <h1 className="text-3xl font-bold text-white">Founder Story Builder</h1>
+          <h1 className="text-3xl font-bold text-white">{ffs.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          Your story, told 5 ways — LinkedIn, podcast, press, Twitter, and long-form
+          {ffs.subtitle}
         </p>
       </motion.div>
 
@@ -116,7 +119,7 @@ export default function FounderStoryPage() {
             {/* Progress */}
             <div className="mb-8">
               <div className="flex justify-between text-[#8B7CF8] text-xs mb-2">
-                <span>Question {currentQuestion + 1} of {QUESTIONS.length}</span>
+                <span>{ffs.questionOf} {currentQuestion + 1} {ffs.of} {QUESTIONS.length}</span>
                 <span>{Math.round((currentQuestion / QUESTIONS.length) * 100)}%</span>
               </div>
               <div className="h-1.5 bg-[#1A1040] rounded-full overflow-hidden">
@@ -149,7 +152,7 @@ export default function FounderStoryPage() {
                 disabled={!currentInput.trim()}
                 className="flex items-center gap-2 px-6 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors"
               >
-                {currentQuestion === QUESTIONS.length - 1 ? "Build My Story" : "Next"}
+                {currentQuestion === QUESTIONS.length - 1 ? ffs.generate : ffs.nextQuestion}
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -180,7 +183,7 @@ export default function FounderStoryPage() {
                       : "bg-[#0F0A1F] border-[#1A1040] text-[#8B7CF8] hover:border-[#7C3AED]/40 hover:text-white"
                   }`}
                 >
-                  {tab.label}
+                  {tab.key === "linkedinPost" ? ffs.linkedin : tab.key === "podcastIntro" ? ffs.podcast : tab.key === "pressBio" ? ffs.press : tab.key === "fullStory" ? ffs.fullStory : ffs.twitter}
                 </button>
               ))}
             </div>
@@ -196,11 +199,11 @@ export default function FounderStoryPage() {
               >
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A1040]">
                   <span className="text-white font-semibold text-sm">
-                    {OUTPUT_TABS.find((t) => t.key === activeTab)?.label}
+                    {activeTab === "linkedinPost" ? ffs.linkedin : activeTab === "podcastIntro" ? ffs.podcast : activeTab === "pressBio" ? ffs.press : activeTab === "fullStory" ? ffs.fullStory : ffs.twitter}
                   </span>
                   <div className="flex items-center gap-3">
                     <span className="text-white/30 text-xs">
-                      {result[activeTab].split(/\s+/).length} words
+                      {result[activeTab].split(/\s+/).length} {ffs.words}
                     </span>
                     <CopyButton text={result[activeTab]} />
                   </div>
@@ -217,7 +220,7 @@ export default function FounderStoryPage() {
                 className="flex items-center gap-2 px-5 py-2.5 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-xl text-[#8B7CF8] hover:text-white transition-colors text-sm"
               >
                 <RotateCcw className="w-4 h-4" />
-                Start over
+                {ffs.startOver}
               </button>
             </div>
           </motion.div>

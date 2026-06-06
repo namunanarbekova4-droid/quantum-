@@ -5,6 +5,7 @@ import {
   Send, Copy, Check, Loader2, Sparkles, TrendingUp,
   AlertTriangle, Users, ChevronRight,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface BoardUpdate {
   subjectLine: string;
@@ -65,6 +66,8 @@ function Section({
 }
 
 export default function BoardUpdatePage() {
+  const { t, locale } = useLanguage();
+  const fbu = t.features.boardUpdate;
   const [loading, setLoading] = useState(false);
   const [update, setUpdate] = useState<BoardUpdate | null>(null);
   const [fullCopied, setFullCopied] = useState(false);
@@ -91,7 +94,7 @@ export default function BoardUpdatePage() {
       const res = await fetch("/api/board-update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, locale }),
       });
       const data = await res.json();
       setUpdate(data);
@@ -114,8 +117,8 @@ export default function BoardUpdatePage() {
             <Send className="w-5 h-5 text-[#A855F7]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Board Update Writer</h1>
-            <p className="text-[#8B7CF8] text-sm mt-0.5">Generate professional investor updates in seconds</p>
+            <h1 className="text-2xl font-bold text-white">{fbu.title}</h1>
+            <p className="text-[#8B7CF8] text-sm mt-0.5">{fbu.subtitle}</p>
           </div>
         </div>
 
@@ -125,7 +128,7 @@ export default function BoardUpdatePage() {
           {/* Month/Year + Names */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Month</label>
+              <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fbu.month}</label>
               <select
                 value={form.month}
                 onChange={e => set("month", e.target.value)}
@@ -135,7 +138,7 @@ export default function BoardUpdatePage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Year</label>
+              <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fbu.year}</label>
               <select
                 value={form.year}
                 onChange={e => set("year", e.target.value)}
@@ -145,7 +148,7 @@ export default function BoardUpdatePage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Your Name</label>
+              <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fbu.name}</label>
               <input
                 value={form.founderName}
                 onChange={e => set("founderName", e.target.value)}
@@ -154,7 +157,7 @@ export default function BoardUpdatePage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Company</label>
+              <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fbu.company}</label>
               <input
                 value={form.companyName}
                 onChange={e => set("companyName", e.target.value)}
@@ -203,11 +206,11 @@ export default function BoardUpdatePage() {
 
           {/* Textareas */}
           {[
-            { field: "wins", label: "This Month's Wins", placeholder: "What went well? Deals closed, product milestones, partnerships..." },
-            { field: "challenges", label: "Challenges This Month", placeholder: "What's hard? Be honest — investors appreciate transparency..." },
-            { field: "decisions", label: "Decisions Made", placeholder: "Key decisions made this month and the reasoning..." },
-            { field: "needs", label: "What You Need From Investors", placeholder: "Intros, advice, resources, connections..." },
-            { field: "goals", label: "Next Month Goals", placeholder: "Top 3 objectives for next month..." },
+            { field: "wins", label: fbu.wins, placeholder: "What went well? Deals closed, product milestones, partnerships..." },
+            { field: "challenges", label: fbu.challenges, placeholder: "What's hard? Be honest — investors appreciate transparency..." },
+            { field: "decisions", label: fbu.decisions, placeholder: "Key decisions made this month and the reasoning..." },
+            { field: "needs", label: fbu.needs, placeholder: "Intros, advice, resources, connections..." },
+            { field: "goals", label: fbu.goals, placeholder: "Top 3 objectives for next month..." },
           ].map(({ field, label, placeholder }) => (
             <div key={field}>
               <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{label}</label>
@@ -227,7 +230,7 @@ export default function BoardUpdatePage() {
             className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {loading ? "Generating Update..." : "Generate Board Update"}
+            {loading ? fbu.generating : fbu.generate}
           </button>
         </div>
 
@@ -253,7 +256,7 @@ export default function BoardUpdatePage() {
                     className="flex items-center gap-2 px-4 py-2 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-semibold text-sm rounded-lg transition-all"
                   >
                     {fullCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    Copy Full Email
+                    {fbu.copyAll}
                   </button>
                 </div>
               </div>

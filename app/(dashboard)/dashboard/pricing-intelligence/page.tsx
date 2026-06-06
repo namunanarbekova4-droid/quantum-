@@ -5,6 +5,7 @@ import {
   DollarSign, Loader2, Sparkles, Check, Copy, AlertTriangle,
   TrendingUp, BarChart3, Info,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface PricingResult {
   recommendedPrice: string;
@@ -36,6 +37,8 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function PricingIntelligencePage() {
+  const { t, locale } = useLanguage();
+  const fpi = t.features.pricingIntelligence;
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PricingResult | null>(null);
   const [form, setForm] = useState({
@@ -55,7 +58,7 @@ export default function PricingIntelligencePage() {
       const res = await fetch("/api/pricing-intelligence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, locale }),
       });
       const data = await res.json();
       setResult(data);
@@ -76,19 +79,19 @@ export default function PricingIntelligencePage() {
             <DollarSign className="w-5 h-5 text-[#A855F7]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Pricing Intelligence</h1>
-            <p className="text-[#8B7CF8] text-sm mt-0.5">AI-powered pricing strategy for your product</p>
+            <h1 className="text-2xl font-bold text-white">{fpi.title}</h1>
+            <p className="text-[#8B7CF8] text-sm mt-0.5">{fpi.subtitle}</p>
           </div>
         </div>
 
         {/* Form */}
         <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-6 shadow-[0_0_30px_rgba(124,58,237,0.15)] mb-6 space-y-4">
           {[
-            { field: "product", label: "Product/Service Description", placeholder: "What do you build? Who does it help? What problem does it solve?", rows: 2 },
-            { field: "targetCustomer", label: "Target Customer Profile", placeholder: "e.g. SaaS teams of 10-50, SMBs spending $1k/mo on ads, B2B logistics companies...", rows: 2 },
-            { field: "competitors", label: "Top 3 Competitors & Their Pricing", placeholder: "e.g. Competitor A: $49/mo, Competitor B: $99/mo (enterprise), Competitor C: Free + $29/mo pro...", rows: 3 },
-            { field: "costs", label: "Your Main Costs (briefly)", placeholder: "e.g. Cloud hosting $500/mo, 2 engineers, AI API costs ~$0.02 per request...", rows: 2 },
-            { field: "coreValue", label: "Core Value / Transformation", placeholder: "What transformation do you deliver? e.g. 'saves 10hrs/week', 'increases conversion 30%', 'eliminates $50k/yr waste'...", rows: 2 },
+            { field: "product", label: fpi.product, placeholder: "What do you build? Who does it help? What problem does it solve?", rows: 2 },
+            { field: "targetCustomer", label: fpi.customer, placeholder: "e.g. SaaS teams of 10-50, SMBs spending $1k/mo on ads, B2B logistics companies...", rows: 2 },
+            { field: "competitors", label: fpi.competitors, placeholder: "e.g. Competitor A: $49/mo, Competitor B: $99/mo (enterprise), Competitor C: Free + $29/mo pro...", rows: 3 },
+            { field: "costs", label: fpi.costs, placeholder: "e.g. Cloud hosting $500/mo, 2 engineers, AI API costs ~$0.02 per request...", rows: 2 },
+            { field: "coreValue", label: fpi.value, placeholder: "What transformation do you deliver? e.g. 'saves 10hrs/week', 'increases conversion 30%', 'eliminates $50k/yr waste'...", rows: 2 },
           ].map(({ field, label, placeholder, rows }) => (
             <div key={field}>
               <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{label}</label>
@@ -103,7 +106,7 @@ export default function PricingIntelligencePage() {
           ))}
 
           <div>
-            <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Current Stage</label>
+            <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fpi.stage}</label>
             <div className="flex gap-2 flex-wrap">
               {["pre-revenue", "early revenue", "scaling"].map(s => (
                 <button
@@ -127,7 +130,7 @@ export default function PricingIntelligencePage() {
             className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {loading ? "Analyzing Pricing..." : "Analyze Pricing Strategy"}
+            {loading ? fpi.analyzing : fpi.analyze}
           </button>
         </div>
 
@@ -145,7 +148,7 @@ export default function PricingIntelligencePage() {
                 animate={{ scale: 1, opacity: 1 }}
                 className="bg-[#0F0A1F] border border-[#C9A84C]/40 rounded-2xl p-6 text-center shadow-[0_0_40px_rgba(201,168,76,0.15)]"
               >
-                <p className="text-[#8B7CF8] text-xs uppercase tracking-widest mb-2">Recommended Price</p>
+                <p className="text-[#8B7CF8] text-xs uppercase tracking-widest mb-2">{fpi.recommendedPrice}</p>
                 <div className="text-5xl md:text-6xl font-bold text-[#C9A84C] mb-2">{result.recommendedPrice}</div>
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#7C3AED]/20 border border-[#7C3AED]/30 rounded-full text-[#A855F7] text-sm font-medium mb-3">
                   <Sparkles className="w-3.5 h-3.5" />
@@ -158,7 +161,7 @@ export default function PricingIntelligencePage() {
               <div>
                 <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-[#C9A84C]" />
-                  3-Tier Plan Structure
+                  {fpi.tiers}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {result.tiers.map((tier, i) => (
@@ -231,7 +234,7 @@ export default function PricingIntelligencePage() {
               <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-xl overflow-hidden shadow-[0_0_30px_rgba(124,58,237,0.15)]">
                 <div className="px-5 py-3 border-b border-[#1A1040] flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#C9A84C]" />
-                  <span className="text-white font-semibold text-sm">Revenue Projections</span>
+                  <span className="text-white font-semibold text-sm">{fpi.projections}</span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -259,7 +262,7 @@ export default function PricingIntelligencePage() {
               <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-xl p-5 shadow-[0_0_30px_rgba(124,58,237,0.15)]">
                 <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-400" />
-                  Top 5 Pricing Mistakes to Avoid
+                  {fpi.mistakes}
                 </h3>
                 <ol className="space-y-3">
                   {result.pricingMistakes.map((mistake, i) => (

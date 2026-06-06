@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Loader2, Check, Bell, UserPlus } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 const ALL_SKILLS = [
   "Engineering", "Design", "Marketing", "Sales", "Finance",
@@ -54,6 +55,8 @@ function RadioGroup({
 }
 
 export default function CofounderPage() {
+  const { t } = useLanguage();
+  const fcf = t.features.cofounder;
   const [tab, setTab] = useState<"find" | "profile">("find");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -121,8 +124,8 @@ export default function CofounderPage() {
             <Users className="w-5 h-5 text-[#A855F7]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Co-founder Match</h1>
-            <p className="text-[#8B7CF8] text-sm mt-0.5">Find your ideal technical or business co-founder</p>
+            <h1 className="text-2xl font-bold text-white">{fcf.title}</h1>
+            <p className="text-[#8B7CF8] text-sm mt-0.5">{fcf.subtitle}</p>
           </div>
         </div>
 
@@ -136,7 +139,7 @@ export default function CofounderPage() {
                 tab === t ? "bg-[#7C3AED] text-white" : "text-[#8B7CF8] hover:text-white"
               }`}
             >
-              {t === "find" ? "Find Co-founder" : "My Profile"}
+              {t === "find" ? fcf.findTab : fcf.profileTab}
             </button>
           ))}
         </div>
@@ -156,16 +159,15 @@ export default function CofounderPage() {
                   <UserPlus className="w-10 h-10 text-white" />
                 </div>
 
-                <h2 className="text-white text-xl font-bold mb-3">Co-founder matching is warming up</h2>
+                <h2 className="text-white text-xl font-bold mb-3">{fcf.comingSoon}</h2>
                 <p className="text-[#8B7CF8]/70 text-sm max-w-sm mx-auto mb-6 leading-relaxed">
-                  Complete your profile and we&apos;ll notify you when compatible co-founders join Quantum.
-                  We match on skills, stage, work style, and commitment level.
+                  {fcf.comingSoonDesc}
                 </p>
 
                 {/* Founders count */}
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#7C3AED]/10 border border-[#7C3AED]/20 rounded-full text-sm text-[#A855F7] mb-6">
                   <span className="w-2 h-2 bg-[#A855F7] rounded-full animate-pulse" />
-                  {totalFounders > 0 ? `${totalFounders} founder${totalFounders !== 1 ? "s have" : " has"} joined this week` : "Be among the first founders to join"}
+                  {totalFounders > 0 ? `${totalFounders} ${fcf.foundersJoined}` : "Be among the first founders to join"}
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -173,7 +175,7 @@ export default function CofounderPage() {
                     onClick={() => setTab("profile")}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-semibold rounded-lg transition-all"
                   >
-                    Complete My Profile
+                    {fcf.completeProfile}
                   </button>
                   <button className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1A1040] border border-[#7C3AED]/30 text-[#A855F7] font-medium rounded-lg hover:bg-[#7C3AED]/10 transition-all">
                     <Bell className="w-4 h-4" />
@@ -195,7 +197,7 @@ export default function CofounderPage() {
 
                 {/* Your Skills */}
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">Your Skills</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">{fcf.yourSkills}</label>
                   <div className="flex flex-wrap gap-2">
                     {ALL_SKILLS.map(s => (
                       <SkillChip
@@ -210,7 +212,7 @@ export default function CofounderPage() {
 
                 {/* Skills Needed */}
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">Skills You Need in a Co-founder</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">{fcf.neededSkills}</label>
                   <div className="flex flex-wrap gap-2">
                     {ALL_SKILLS.map(s => (
                       <SkillChip
@@ -225,7 +227,7 @@ export default function CofounderPage() {
 
                 {/* Startup Idea */}
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Startup Idea</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fcf.ideaDescription}</label>
                   <textarea
                     value={profile.ideaDescription}
                     onChange={e => setProfile(p => ({ ...p, ideaDescription: e.target.value }))}
@@ -237,19 +239,19 @@ export default function CofounderPage() {
 
                 {/* Stage */}
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">Stage</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">{fcf.stage}</label>
                   <RadioGroup options={STAGES} value={profile.stage} onChange={v => setProfile(p => ({ ...p, stage: v }))} />
                 </div>
 
                 {/* Commitment */}
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">Commitment</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">{fcf.commitment}</label>
                   <RadioGroup options={COMMITMENTS} value={profile.commitment} onChange={v => setProfile(p => ({ ...p, commitment: v }))} />
                 </div>
 
                 {/* Location */}
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">Location Preference</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fcf.location}</label>
                   <input
                     value={profile.locationPref}
                     onChange={e => setProfile(p => ({ ...p, locationPref: e.target.value }))}
@@ -260,13 +262,13 @@ export default function CofounderPage() {
 
                 {/* Equity */}
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">Equity Expectation</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">{fcf.equity}</label>
                   <RadioGroup options={EQUITY_OPTIONS} value={profile.equityExpectation} onChange={v => setProfile(p => ({ ...p, equityExpectation: v }))} />
                 </div>
 
                 {/* Work Style */}
                 <div>
-                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">Work Style</label>
+                  <label className="block text-xs font-medium text-[#8B7CF8] mb-2 uppercase tracking-wider">{fcf.workStyle}</label>
                   <RadioGroup options={WORK_STYLES} value={profile.workStyle} onChange={v => setProfile(p => ({ ...p, workStyle: v }))} />
                 </div>
 
@@ -276,7 +278,7 @@ export default function CofounderPage() {
                   className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : null}
-                  {saving ? "Saving..." : saved ? "Profile Saved!" : "Save Profile"}
+                  {saving ? fcf.saving : saved ? fcf.saved : fcf.saveProfile}
                 </button>
               </div>
             </motion.div>
