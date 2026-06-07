@@ -67,7 +67,7 @@ const PLAN_CARDS: {
   {
     id: "MAX",
     futurePrice: "$49/month",
-    description: "Unlimited intelligence for serious decision-makers.",
+    description: "Unlimited AI tools for bold founders building what others said was impossible.",
     features: ["Unlimited decisions", "Unlimited alerts", "Unlimited private rooms", "Unlimited mentor requests", "VIP community", "Anonymous voting", "Full history", "Enemy Mode"],
     featured: true,
     cta: "Upgrade Free During Early Access",
@@ -263,8 +263,8 @@ export default function PricingPage() {
         </div>
 
         <div className="mt-20 text-center">
-          <h2 className="text-2xl font-bold text-white mb-3">Need enterprise capabilities?</h2>
-          <p className="text-[#888888] mb-6">Talk to our team about building Quantum for your organization.</p>
+          <h2 className="text-2xl font-bold text-white mb-3">Need more for your team?</h2>
+          <p className="text-[#888888] mb-6">Talk to our team about building Quantum for your founding team.</p>
           <Link href="/premium" className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold text-[#C9A84C] border border-[#C9A84C] rounded hover:bg-[#C9A84C]/8 transition-all duration-200">
             Learn about Premium <ArrowRight className="w-4 h-4" />
           </Link>

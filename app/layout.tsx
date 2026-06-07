@@ -34,13 +34,13 @@ const notoSansSC = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: "Quantum — Where Serious People Make Serious Decisions",
+  title: "Quantum — For founders before the world believes",
   description:
-    "AI-powered decision intelligence platform for founders, investors, and executives. Get full intelligence reports, decision maps, and market data for your highest-stakes decisions.",
-  keywords: "decision intelligence, AI decision making, business intelligence, founders, investors, executives",
+    "Your AI co-founder from day one. Build your startup with AI decision intelligence, pitch builder, idea validator, and more.",
+  keywords: "startup tools, AI co-founder, pitch builder, idea validator, founder tools, early stage startup",
   openGraph: {
-    title: "Quantum — Where Serious People Make Serious Decisions",
-    description: "AI-powered decision intelligence for your highest-stakes decisions.",
+    title: "Quantum — For founders before the world believes",
+    description: "Your AI co-founder from day one. Build your startup with AI decision intelligence, pitch builder, idea validator, and more.",
     type: "website",
   },
 };

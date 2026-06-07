@@ -129,7 +129,7 @@ function Navbar() {
 // ── Hero ─────────────────────────────────────────────────────────────────────
 
 function Hero() {
-  const taglineWords = ["Your", "AI", "co-founder", "from", "day", "one"];
+  const taglineWords = ["For", "founders", "before", "the", "world", "believes"];
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden bg-[#06040F]">

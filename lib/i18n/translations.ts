@@ -242,7 +242,7 @@ export const en = {
     },
     signup: {
       title: "Create your account",
-      subtitle: "Join Quantum — where serious people make serious decisions",
+      subtitle: "For founders before the world believes",
       name: "Full Name",
       email: "Email Address",
       password: "Password",
@@ -298,7 +298,7 @@ export const en = {
     hero: {
       badge: "Decision Intelligence Platform",
       title: "Where Serious People\nMake Serious Decisions",
-      subtitle: "AI-powered intelligence for founders, investors, and executives facing high-stakes decisions.",
+      subtitle: "AI-powered intelligence for bold founders building what others said was impossible.",
       cta: "Start Analyzing",
       ctaSecondary: "See How It Works",
     },
@@ -459,7 +459,7 @@ export const en = {
   // Community page
   community: {
     title: "Community",
-    subtitle: "Connect with founders, investors, and executives.",
+    subtitle: "Connect with bold founders building what others said was impossible.",
     openCommunities: "Open Communities",
     vipCommunities: "VIP Communities",
     members: "members",
@@ -1242,7 +1242,7 @@ export const ru: TranslationKeys = {
     },
     signup: {
       title: "Создать аккаунт",
-      subtitle: "Присоединяйтесь к Quantum — где серьёзные люди принимают серьёзные решения",
+      subtitle: "Для фаундеров, пока мир ещё не верит",
       name: "Полное имя",
       email: "Электронная почта",
       password: "Пароль",
@@ -2231,7 +2231,7 @@ export const es: TranslationKeys = {
     },
     signup: {
       title: "Crea tu cuenta",
-      subtitle: "Únete a Quantum — donde las personas serias toman decisiones serias",
+      subtitle: "Para fundadores antes de que el mundo crea",
       name: "Nombre completo",
       email: "Correo electrónico",
       password: "Contraseña",
@@ -3220,7 +3220,7 @@ export const zh: TranslationKeys = {
     },
     signup: {
       title: "创建账户",
-      subtitle: "加入Quantum——严肃的人在这里做出严肃的决策",
+      subtitle: "为创业者，在世界相信之前",
       name: "全名",
       email: "电子邮件",
       password: "密码",

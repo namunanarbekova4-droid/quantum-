@@ -84,7 +84,7 @@ export default function SignUpPage() {
         {/* Logo above card */}
         <div className="flex flex-col items-center mb-8">
           <QuantumLogo size="lg" href="/" showTagline={false} />
-          <p className="text-[#8B7CF8] text-xs tracking-[2px] uppercase mt-3">Your AI co-founder from day one</p>
+          <p className="text-[#8B7CF8] text-xs tracking-[2px] uppercase mt-3">For founders before the world believes</p>
         </div>
 
         <div className="rounded-xl p-8" style={{ background: "#0F0A1F", border: "1px solid #1A1040", boxShadow: "0 0 40px rgba(124,58,237,0.1)" }}>

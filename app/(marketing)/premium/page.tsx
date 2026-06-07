@@ -125,7 +125,7 @@ export default function PremiumPage() {
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/5 border border-gold/20 rounded-full text-sm text-gold">
             <Shield className="w-3.5 h-3.5" />
-            Currently accepting a limited number of founding enterprise partners
+            Currently accepting a limited number of founding-stage partners
           </div>
         </div>
       </section>
@@ -207,9 +207,9 @@ export default function PremiumPage() {
             </div>
             <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-8">
               <Shield className="w-12 h-12 text-gold mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">Enterprise-grade from day one</h3>
+              <h3 className="text-xl font-bold text-white mb-2">Built for founders from day one</h3>
               <p className="text-sm text-[#888888] leading-relaxed">
-                We built Quantum&apos;s infrastructure for enterprise requirements from the start — not
+                We built Quantum&apos;s infrastructure for founders from the start — not
                 bolted on after the fact. Every decision is processed in isolated, encrypted
                 compute environments with zero cross-tenant data access.
               </p>
@@ -228,7 +228,7 @@ export default function PremiumPage() {
             <div className="bg-[#111111] border border-gold/20 rounded-lg p-12 text-center">
               <Check className="w-10 h-10 text-gold mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">Request received</h3>
-              <p className="text-[#888888]">Our enterprise team will contact you within one business day.</p>
+              <p className="text-[#888888]">Our team will contact you within one business day.</p>
             </div>
           ) : (
             <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-8">

@@ -122,7 +122,7 @@ export function QuantumLogo({ size = "md", href = "/", className, showTagline }:
         </span>
         {displayTagline && (
           <span className="font-cormorant font-light text-[11px] tracking-[3px] uppercase text-gold">
-            Where serious people make serious decisions
+            For founders before the world believes
           </span>
         )}
       </div>
