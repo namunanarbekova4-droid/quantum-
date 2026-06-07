@@ -9,7 +9,6 @@ import {
   Clock, BarChart2, ChevronRight, History, Pause, Play,
   XCircle, CheckCircle,
 } from "lucide-react";
-import Link from "next/link";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -435,16 +434,23 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
   const [tips, setTips] = useState<CoachTipData[]>([]);
   const [tipIdRef] = useState({ v: 0 });
   const [browserOk] = useState(() => typeof window !== "undefined" && !!(window.SpeechRecognition || window.webkitSpeechRecognition));
+  const [manualMode, setManualMode] = useState(false);
+  const [manualText, setManualText] = useState("");
+  const [noSpeechWarning, setNoSpeechWarning] = useState(false);
 
   const recRef = useRef<ISpeechRecognition | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rafRef = useRef<number | null>(null);
   const elapsedRef = useRef(0);
   const transcriptRef = useRef("");
-  const analyserRef = useRef<AnalyserNode | null>(null);
+  const finalTextRef = useRef("");
   const audioCtxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const transcriptScrollRef = useRef<HTMLDivElement>(null);
+  // Refs to avoid stale closures in callbacks
+  const pausedRef = useRef(false);
+  const isActiveRef = useRef(true);
+  const noSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const targetSec = setup.targetDuration * 60;
 
@@ -452,6 +458,9 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
     startSession();
     return cleanup;
   }, []); // eslint-disable-line
+
+  // Keep pausedRef in sync
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
 
   // Auto-scroll transcript
   useEffect(() => {
@@ -484,8 +493,27 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
     return () => clearInterval(interval);
   }, []); // eslint-disable-line
 
+  // Show "no speech" warning after 15 seconds of silence
+  useEffect(() => {
+    noSpeechTimerRef.current = setTimeout(() => {
+      if (transcriptRef.current.trim().length === 0) {
+        setNoSpeechWarning(true);
+      }
+    }, 15000);
+    return () => {
+      if (noSpeechTimerRef.current) clearTimeout(noSpeechTimerRef.current);
+    };
+  }, []); // eslint-disable-line
+
+  // Dismiss no-speech warning once words appear
+  useEffect(() => {
+    if (transcript.trim().length > 0) setNoSpeechWarning(false);
+  }, [transcript]);
+
   async function startSession() {
-    // Microphone + Web Audio for waveform
+    isActiveRef.current = true;
+
+    // Web Audio for waveform
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -496,7 +524,6 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 64;
       source.connect(analyser);
-      analyserRef.current = analyser;
       const dataArr = new Uint8Array(analyser.frequencyBinCount);
       const loop = () => {
         analyser.getByteFrequencyData(dataArr);
@@ -505,46 +532,65 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
       };
       loop();
     } catch {
-      // waveform won't animate, but recording still works
+      // waveform won't animate, recording still works
     }
 
     // Speech recognition
     if (!browserOk) return;
     const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-    try {
-      const rec = new SRClass();
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.lang = "en-US";
-      let finalText = "";
 
-      rec.onresult = (e: ISpeechRecognitionEvent) => {
-        let interim = "";
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (e.results[i].isFinal) finalText += e.results[i][0].transcript + " ";
-          else interim = e.results[i][0].transcript;
-        }
-        const full = finalText + interim;
-        transcriptRef.current = full;
-        setTranscript(full);
-        setFillers(countFillers(full));
-      };
+    function startRecognition() {
+      if (!isActiveRef.current) return;
+      try {
+        const rec = new SRClass();
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.lang = "en-US";
+        // iOS Safari: maxAlternatives = 1 improves reliability
+        (rec as ISpeechRecognition & { maxAlternatives?: number }).maxAlternatives = 1;
 
-      rec.onend = () => {
-        if (!paused && elapsedRef.current > 0) {
-          try { rec.start(); } catch { /* ended intentionally */ }
-        }
-      };
+        rec.onresult = (e: ISpeechRecognitionEvent) => {
+          let interim = "";
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+              finalTextRef.current += e.results[i][0].transcript + " ";
+            } else {
+              interim = e.results[i][0].transcript;
+            }
+          }
+          const full = finalTextRef.current + interim;
+          transcriptRef.current = full;
+          setTranscript(full);
+          setFillers(countFillers(full));
+        };
 
-      recRef.current = rec;
-      rec.start();
-    } catch { /* handled */ }
+        rec.onerror = (e: ISpeechRecognitionErrorEvent) => {
+          if (e.error === "no-speech") return; // Continue — iOS fires this often
+          // Other errors: don't stop recording
+        };
+
+        // CRITICAL for iOS: restart on end so continuous transcription works
+        rec.onend = () => {
+          if (isActiveRef.current && !pausedRef.current) {
+            setTimeout(() => {
+              if (isActiveRef.current && !pausedRef.current) {
+                startRecognition();
+              }
+            }, 100);
+          }
+        };
+
+        recRef.current = rec;
+        rec.start();
+      } catch { /* handled */ }
+    }
+
+    startRecognition();
 
     // Timer
     timerRef.current = setInterval(() => {
       elapsedRef.current += 1;
       setElapsed(e => e + 1);
-      // Update WPM every 10 seconds
       if (elapsedRef.current % 10 === 0) {
         setWpm(calcWPM(transcriptRef.current, elapsedRef.current));
       }
@@ -552,34 +598,76 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
   }
 
   function cleanup() {
+    isActiveRef.current = false;
     recRef.current?.stop();
     if (timerRef.current) clearInterval(timerRef.current);
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
-    audioCtxRef.current?.close();
+    audioCtxRef.current?.close().catch(() => { /* ok */ });
   }
 
   function handleStop() {
     cleanup();
-    const f = countFillers(transcriptRef.current);
-    const w = calcWPM(transcriptRef.current, Math.max(1, elapsedRef.current));
-    onDone(transcriptRef.current, elapsedRef.current, f, w);
+    const text = manualMode ? manualText : transcriptRef.current;
+    const f = countFillers(text);
+    const w = calcWPM(text, Math.max(1, elapsedRef.current));
+    onDone(text, elapsedRef.current, f, w);
   }
 
   function togglePause() {
     if (paused) {
-      try { recRef.current?.start(); } catch { /* ok */ }
+      pausedRef.current = false;
+      setPaused(false);
+      // Restart recognition
+      if (browserOk && !manualMode) {
+        const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+        try {
+          const rec = new SRClass();
+          rec.continuous = true;
+          rec.interimResults = true;
+          rec.lang = "en-US";
+          (rec as ISpeechRecognition & { maxAlternatives?: number }).maxAlternatives = 1;
+          rec.onresult = (e: ISpeechRecognitionEvent) => {
+            let interim = "";
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+              if (e.results[i].isFinal) finalTextRef.current += e.results[i][0].transcript + " ";
+              else interim = e.results[i][0].transcript;
+            }
+            const full = finalTextRef.current + interim;
+            transcriptRef.current = full;
+            setTranscript(full);
+            setFillers(countFillers(full));
+          };
+          rec.onend = () => {
+            if (isActiveRef.current && !pausedRef.current) {
+              setTimeout(() => { if (isActiveRef.current && !pausedRef.current) rec.start(); }, 100);
+            }
+          };
+          rec.onerror = (e: ISpeechRecognitionErrorEvent) => { if (e.error !== "no-speech") return; };
+          recRef.current = rec;
+          rec.start();
+        } catch { /* ok */ }
+      }
       timerRef.current = setInterval(() => {
         elapsedRef.current += 1;
         setElapsed(e => e + 1);
       }, 1000);
     } else {
+      pausedRef.current = true;
+      setPaused(true);
       recRef.current?.stop();
       if (timerRef.current) clearInterval(timerRef.current);
     }
-    setPaused(p => !p);
   }
 
+  function switchToManual() {
+    setManualMode(true);
+    setNoSpeechWarning(false);
+    // Keep waveform, stop recognition
+    recRef.current?.stop();
+  }
+
+  const activeTranscript = manualMode ? manualText : transcript;
   const totalF = totalFillers(fillers);
   const paceVerdict = wpm === 0 ? "—" : wpm < 100 ? "TOO SLOW" : wpm > 170 ? "TOO FAST" : "PERFECT";
   const paceColor = wpm === 0 ? "text-white/40" : (wpm < 100 || wpm > 170) ? "text-red-400" : "text-green-400";
@@ -587,14 +675,22 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
   const energyColor = energy === "HIGH" ? "text-green-400" : energy === "MEDIUM" ? "text-yellow-400" : "text-red-400";
   const timeProgress = Math.min(1, elapsed / Math.max(1, targetSec));
   const timeStatus = elapsed > targetSec * 1.1 ? "Running long" : elapsed < targetSec * 0.5 && elapsed > 20 ? "Too slow" : "On track";
+  const canStop = activeTranscript.trim().split(/\s+/).filter(Boolean).length >= 10;
 
-  if (!browserOk) {
+  if (!browserOk && !manualMode) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-[#06040F]">
         <div className="text-center max-w-sm">
           <MicOff className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-          <p className="text-white font-semibold mb-2 text-lg">Browser not supported</p>
-          <p className="text-[#8B7CF8] text-sm mb-4">Live speech recognition requires Chrome, Edge, or Safari.</p>
+          <p className="text-white font-semibold mb-2 text-lg">Speech recognition not available</p>
+          <p className="text-[#8B7CF8] text-sm mb-2">Supported browsers: Chrome, Edge, Safari on desktop.</p>
+          <p className="text-[#8B7CF8] text-sm mb-6">You can still get your pitch analyzed by typing or pasting it below.</p>
+          <button
+            onClick={() => setManualMode(true)}
+            className="w-full h-12 bg-[#C9A84C] text-[#06040F] font-black rounded-xl text-sm mb-3"
+          >
+            Type / Paste My Pitch
+          </button>
           <button onClick={onBack} className="text-[#8B7CF8] text-sm hover:text-white transition-colors">← Back to setup</button>
         </div>
       </div>
@@ -605,16 +701,22 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
     <div className="min-h-screen bg-[#06040F] flex flex-col">
       {/* Top bar */}
       <div className="flex items-center gap-4 px-4 py-3 border-b border-[#1A1040] bg-[#0F0A1F] flex-shrink-0">
-        <button onClick={onBack} className="text-[#8B7CF8] hover:text-white transition-colors text-sm flex items-center gap-1">
+        <button onClick={onBack} className="text-[#8B7CF8] hover:text-white transition-colors text-sm">
           ← Back
         </button>
         <div className="flex items-center gap-2 flex-1">
-          <motion.div
-            className="w-2.5 h-2.5 rounded-full bg-red-500"
-            animate={{ opacity: paused ? 0.4 : [1, 0.3, 1] }}
-            transition={{ duration: 1, repeat: Infinity }}
-          />
-          <span className="text-red-400 text-xs font-bold tracking-widest">{paused ? "PAUSED" : "LIVE"}</span>
+          {manualMode ? (
+            <span className="text-[#C9A84C] text-xs font-bold tracking-widest">TEXT MODE</span>
+          ) : (
+            <>
+              <motion.div
+                className="w-2.5 h-2.5 rounded-full bg-red-500"
+                animate={{ opacity: paused ? 0.4 : [1, 0.3, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              />
+              <span className="text-red-400 text-xs font-bold tracking-widest">{paused ? "PAUSED" : "LIVE"}</span>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-1 font-mono">
           <span className="text-[#C9A84C] font-bold text-lg">{fmtTime(elapsed)}</span>
@@ -622,46 +724,105 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
         </div>
       </div>
 
+      {/* No-speech warning banner */}
+      <AnimatePresence>
+        {noSpeechWarning && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-4 py-3 bg-yellow-500/10 border-b border-yellow-500/30 flex items-center justify-between gap-3"
+          >
+            <div className="flex items-center gap-2 text-yellow-300 text-sm">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+              <span>No speech detected. Speak clearly into your microphone, or use text input.</span>
+            </div>
+            <button
+              onClick={switchToManual}
+              className="flex-shrink-0 px-3 py-1 rounded-lg bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 text-xs font-bold hover:bg-yellow-500/30 transition-colors"
+            >
+              Use Text Input
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main content */}
       <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         {/* LEFT: waveform + transcript + controls */}
         <div className="flex-1 flex flex-col p-4 gap-4 lg:w-[55%]">
-          {/* Waveform */}
-          <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4 flex items-center justify-center" style={{ minHeight: 100 }}>
-            <Waveform data={waveformData} />
-          </div>
-
-          {/* Transcript */}
-          <div
-            ref={transcriptScrollRef}
-            className="flex-1 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4 overflow-y-auto"
-            style={{ minHeight: 160, maxHeight: "calc(100vh - 360px)" }}
-          >
-            <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider mb-3">Live Transcript</p>
-            <div className="text-sm leading-relaxed">
-              {transcript
-                ? highlightFillers(transcript)
-                : <span className="text-white/25 italic">Start speaking — your words appear here...</span>
-              }
+          {/* Waveform (always shown) */}
+          {!manualMode && (
+            <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4 flex items-center justify-center" style={{ minHeight: 100 }}>
+              <Waveform data={waveformData} />
             </div>
-          </div>
+          )}
+
+          {/* Manual text input OR live transcript */}
+          {manualMode ? (
+            <div className="flex-1 flex flex-col gap-2">
+              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">
+                Paste or type your pitch below
+              </p>
+              <textarea
+                value={manualText}
+                onChange={e => setManualText(e.target.value)}
+                placeholder="Type or paste your pitch here..."
+                className="flex-1 w-full px-4 py-3 rounded-2xl bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED] text-white text-sm leading-relaxed outline-none resize-none transition-colors placeholder-white/25"
+                style={{ minHeight: 240 }}
+              />
+              <p className="text-white/30 text-xs">{manualText.trim().split(/\s+/).filter(Boolean).length} words</p>
+            </div>
+          ) : (
+            <div
+              ref={transcriptScrollRef}
+              className="flex-1 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4 overflow-y-auto"
+              style={{ minHeight: 160, maxHeight: "calc(100vh - 340px)" }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Live Transcript</p>
+                <button
+                  onClick={switchToManual}
+                  className="text-[10px] text-white/30 hover:text-[#8B7CF8] transition-colors underline"
+                >
+                  Switch to text input
+                </button>
+              </div>
+              <div className="text-sm leading-relaxed">
+                {transcript
+                  ? highlightFillers(transcript)
+                  : <span className="text-white/25 italic">Start speaking — your words appear here...</span>
+                }
+              </div>
+            </div>
+          )}
 
           {/* Controls */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={togglePause}
-              className="w-12 h-12 rounded-full border border-[#1A1040] bg-[#0F0A1F] flex items-center justify-center text-[#8B7CF8] hover:text-white hover:border-[#7C3AED] transition-colors"
-            >
-              {paused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
-            </button>
+            {!manualMode && (
+              <button
+                onClick={togglePause}
+                className="w-12 h-12 rounded-full border border-[#1A1040] bg-[#0F0A1F] flex items-center justify-center text-[#8B7CF8] hover:text-white hover:border-[#7C3AED] transition-colors"
+              >
+                {paused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
+              </button>
+            )}
             <button
               onClick={handleStop}
-              disabled={transcript.trim().split(/\s+/).filter(Boolean).length < 10}
+              disabled={!canStop}
               className="flex-1 h-12 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white font-black rounded-xl transition-colors text-sm"
             >
-              <StopCircle className="w-5 h-5" /> Stop &amp; Analyze
+              <StopCircle className="w-5 h-5" />
+              {manualMode ? "Analyze My Pitch →" : "Stop & Analyze"}
             </button>
           </div>
+          {!canStop && (
+            <p className="text-white/30 text-xs text-center -mt-2">
+              {manualMode
+                ? "Please enter at least a few sentences."
+                : "Keep speaking — more words needed for analysis."}
+            </p>
+          )}
         </div>
 
         {/* RIGHT: live metrics + tips */}
@@ -670,7 +831,6 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
             <BarChart2 className="w-3.5 h-3.5" /> Live Coaching
           </p>
 
-          {/* Metrics grid */}
           <div className="grid grid-cols-2 gap-2">
             <MetricCard
               title="Pace"
@@ -705,10 +865,8 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
             </div>
           </div>
 
-          {/* Ideal range hint */}
           <p className="text-white/30 text-[10px]">Ideal pace: 130–150 WPM · Ideal fillers: &lt;5 total</p>
 
-          {/* Coaching tips */}
           <div className="space-y-2 min-h-[80px]">
             <AnimatePresence>
               {tips.map(tip => <CoachTipCard key={tip.id} tip={tip} />)}
@@ -1081,10 +1239,6 @@ export default function PitchCoachLivePage() {
   const { locale } = useLanguage();
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
-  const [transcript, setTranscript] = useState("");
-  const [duration, setDuration] = useState(0);
-  const [fillers, setFillers] = useState<FillerCounts>({ um: 0, uh: 0, like: 0, so: 0, you_know: 0 });
-  const [wpm, setWpm] = useState(0);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [sessionId, setSessionId] = useState("");
   const [apiError, setApiError] = useState("");
@@ -1098,14 +1252,50 @@ export default function PitchCoachLivePage() {
   const handleRecordingDone = useCallback(async (
     t: string, d: number, f: FillerCounts, w: number
   ) => {
-    setTranscript(t);
-    setDuration(d);
-    setFillers(f);
-    setWpm(w);
+    // Validate transcript
+    const wordCount = t.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 15) {
+      setApiError(
+        "No speech detected. Please speak clearly into your microphone or use the text input option."
+      );
+      setStep("setup");
+      return;
+    }
+
     setStep("analyzing");
 
     try {
-      const res = await fetch("/api/pitch-coach-live", {
+      // Use /api/analyze-pitch for Gemini analysis; also save via /api/pitch-coach-live
+      const res = await fetch("/api/analyze-pitch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          transcript: t,
+          startupName: setup?.startupName,
+          startupDescription: setup?.startupDescription,
+          audienceType: setup?.audienceType,
+          targetDuration: setup?.targetDuration,
+          language: locale === "ru" ? "Russian" : locale === "es" ? "Spanish" : locale === "zh" ? "Chinese" : "English",
+        }),
+      });
+
+      const analysisData = await res.json();
+
+      if (!res.ok) {
+        const errMsg = analysisData.error ?? "";
+        if (res.status === 429 || errMsg.toLowerCase().includes("quota") || errMsg.toLowerCase().includes("unavailable")) {
+          setApiError("AI analysis temporarily unavailable. Please try again in a few minutes.");
+        } else {
+          setApiError("Analysis failed. Please try again.");
+        }
+        setStep("setup");
+        return;
+      }
+
+      setAnalysis(analysisData);
+
+      // Save session to DB in background (don't block results)
+      fetch("/api/pitch-coach-live", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1115,31 +1305,26 @@ export default function PitchCoachLivePage() {
           targetDuration: setup?.targetDuration,
           actualDuration: d,
           transcript: t,
-          wordCount: t.trim().split(/\s+/).filter(Boolean).length,
+          wordCount,
           fillerWordCount: totalFillers(f),
           wordsPerMinute: w,
           locale,
         }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setApiError(data.error ?? "Analysis failed");
-        setStep("recording");
-        return;
-      }
-      setAnalysis(data.analysis);
-      setSessionId(data.id ?? "");
+      })
+        .then(r => r.json())
+        .then(saved => { if (saved?.id) setSessionId(saved.id); })
+        .catch(() => { /* non-critical */ });
+
       setStep("results");
     } catch {
-      setApiError("Something went wrong. Please try again.");
-      setStep("recording");
+      setApiError("Connection error. Please check your internet and try again.");
+      setStep("setup");
     }
   }, [setup, locale]);
 
   const handleRetry = useCallback(() => {
     setStep("setup");
     setAnalysis(null);
-    setTranscript("");
     setApiError("");
     setSessionId("");
   }, []);
