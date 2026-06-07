@@ -30,7 +30,8 @@ interface FillerCounts {
 interface PitchFeedback {
   overall_score: number;
   grade: string;
-  verdict: string;
+  bottom_line: string;
+  ready_to_pitch: boolean;
   clarity_score: number;
   confidence_score: number;
   storytelling_score: number;
@@ -54,13 +55,14 @@ interface PitchFeedback {
     accelerator_judge: string;
     customer: string;
   };
-  what_you_nailed: Array<{ quote: string; why_it_worked: string }>;
-  what_hurt_you: Array<{ quote: string; why: string; better_version: string }>;
-  filler_word_report: FillerCounts;
+  what_worked: Array<{ quote: string; why_it_worked: string }>;
+  critical_problems: Array<{ quote: string; why: string; rewrite: string }>;
+  missing_completely: string[];
+  filler_words: FillerCounts;
   best_moment: string;
   worst_moment: string;
   killer_rewrite: { what_you_said: string; better_version: string };
-  action_plan: string[];
+  before_next_pitch: string[];
   investor_readiness: "NOT_READY" | "CLOSE" | "READY";
 }
 
@@ -680,7 +682,7 @@ function ResultsScreen({
   const [copied, setCopied] = useState(false);
 
   function copyShare() {
-    const text = `Pitch Score: ${feedback.overall_score}/100\n${tl.practiced}\n"${tl.tagline}"\nqsmart.tech`;
+    const text = `Pitch Score: ${feedback.overall_score}/100 (${feedback.grade})\n${feedback.bottom_line}\nqsmart.tech`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -702,9 +704,34 @@ function ResultsScreen({
     { key: "customer", label: tl.customer, text: feedback.investor_reaction?.customer },
   ];
 
+  const score = feedback.overall_score;
+  const bannerClass = score >= 75
+    ? "border-green-500/50 bg-green-500/10 text-green-400"
+    : score >= 60
+    ? "border-yellow-500/50 bg-yellow-500/10 text-yellow-400"
+    : "border-red-500/50 bg-red-500/10 text-red-400";
+  const bannerIcon = score >= 75
+    ? <Star className="w-5 h-5 flex-shrink-0" />
+    : score >= 60
+    ? <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+    : <AlertTriangle className="w-5 h-5 flex-shrink-0" />;
+
   return (
     <div className="min-h-screen p-6 lg:p-8 max-w-4xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+
+        {/* Bottom Line banner — top of page */}
+        {feedback.bottom_line && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex items-start gap-3 p-5 rounded-2xl border mb-8 ${bannerClass}`}
+          >
+            {bannerIcon}
+            <p className="text-lg font-bold leading-snug">{feedback.bottom_line}</p>
+          </motion.div>
+        )}
+
         {/* Overall score */}
         <div className="text-center mb-10">
           <motion.div
@@ -719,8 +746,7 @@ function ResultsScreen({
             <span className={`text-5xl font-black ${gradeColor(feedback.grade)}`}>{feedback.grade}</span>
             <ReadinessBadge status={feedback.investor_readiness} tl={tl} />
           </div>
-          <p className="text-white text-lg font-semibold mt-3 max-w-xl mx-auto leading-relaxed">{feedback.verdict}</p>
-          <p className="text-[#8B7CF8] text-sm mt-1">{setup.startupName} · {setup.pitchType} · {tl[setup.audienceType] ?? setup.audienceType}</p>
+          <p className="text-[#8B7CF8] text-sm mt-2">{setup.startupName} · {setup.pitchType} · {tl[setup.audienceType] ?? setup.audienceType}</p>
         </div>
 
         {/* 6 score cards */}
@@ -744,11 +770,40 @@ function ResultsScreen({
           </div>
         </div>
 
-        {/* What you nailed */}
-        {feedback.what_you_nailed?.length > 0 && (
-          <Section title={tl.whatYouNailed} icon={<Star className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
+        {/* Critical problems */}
+        {feedback.critical_problems?.length > 0 && (
+          <Section title="Critical Problems" icon={<AlertTriangle className="w-4 h-4 text-red-400" />} color="text-red-400">
+            <div className="space-y-4">
+              {feedback.critical_problems.map((item, i) => (
+                <div key={i} className="p-4 rounded-xl border border-red-500/30 bg-red-500/8 space-y-2">
+                  <p className="text-red-300/80 text-sm italic">"{item.quote}"</p>
+                  <p className="text-white/60 text-xs">{item.why}</p>
+                  <div className="pt-2 border-t border-red-500/20">
+                    <p className="text-[#C9A84C] text-xs font-semibold mb-1">→ Say this instead</p>
+                    <p className="text-[#C9A84C]/90 text-sm">{item.rewrite}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* Missing completely */}
+        {feedback.missing_completely?.length > 0 && (
+          <Section title="Missing Completely" icon={<AlertTriangle className="w-4 h-4 text-yellow-400" />} color="text-yellow-400">
+            <div className="flex flex-wrap gap-2">
+              {feedback.missing_completely.map((item, i) => (
+                <span key={i} className="px-3 py-1.5 rounded-lg border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-sm">{item}</span>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* What worked */}
+        {feedback.what_worked?.length > 0 && (
+          <Section title="What Worked" icon={<Star className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
             <div className="space-y-3">
-              {feedback.what_you_nailed.map((item, i) => (
+              {feedback.what_worked.map((item, i) => (
                 <div key={i} className="p-4 rounded-xl border border-green-500/20 bg-green-500/5">
                   <p className="text-green-300 text-sm font-medium italic mb-1">"{item.quote}"</p>
                   <p className="text-white/70 text-xs leading-relaxed">{item.why_it_worked}</p>
@@ -758,34 +813,16 @@ function ResultsScreen({
           </Section>
         )}
 
-        {/* What hurt you */}
-        {feedback.what_hurt_you?.length > 0 && (
-          <Section title={tl.whatHurtYou} icon={<AlertTriangle className="w-4 h-4 text-red-400" />} color="text-red-400">
-            <div className="space-y-4">
-              {feedback.what_hurt_you.map((item, i) => (
-                <div key={i} className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 space-y-2">
-                  <p className="text-red-300 text-sm italic">"{item.quote}"</p>
-                  <p className="text-white/60 text-xs">{item.why}</p>
-                  <div className="pt-2 border-t border-red-500/20">
-                    <p className="text-[#C9A84C] text-xs font-semibold mb-1">→ {tl.betterVersion}</p>
-                    <p className="text-green-300 text-sm">{item.better_version}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
-
         {/* Killer rewrite */}
         {feedback.killer_rewrite?.what_you_said && (
-          <Section title={tl.killerRewrite} icon={<Zap className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
+          <Section title={tl.killerRewrite ?? "Killer Rewrite"} icon={<Zap className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/5">
-                <p className="text-red-400 text-xs font-semibold mb-2">{tl.whatYouSaid}</p>
+                <p className="text-red-400 text-xs font-semibold mb-2">{tl.whatYouSaid ?? "What You Said"}</p>
                 <p className="text-white/70 text-sm italic">"{feedback.killer_rewrite.what_you_said}"</p>
               </div>
               <div className="p-4 rounded-xl border border-green-500/30 bg-green-500/5">
-                <p className="text-green-400 text-xs font-semibold mb-2">{tl.betterVersion}</p>
+                <p className="text-green-400 text-xs font-semibold mb-2">{tl.betterVersion ?? "Better Version"}</p>
                 <p className="text-green-300 text-sm">"{feedback.killer_rewrite.better_version}"</p>
               </div>
             </div>
@@ -793,7 +830,7 @@ function ResultsScreen({
         )}
 
         {/* Investor reactions */}
-        <Section title={tl.investorReactions} icon={<TrendingUp className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
+        <Section title={tl.investorReactions ?? "Investor Reactions"} icon={<TrendingUp className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {investorItems.map((inv) => inv.text && (
               <div key={inv.key} className="p-4 rounded-xl border border-[#1A1040] bg-[#06040F]">
@@ -806,16 +843,16 @@ function ResultsScreen({
 
         {/* Body language */}
         {setup.mode === "video" && feedback.body_language && (
-          <Section title={tl.bodyLanguage} icon={<BarChart2 className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
+          <Section title={tl.bodyLanguage ?? "Body Language"} icon={<BarChart2 className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-              <ScoreCard label={tl.confidence} score={feedback.body_language.confidence} />
-              <ScoreCard label={tl.eyeContact} score={feedback.body_language.eye_contact} />
-              <ScoreCard label={tl.movement} score={feedback.body_language.movement_quality} />
-              <ScoreCard label={tl.gestures} score={feedback.body_language.gesture_effectiveness} />
+              <ScoreCard label={tl.confidence ?? "Confidence"} score={feedback.body_language.confidence} />
+              <ScoreCard label={tl.eyeContact ?? "Eye Contact"} score={feedback.body_language.eye_contact} />
+              <ScoreCard label={tl.movement ?? "Movement"} score={feedback.body_language.movement_quality} />
+              <ScoreCard label={tl.gestures ?? "Gestures"} score={feedback.body_language.gesture_effectiveness} />
             </div>
             {feedback.body_language.nervous_signals?.length > 0 && (
               <div>
-                <p className="text-[#8B7CF8] text-xs font-semibold mb-2">{tl.nervousSignals}</p>
+                <p className="text-[#8B7CF8] text-xs font-semibold mb-2">{tl.nervousSignals ?? "Nervous Signals"}</p>
                 <div className="flex flex-wrap gap-2">
                   {feedback.body_language.nervous_signals.map((s, i) => (
                     <span key={i} className="px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs">{s}</span>
@@ -827,9 +864,9 @@ function ResultsScreen({
         )}
 
         {/* Filler words */}
-        <Section title={tl.fillerWords} icon={<Clock className="w-4 h-4 text-[#8B7CF8]" />} color="text-[#8B7CF8]">
+        <Section title={tl.fillerWords ?? "Filler Words"} icon={<Clock className="w-4 h-4 text-[#8B7CF8]" />} color="text-[#8B7CF8]">
           <div className="flex flex-wrap gap-3">
-            {Object.entries(feedback.filler_word_report ?? {}).map(([word, cnt]) => (
+            {Object.entries(feedback.filler_words ?? {}).map(([word, cnt]) => (
               <div key={word} className={`px-4 py-2 rounded-xl border text-sm font-bold ${
                 (cnt as number) > 3 ? "border-red-500/40 bg-red-500/10 text-red-400" : "border-[#1A1040] bg-[#06040F] text-[#8B7CF8]"
               }`}>
@@ -839,10 +876,10 @@ function ResultsScreen({
           </div>
         </Section>
 
-        {/* Action plan */}
-        <Section title={tl.actionPlan} icon={<Award className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
+        {/* Before next pitch */}
+        <Section title="Before Your Next Pitch" icon={<Award className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
           <ol className="space-y-3">
-            {feedback.action_plan?.map((item, i) => (
+            {(feedback.before_next_pitch ?? []).map((item, i) => (
               <li key={i} className="flex gap-3">
                 <span className="w-6 h-6 rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/40 flex items-center justify-center text-[#C9A84C] text-xs font-black flex-shrink-0 mt-0.5">
                   {i + 1}
