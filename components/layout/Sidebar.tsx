@@ -26,9 +26,9 @@ const NAV_GROUPS = [
   {
     key: "PITCH",
     items: [
-      { label: "Pitch Coach Live",   href: "/dashboard/pitch-coach",  icon: Mic2 },
-      { label: "Pitch Deck Creator", href: "/dashboard/pitch-deck",   icon: Layers },
-      { label: "Pitch Mirror",       href: "/dashboard/pitch-mirror", icon: Video },
+      { label: "🎤 Pitch Coach Live",  href: "/dashboard/pitch-coach-live", icon: Mic2 },
+      { label: "Pitch Deck Creator",   href: "/dashboard/pitch-deck",       icon: Layers },
+      { label: "Pitch Mirror",         href: "/dashboard/pitch-mirror",     icon: Video },
     ],
   },
   {

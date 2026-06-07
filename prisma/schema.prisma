@@ -42,10 +42,11 @@ model User {
   investorEmails    InvestorEmail[]
   ideaValidations   IdeaValidation[]
   cofounderProfile    CofounderProfile?
-  pitchMirrorSessions PitchMirrorSession[]
-  founderChats        FounderChat[]
-  customerSearches    CustomerSearch[]
-  coldEmailCampaigns  ColdEmailCampaign[]
+  pitchMirrorSessions     PitchMirrorSession[]
+  founderChats            FounderChat[]
+  customerSearches        CustomerSearch[]
+  coldEmailCampaigns      ColdEmailCampaign[]
+  pitchCoachLiveSessions  PitchCoachLiveSession[]
 }
 
 enum UserRole {
@@ -426,4 +427,24 @@ model EmailTracking {
   repliedAt       DateTime?
 
   campaign ColdEmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model PitchCoachLiveSession {
+  id                 String   @id @default(cuid())
+  userId             String
+  startupName        String
+  startupDescription String   @db.Text
+  audienceType       String
+  targetDuration     Int
+  actualDuration     Int      @default(0)
+  transcript         String   @db.Text
+  wordCount          Int      @default(0)
+  fillerWordCount    Int      @default(0)
+  wordsPerMinute     Int      @default(0)
+  overallScore       Int      @default(0)
+  grade              String   @default("")
+  analysis           Json     @default("{}")
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
