@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Send, Zap } from "lucide-react";
+import { Send } from "lucide-react";
 import Link from "next/link";
 
 export default function ColdEmailsPage() {
@@ -19,10 +19,6 @@ export default function ColdEmailsPage() {
         <p className="text-[#8B7CF8] mb-8 leading-relaxed">
           Generate 10 hyper-personalized cold emails to your ideal customers — ready to copy and send in seconds.
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-lg text-[#C9A84C] text-sm font-semibold mb-8">
-          <Zap className="w-4 h-4" />
-          Coming Soon
-        </div>
         <div>
           <Link href="/dashboard" className="text-sm text-[#8B7CF8] hover:text-[#C9A84C] transition-colors">
             ← Back to Dashboard

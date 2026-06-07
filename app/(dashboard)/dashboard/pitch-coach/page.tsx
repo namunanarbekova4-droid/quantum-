@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { Mic2, Zap } from "lucide-react";
+import { Mic2 } from "lucide-react";
 import Link from "next/link";
 
 export default function PitchCoachPage() {
@@ -19,10 +19,6 @@ export default function PitchCoachPage() {
         <p className="text-[#8B7CF8] mb-8 leading-relaxed">
           Speak your pitch and get instant AI coaching on clarity, confidence, and investor appeal — in real time.
         </p>
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-lg text-[#C9A84C] text-sm font-semibold mb-8">
-          <Zap className="w-4 h-4" />
-          Coming Soon
-        </div>
         <div>
           <Link href="/dashboard" className="text-sm text-[#8B7CF8] hover:text-[#C9A84C] transition-colors">
             ← Back to Dashboard
