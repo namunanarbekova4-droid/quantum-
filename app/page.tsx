@@ -55,36 +55,50 @@ function FloatingParticles() {
 
 function QuantumAtom() {
   return (
-    <motion.svg
-      width="72"
-      height="72"
-      viewBox="0 0 72 72"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <motion.div
       initial={{ scale: 0.5, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
     >
-      <motion.ellipse
-        cx="36" cy="36" rx="32" ry="12"
-        stroke="#C9A84C" strokeWidth="1.5" fill="none"
-        animate={{ filter: ["drop-shadow(0 0 4px #C9A84C)", "drop-shadow(0 0 12px #C9A84C)", "drop-shadow(0 0 4px #C9A84C)"] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.ellipse
-        cx="36" cy="36" rx="12" ry="32"
-        stroke="#C9A84C" strokeWidth="1.5" fill="none" opacity="0.7"
-        animate={{ filter: ["drop-shadow(0 0 4px #C9A84C)", "drop-shadow(0 0 12px #C9A84C)", "drop-shadow(0 0 4px #C9A84C)"] }}
-        transition={{ duration: 2.5, delay: 0.5, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.ellipse
-        cx="36" cy="36" rx="24" ry="24"
-        stroke="#C9A84C" strokeWidth="1" fill="none" strokeDasharray="4 4" opacity="0.4"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-      />
-      <circle cx="36" cy="36" r="4" fill="#C9A84C" />
-    </motion.svg>
+      <svg
+        width="120"
+        height="120"
+        viewBox="0 0 120 120"
+        className="logo-glow overflow-visible"
+      >
+        <defs>
+          <radialGradient id="hero-core" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#E8C97A" />
+            <stop offset="100%" stopColor="#A07830" />
+          </radialGradient>
+          <radialGradient id="hero-particle" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#E8C97A" />
+            <stop offset="100%" stopColor="#C9A84C" />
+          </radialGradient>
+        </defs>
+
+        {/* Three orbital ellipses at 0°/60°/120° */}
+        <ellipse cx="60" cy="60" rx="45" ry="18" fill="none" stroke="#C9A84C" strokeWidth="0.8" opacity="0.4" />
+        <ellipse cx="60" cy="60" rx="45" ry="18" fill="none" stroke="#C9A84C" strokeWidth="0.8" opacity="0.4" transform="rotate(60 60 60)" />
+        <ellipse cx="60" cy="60" rx="45" ry="18" fill="none" stroke="#C9A84C" strokeWidth="0.8" opacity="0.4" transform="rotate(120 60 60)" />
+
+        {/* Particles */}
+        <g className="logo-orbit-1" style={{ transformOrigin: "60px 60px" }}>
+          <circle cx="105" cy="60" r="4.5" fill="url(#hero-particle)" />
+        </g>
+        <g className="logo-orbit-2" style={{ transformOrigin: "60px 60px" }}>
+          <circle cx="105" cy="60" r="3.5" fill="url(#hero-particle)" transform="rotate(60 60 60)" />
+        </g>
+        <g className="logo-orbit-3" style={{ transformOrigin: "60px 60px" }}>
+          <circle cx="105" cy="60" r="3" fill="url(#hero-particle)" transform="rotate(120 60 60)" />
+        </g>
+
+        {/* Nucleus */}
+        <circle cx="60" cy="60" r="9" fill="url(#hero-core)" />
+        <circle cx="60" cy="60" r="5" fill="#F5E09A" opacity="0.9" />
+        <circle cx="60" cy="60" r="13" fill="none" stroke="#C9A84C" strokeWidth="0.5" opacity="0.3" />
+      </svg>
+    </motion.div>
   );
 }
 

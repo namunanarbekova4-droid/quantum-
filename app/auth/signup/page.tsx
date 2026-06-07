@@ -6,8 +6,6 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, AlertCircle, Check } from "lucide-react";
 import Link from "next/link";
 import { QuantumLogo } from "@/components/ui/QuantumLogo";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 
@@ -70,60 +68,78 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden" style={{ background: "#06040F" }}>
+      {/* Background gradients */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%)", transform: "translate(-30%, 30%)" }} />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <div className="flex justify-center mb-8">
-          <QuantumLogo size="lg" href="/" />
+        {/* Logo above card */}
+        <div className="flex flex-col items-center mb-8">
+          <QuantumLogo size="lg" href="/" showTagline={false} />
+          <p className="text-[#8B7CF8] text-xs tracking-[2px] uppercase mt-3">Your AI co-founder from day one</p>
         </div>
 
-        <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-8">
-          <h1 className="text-xl font-bold text-white mb-1">Join Quantum — Your AI co-founder from day one</h1>
-          <p className="text-sm text-[#888888] mb-6">{t.auth.signup.subtitle}</p>
+        <div className="rounded-xl p-8" style={{ background: "#0F0A1F", border: "1px solid #1A1040", boxShadow: "0 0 40px rgba(124,58,237,0.1)" }}>
+          <h1 className="text-xl font-bold text-white mb-1">Join Quantum</h1>
+          <p className="text-sm mb-6" style={{ color: "#8B7CF8" }}>{t.auth.signup.subtitle}</p>
 
           {error && (
-            <div className="flex items-center gap-2 px-3 py-2.5 bg-danger/10 border border-danger/20 rounded mb-4 text-sm text-danger">
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-danger/10 border border-danger/20 rounded-lg mb-4 text-sm text-danger">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label={t.auth.signup.name}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Alex Chen"
-              autoComplete="name"
-            />
-            <Input
-              label={t.auth.signup.email}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              autoComplete="email"
-            />
-            <Input
-              label={t.auth.signup.password}
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t.auth.signup.passwordHint}
-              autoComplete="new-password"
-              suffix={
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="hover:text-white transition-colors">
+            {[
+              { label: t.auth.signup.name, value: name, onChange: setName, type: "text", placeholder: "Alex Chen", autoComplete: "name" },
+              { label: t.auth.signup.email, value: email, onChange: setEmail, type: "email", placeholder: "you@company.com", autoComplete: "email" },
+            ].map((field) => (
+              <div key={field.label}>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: "#8B7CF8" }}>{field.label}</label>
+                <input
+                  type={field.type}
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  placeholder={field.placeholder}
+                  autoComplete={field.autoComplete}
+                  className="w-full h-10 px-3 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-all"
+                  style={{ background: "#06040F", border: "1px solid #1A1040" }}
+                  onFocus={(e) => { e.currentTarget.style.border = "1px solid #7C3AED"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.15)"; }}
+                  onBlur={(e) => { e.currentTarget.style.border = "1px solid #1A1040"; e.currentTarget.style.boxShadow = "none"; }}
+                />
+              </div>
+            ))}
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: "#8B7CF8" }}>{t.auth.signup.password}</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t.auth.signup.passwordHint}
+                  autoComplete="new-password"
+                  className="w-full h-10 px-3 pr-10 rounded-lg text-sm text-white placeholder-white/30 outline-none transition-all"
+                  style={{ background: "#06040F", border: "1px solid #1A1040" }}
+                  onFocus={(e) => { e.currentTarget.style.border = "1px solid #7C3AED"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.15)"; }}
+                  onBlur={(e) => { e.currentTarget.style.border = "1px solid #1A1040"; e.currentTarget.style.boxShadow = "none"; }}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8B7CF8] hover:text-white transition-colors">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
-              }
-            />
+              </div>
+            </div>
 
             <div>
-              <label className="text-sm font-medium text-[#888888] mb-2 block">You're building something. Let's start.</label>
+              <label className="block text-xs font-medium mb-2" style={{ color: "#8B7CF8" }}>You're building something. Let's start.</label>
               <div className="grid grid-cols-1 gap-2">
                 {roles.map((r) => (
                   <button
@@ -131,15 +147,19 @@ export default function SignUpPage() {
                     type="button"
                     onClick={() => setRole(r.id)}
                     className={cn(
-                      "relative flex flex-col items-center justify-center p-3 border rounded-lg transition-all duration-200 text-center",
+                      "relative flex flex-col items-center justify-center p-3 rounded-lg transition-all duration-200 text-center",
                       role === r.id
-                        ? "bg-gold/10 border-gold/50 text-white"
-                        : "bg-[#0d0d0d] border-[#1a1a1a] text-[#888888] hover:border-[#2a2a2a] hover:text-white"
+                        ? "text-white"
+                        : "text-[#8B7CF8] hover:text-white"
                     )}
+                    style={{
+                      border: role === r.id ? "1px solid rgba(201,168,76,0.5)" : "1px solid #1A1040",
+                      background: role === r.id ? "rgba(201,168,76,0.08)" : "#06040F",
+                    }}
                   >
                     {role === r.id && (
-                      <div className="absolute top-1.5 right-1.5 w-4 h-4 bg-gold rounded-full flex items-center justify-center">
-                        <Check className="w-2.5 h-2.5 text-[#080808]" />
+                      <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: "#C9A84C" }}>
+                        <Check className="w-2.5 h-2.5" style={{ color: "#06040F" }} />
                       </div>
                     )}
                     <span className="text-sm font-semibold">{r.label}</span>
@@ -149,21 +169,27 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <Button type="submit" loading={loading} disabled={!role} className="w-full gap-2 mt-2">
-              {t.auth.signup.createAccount} <ArrowRight className="w-4 h-4" />
-            </Button>
+            <button
+              type="submit"
+              disabled={loading || !role}
+              className="w-full h-10 flex items-center justify-center gap-2 rounded-lg text-sm font-bold transition-all disabled:opacity-50 mt-2"
+              style={{ background: "#C9A84C", color: "#06040F" }}
+            >
+              {loading ? "Creating account..." : <>{t.auth.signup.createAccount} <ArrowRight className="w-4 h-4" /></>}
+            </button>
           </form>
 
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-[#1a1a1a]" />
-            <span className="text-xs text-[#444444]">{t.common.or}</span>
-            <div className="flex-1 h-px bg-[#1a1a1a]" />
+            <div className="flex-1 h-px" style={{ background: "#1A1040" }} />
+            <span className="text-xs" style={{ color: "#3D2A6B" }}>{t.common.or}</span>
+            <div className="flex-1 h-px" style={{ background: "#1A1040" }} />
           </div>
 
           <button
             onClick={handleGoogle}
             disabled={googleLoading}
-            className="w-full h-10 flex items-center justify-center gap-3 bg-transparent border border-[#1a1a1a] rounded text-sm text-[#888888] hover:text-white hover:border-[#2a2a2a] transition-all duration-200 disabled:opacity-50"
+            className="w-full h-10 flex items-center justify-center gap-3 rounded-lg text-sm transition-all disabled:opacity-50 hover:border-[#7C3AED]/40 hover:text-white"
+            style={{ background: "transparent", border: "1px solid #1A1040", color: "#8B7CF8" }}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -174,17 +200,17 @@ export default function SignUpPage() {
             {googleLoading ? t.common.loading : t.auth.signup.continueWithGoogle}
           </button>
 
-          <p className="text-xs text-[#444444] text-center mt-4">
+          <p className="text-xs text-center mt-4" style={{ color: "#3D2A6B" }}>
             {t.auth.signup.terms}{" "}
-            <a href="#" className="text-[#888888] hover:text-gold transition-colors">{t.auth.signup.termsLink}</a>
+            <a href="#" className="hover:text-[#C9A84C] transition-colors" style={{ color: "#8B7CF8" }}>{t.auth.signup.termsLink}</a>
             {" "}{t.auth.signup.and}{" "}
-            <a href="#" className="text-[#888888] hover:text-gold transition-colors">{t.auth.signup.privacyLink}</a>.
+            <a href="#" className="hover:text-[#C9A84C] transition-colors" style={{ color: "#8B7CF8" }}>{t.auth.signup.privacyLink}</a>.
           </p>
         </div>
 
-        <p className="text-center text-sm text-[#888888] mt-6">
+        <p className="text-center text-sm mt-6" style={{ color: "#8B7CF8" }}>
           {t.auth.signup.alreadyHaveAccount}{" "}
-          <Link href="/auth/signin" className="text-gold hover:text-gold-light transition-colors font-medium">
+          <Link href="/auth/signin" className="font-medium transition-colors hover:text-[#C9A84C]" style={{ color: "#A855F7" }}>
             {t.auth.signup.signIn}
           </Link>
         </p>
