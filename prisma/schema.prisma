@@ -23,6 +23,8 @@ model User {
   streakDays    Int       @default(0)
   lastActiveDate DateTime?
   founderScore  Int       @default(0)
+  digestMode    Boolean   @default(false)
+  alertIndustry String?
   onboarded     Boolean   @default(false)
   publicProfile Boolean   @default(false)
   createdAt     DateTime  @default(now())
@@ -204,16 +206,33 @@ enum DecisionStatus {
 }
 
 model Alert {
-  id        String      @id @default(cuid())
-  userId    String
-  topic     String
-  keywords  String[]
-  frequency AlertFreq   @default(DAILY)
-  active    Boolean     @default(true)
-  lastFired DateTime?
-  createdAt DateTime    @default(now())
+  id           String      @id @default(cuid())
+  userId       String
+  topic        String
+  keywords     String[]
+  frequency    AlertFreq   @default(DAILY)
+  active       Boolean     @default(true)
+  lastFired    DateTime?
+  triggerCount Int         @default(0)
+  templateId   String?
+  createdAt    DateTime    @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history AlertHistory[]
+}
+
+model AlertHistory {
+  id          String   @id @default(cuid())
+  alertId     String
+  userId      String
+  headline    String
+  summary     String   @db.Text
+  source      String
+  url         String?
+  isRead      Boolean  @default(false)
+  triggeredAt DateTime @default(now())
+
+  alert Alert @relation(fields: [alertId], references: [id], onDelete: Cascade)
 }
 
 enum AlertFreq {
