@@ -20,6 +20,9 @@ model User {
   industry      String?
   country       String?
   language      String?   @default("en")
+  streakDays    Int       @default(0)
+  lastActiveDate DateTime?
+  founderScore  Int       @default(0)
   onboarded     Boolean   @default(false)
   publicProfile Boolean   @default(false)
   createdAt     DateTime  @default(now())
