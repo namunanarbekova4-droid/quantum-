@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
+import type { TranslationKeys } from "@/lib/i18n/translations";
 import {
   LayoutDashboard, Mic2, Layers, Video, Target, Send, Search,
   Compass, Lightbulb, UserPlus, FileText, Newspaper, Play,
@@ -12,73 +13,78 @@ import {
   ChevronLeft, ChevronRight, Star, Zap,
 } from "lucide-react";
 
+type NavKey = keyof TranslationKeys["nav"];
+
 interface SidebarProps {
   plan?: string;
 }
 
-const NAV_GROUPS = [
+const NAV_GROUPS: {
+  groupKey: NavKey;
+  items: { labelKey: NavKey; labelEn: string; href: string; icon: React.ElementType }[];
+}[] = [
   {
-    key: "MAIN",
+    groupKey: "groupMain",
     items: [
-      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { labelKey: "dashboard", labelEn: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     ],
   },
   {
-    key: "PITCH",
+    groupKey: "groupPitch",
     items: [
-      { label: "🎤 Pitch Coach Live",  href: "/dashboard/pitch-coach-live", icon: Mic2 },
-      { label: "Pitch Deck Creator",   href: "/dashboard/pitch-deck",       icon: Layers },
-      { label: "Pitch Mirror",         href: "/dashboard/pitch-mirror",     icon: Video },
+      { labelKey: "pitchCoachLive",  labelEn: "🎤 Pitch Coach Live",  href: "/dashboard/pitch-coach-live", icon: Mic2 },
+      { labelKey: "pitchDeckCreator",labelEn: "Pitch Deck Creator",   href: "/dashboard/pitch-deck",       icon: Layers },
+      { labelKey: "pitchMirror",     labelEn: "Pitch Mirror",         href: "/dashboard/pitch-mirror",     icon: Video },
     ],
   },
   {
-    key: "FIND & GROW",
+    groupKey: "groupFindGrow",
     items: [
-      { label: "Find First Customer", href: "/dashboard/first-customer",  icon: Target },
-      { label: "Cold Emails",         href: "/dashboard/cold-emails",     icon: Send },
-      { label: "Investor Finder",     href: "/dashboard/investor-finder", icon: Search },
+      { labelKey: "findFirstCustomer",labelEn: "Find First Customer", href: "/dashboard/first-customer",  icon: Target },
+      { labelKey: "coldEmails",       labelEn: "Cold Emails",         href: "/dashboard/cold-emails",     icon: Send },
+      { labelKey: "investorFinder",   labelEn: "Investor Finder",     href: "/dashboard/investor-finder", icon: Search },
     ],
   },
   {
-    key: "BUILD",
+    groupKey: "groupBuild",
     items: [
-      { label: "Quantum Compass",  href: "/dashboard/compass",        icon: Compass },
-      { label: "Idea Validator",   href: "/dashboard/idea-validator", icon: Lightbulb },
-      { label: "Co-founder Match", href: "/dashboard/cofounder",      icon: UserPlus },
+      { labelKey: "compass",       labelEn: "Quantum Compass",  href: "/dashboard/compass",        icon: Compass },
+      { labelKey: "ideaValidator", labelEn: "Idea Validator",   href: "/dashboard/idea-validator", icon: Lightbulb },
+      { labelKey: "cofounderMatch",labelEn: "Co-founder Match", href: "/dashboard/cofounder",      icon: UserPlus },
     ],
   },
   {
-    key: "CREATE",
+    groupKey: "groupCreate",
     items: [
-      { label: "One Pager",      href: "/dashboard/one-pager",     icon: FileText },
-      { label: "Press Release",  href: "/dashboard/press-release", icon: Newspaper },
-      { label: "Demo Script",    href: "/dashboard/demo-script",   icon: Play },
-      { label: "Investor Email", href: "/dashboard/investor-email",icon: Mail },
-      { label: "Founder Story",  href: "/dashboard/founder-story", icon: Heart },
-      { label: "Manifesto",      href: "/dashboard/manifesto",     icon: BookOpen },
+      { labelKey: "sideOnePager",      labelEn: "One Pager",      href: "/dashboard/one-pager",     icon: FileText },
+      { labelKey: "sidePressRelease",  labelEn: "Press Release",  href: "/dashboard/press-release", icon: Newspaper },
+      { labelKey: "sideDemoScript",    labelEn: "Demo Script",    href: "/dashboard/demo-script",   icon: Play },
+      { labelKey: "sideInvestorEmail", labelEn: "Investor Email", href: "/dashboard/investor-email",icon: Mail },
+      { labelKey: "sideFounderStory",  labelEn: "Founder Story",  href: "/dashboard/founder-story", icon: Heart },
+      { labelKey: "sideManifesto",     labelEn: "Manifesto",      href: "/dashboard/manifesto",     icon: BookOpen },
     ],
   },
   {
-    key: "STRATEGY",
+    groupKey: "groupStrategy",
     items: [
-      { label: "Pricing Intelligence", href: "/dashboard/pricing-intelligence",      icon: DollarSign },
-      { label: "Content Plan",         href: "/dashboard/content-plan",              icon: Calendar },
-      { label: "Runway Calculator",    href: "/dashboard/founder/runway-calculator", icon: Calculator },
+      { labelKey: "pricingIntelligence",labelEn: "Pricing Intelligence", href: "/dashboard/pricing-intelligence",      icon: DollarSign },
+      { labelKey: "contentPlan",        labelEn: "Content Plan",         href: "/dashboard/content-plan",              icon: Calendar },
+      { labelKey: "runwayCalculator",   labelEn: "Runway Calculator",    href: "/dashboard/founder/runway-calculator", icon: Calculator },
     ],
   },
   {
-    key: "COMMUNITY",
+    groupKey: "groupCommunity",
     items: [
-      { label: "Founders Chat", href: "/dashboard/chat",        icon: MessageSquare },
-      { label: "Founder Wall",  href: "/dashboard/leaderboard", icon: Trophy },
-      { label: "Alerts",        href: "/dashboard/alerts",      icon: Bell },
-      { label: "Founder Feed",  href: "/dashboard/market",      icon: TrendingUp },
+      { labelKey: "foundersChat",       labelEn: "Founders Chat", href: "/dashboard/chat",        icon: MessageSquare },
+      { labelKey: "founderWall",        labelEn: "Founder Wall",  href: "/dashboard/leaderboard", icon: Trophy },
+      { labelKey: "alerts",             labelEn: "Alerts",        href: "/dashboard/alerts",      icon: Bell },
+      { labelKey: "founderFeed",        labelEn: "Founder Feed",  href: "/dashboard/market",      icon: TrendingUp },
     ],
   },
   {
-    key: "SETTINGS",
+    groupKey: "groupSettings",
     items: [
-      { label: "Settings", href: "/dashboard/settings", icon: Settings },
+      { labelKey: "settings", labelEn: "Settings", href: "/dashboard/settings", icon: Settings },
     ],
   },
 ];
@@ -140,21 +146,22 @@ export function Sidebar({ plan }: SidebarProps) {
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4 scrollbar-thin">
         {NAV_GROUPS.map((group) => (
-          <div key={group.key}>
+          <div key={group.groupKey}>
             {!collapsed && (
               <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-[#8B7CF8]">
-                {group.key}
+                {t.nav[group.groupKey]}
               </p>
             )}
             <div className="space-y-0.5">
               {group.items.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
+                const label = t.nav[item.labelKey] ?? item.labelEn;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    title={collapsed ? item.label : undefined}
+                    title={collapsed ? label : undefined}
                     className={cn(
                       "flex items-center gap-3 rounded-md text-sm font-medium transition-all duration-150 group",
                       collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2",
@@ -170,7 +177,7 @@ export function Sidebar({ plan }: SidebarProps) {
                       )}
                     />
                     {!collapsed && (
-                      <span className="flex-1 truncate">{item.label}</span>
+                      <span className="flex-1 truncate">{label}</span>
                     )}
                     {!collapsed && active && (
                       <ChevronRight className="w-3 h-3 text-[#C9A84C] flex-shrink-0" />
@@ -189,7 +196,7 @@ export function Sidebar({ plan }: SidebarProps) {
           <div className="px-3 py-1.5 rounded-md bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center gap-2">
             <Zap className="w-3 h-3 text-[#C9A84C] flex-shrink-0" />
             <span className="text-[10px] font-semibold text-[#C9A84C] uppercase tracking-wide">
-              All features free
+              {t.nav.allFeaturesFree}
             </span>
           </div>
           <div
@@ -198,7 +205,7 @@ export function Sidebar({ plan }: SidebarProps) {
           >
             <Star className="w-3 h-3 text-[#C9A84C] flex-shrink-0" />
             <span className="text-xs font-semibold text-[#C9A84C]">
-              {t.nav?.foundingMember ?? "Founding Member"}
+              {t.nav.foundingMember}
             </span>
           </div>
         </div>
