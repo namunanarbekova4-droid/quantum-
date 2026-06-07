@@ -58,7 +58,7 @@ const PLAN_CARDS: {
   },
   {
     id: "PRO",
-    futurePrice: "$15/month",
+    futurePrice: "$10/month",
     description: "For active founders and executives.",
     features: ["50 decisions / month", "3 active alerts", "1 private room", "1 mentor request / month", "30-day history", "Leaderboard", "Enemy Mode"],
     featured: false,
@@ -66,7 +66,7 @@ const PLAN_CARDS: {
   },
   {
     id: "MAX",
-    futurePrice: "$49/month",
+    futurePrice: "$100/year",
     description: "Unlimited AI tools for bold founders building what others said was impossible.",
     features: ["Unlimited decisions", "Unlimited alerts", "Unlimited private rooms", "Unlimited mentor requests", "VIP community", "Anonymous voting", "Full history", "Enemy Mode"],
     featured: true,

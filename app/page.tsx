@@ -345,7 +345,7 @@ function Pricing() {
           </div>
           <h2 className="text-4xl md:text-5xl font-light text-white mb-6">
             Free for <span className="text-[#C9A84C] font-semibold">3 days.</span>
-            <br />Then <span className="text-white font-semibold">$29/month.</span>
+            <br />Then <span className="text-white font-semibold">$10/month.</span>
           </h2>
           <p className="text-[#8B7CF8]/70 text-lg mb-4">Cancel anytime.</p>
           <p className="text-[#8B7CF8]/50 text-sm mb-10">
