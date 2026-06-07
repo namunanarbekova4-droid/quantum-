@@ -34,7 +34,7 @@ const NAV_GROUPS = [
   {
     key: "FIND & GROW",
     items: [
-      { label: "Find First Customer", href: "/dashboard/find-customer",   icon: Target },
+      { label: "Find First Customer", href: "/dashboard/first-customer",  icon: Target },
       { label: "Cold Emails",         href: "/dashboard/cold-emails",     icon: Send },
       { label: "Investor Finder",     href: "/dashboard/investor-finder", icon: Search },
     ],

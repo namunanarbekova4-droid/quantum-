@@ -44,6 +44,8 @@ model User {
   cofounderProfile    CofounderProfile?
   pitchMirrorSessions PitchMirrorSession[]
   founderChats        FounderChat[]
+  customerSearches    CustomerSearch[]
+  coldEmailCampaigns  ColdEmailCampaign[]
 }
 
 enum UserRole {
@@ -383,4 +385,45 @@ model FounderChat {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CustomerSearch {
+  id                 String   @id @default(cuid())
+  userId             String
+  productDescription String   @db.Text
+  idealCustomer      String
+  problem            String   @db.Text
+  industry           String
+  results            Json     @default("{}")
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ColdEmailCampaign {
+  id          String         @id @default(cuid())
+  userId      String
+  startupName String
+  targetType  String
+  goal        String
+  emails      Json           @default("[]")
+  createdAt   DateTime       @default(now())
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tracking EmailTracking[]
+}
+
+model EmailTracking {
+  id              String    @id @default(cuid())
+  campaignId      String
+  userId          String
+  recipientName   String
+  recipientEmail  String
+  emailNumberUsed Int       @default(1)
+  status          String    @default("sent")
+  notes           String?
+  sentAt          DateTime  @default(now())
+  repliedAt       DateTime?
+
+  campaign ColdEmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 }

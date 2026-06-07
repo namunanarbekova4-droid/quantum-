@@ -57,7 +57,7 @@ const TOOL_GROUPS: ToolGroup[] = [
   {
     title: "FIND & GROW",
     tools: [
-      { name: "Find First Customer",desc: "We find real people who need you today.",        href: "/dashboard/find-customer",   icon: Target, isNew: true },
+      { name: "Find First Customer",desc: "We find real people who need you today.",        href: "/dashboard/first-customer",  icon: Target, isNew: true },
       { name: "Cold Email Writer",  desc: "10 personalized emails ready to send.",          href: "/dashboard/cold-emails",     icon: Send,   isNew: true },
       { name: "Investor Finder",    desc: "Find investors and track your outreach.",        href: "/dashboard/investor-finder", icon: Search, isNew: true },
     ],
