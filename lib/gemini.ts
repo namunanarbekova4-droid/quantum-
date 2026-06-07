@@ -7,7 +7,7 @@ const apiKey =
 
 function getModel() {
   const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  return genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 }
 
 export async function generateWithRetry(

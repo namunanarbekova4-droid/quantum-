@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     if (geminiKey) {
       try {
         const genAI = new GoogleGenerativeAI(geminiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const r = await model.generateContent("Say OK");
         geminiStatus = r.response.text().trim() ? "ok" : "empty_response";
       } catch (e) {
