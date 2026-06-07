@@ -47,6 +47,7 @@ model User {
   customerSearches        CustomerSearch[]
   coldEmailCampaigns      ColdEmailCampaign[]
   pitchCoachLiveSessions  PitchCoachLiveSession[]
+  contentPlans            ContentPlan[]
 }
 
 enum UserRole {
@@ -427,6 +428,21 @@ model EmailTracking {
   repliedAt       DateTime?
 
   campaign ColdEmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+model ContentPlan {
+  id            String   @id @default(cuid())
+  userId        String
+  startupName   String
+  platforms     String[]
+  goal          String
+  tone          String
+  answers       Json     @default("{}")
+  voiceProfile  Json     @default("{}")
+  generatedPlan Json     @default("{}")
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PitchCoachLiveSession {
