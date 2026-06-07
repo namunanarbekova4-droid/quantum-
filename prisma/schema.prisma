@@ -41,7 +41,8 @@ model User {
   onePagers         OnePager[]
   investorEmails    InvestorEmail[]
   ideaValidations   IdeaValidation[]
-  cofounderProfile  CofounderProfile?
+  cofounderProfile    CofounderProfile?
+  pitchMirrorSessions PitchMirrorSession[]
 }
 
 enum UserRole {
@@ -233,6 +234,25 @@ model AlertHistory {
   triggeredAt DateTime @default(now())
 
   alert Alert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+}
+
+model PitchMirrorSession {
+  id             String   @id @default(cuid())
+  userId         String
+  startupName    String
+  audienceType   String
+  pitchType      String
+  targetDuration Int
+  actualDuration Int      @default(0)
+  mode           String   @default("video")
+  transcript     String   @db.Text
+  overallScore   Int      @default(0)
+  feedback       Json     @default("{}")
+  videoUrl       String?
+  audioUrl       String?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum AlertFreq {

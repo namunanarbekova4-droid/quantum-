@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Plus, Clock, Compass, Lightbulb, Mic2, FileText, BookOpen,
   Heart, Mail, Play, Newspaper, Award, BarChart2, DollarSign, Users, UserPlus,
   Calculator, Globe, MessageCircle, Lock, Star, Trophy, TrendingUp, Zap, Bell,
-  Settings, ChevronLeft, ChevronRight,
+  Settings, ChevronLeft, ChevronRight, Video,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -31,6 +31,7 @@ const NAV_GROUPS = [
       { label: "Quantum Compass",       href: "/dashboard/compass",            icon: Compass },
       { label: "Idea Validator",        href: "/dashboard/idea-validator",     icon: Lightbulb },
       { label: "Pitch Builder",         href: "/dashboard/pitch-builder",      icon: Mic2 },
+      { label: "Pitch Mirror",          href: "/dashboard/pitch-mirror",       icon: Video },
       { label: "One Pager Generator",   href: "/dashboard/one-pager",          icon: FileText },
       { label: "Manifesto Builder",     href: "/dashboard/manifesto",          icon: BookOpen },
       { label: "Founder Story Builder", href: "/dashboard/founder-story",      icon: Heart },
