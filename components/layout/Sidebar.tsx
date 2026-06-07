@@ -3,13 +3,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { QuantumLogo } from "@/components/ui/QuantumLogo";
 import { useLanguage } from "@/lib/i18n";
 import {
-  LayoutDashboard, Plus, Clock, Compass, Lightbulb, Mic2, FileText, BookOpen,
-  Heart, Mail, Play, Newspaper, Award, BarChart2, DollarSign, Users, UserPlus,
-  Calculator, Globe, MessageCircle, Lock, Star, Trophy, TrendingUp, Zap, Bell,
-  Settings, ChevronLeft, ChevronRight, Video,
+  LayoutDashboard, Mic2, Layers, Video, Target, Send, Search,
+  Compass, Lightbulb, UserPlus, FileText, Newspaper, Play,
+  Mail, Heart, BookOpen, DollarSign, Calendar, Calculator,
+  MessageSquare, Trophy, Bell, TrendingUp, Settings,
+  ChevronLeft, ChevronRight, Star, Zap,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -20,58 +20,59 @@ const NAV_GROUPS = [
   {
     key: "MAIN",
     items: [
-      { label: "Dashboard",         href: "/dashboard",                        icon: LayoutDashboard },
-      { label: "New Decision",      href: "/dashboard/new",                    icon: Plus },
-      { label: "History",           href: "/dashboard/history",                icon: Clock },
+      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    key: "PITCH",
+    items: [
+      { label: "Pitch Coach Live",   href: "/dashboard/pitch-coach",  icon: Mic2 },
+      { label: "Pitch Deck Creator", href: "/dashboard/pitch-deck",   icon: Layers },
+      { label: "Pitch Mirror",       href: "/dashboard/pitch-mirror", icon: Video },
+    ],
+  },
+  {
+    key: "FIND & GROW",
+    items: [
+      { label: "Find First Customer", href: "/dashboard/find-customer",   icon: Target },
+      { label: "Cold Emails",         href: "/dashboard/cold-emails",     icon: Send },
+      { label: "Investor Finder",     href: "/dashboard/investor-finder", icon: Search },
     ],
   },
   {
     key: "BUILD",
     items: [
-      { label: "Quantum Compass",       href: "/dashboard/compass",            icon: Compass },
-      { label: "Idea Validator",        href: "/dashboard/idea-validator",     icon: Lightbulb },
-      { label: "Pitch Builder",         href: "/dashboard/pitch-builder",      icon: Mic2 },
-      { label: "Pitch Mirror",          href: "/dashboard/pitch-mirror",       icon: Video },
-      { label: "One Pager Generator",   href: "/dashboard/one-pager",          icon: FileText },
-      { label: "Manifesto Builder",     href: "/dashboard/manifesto",          icon: BookOpen },
-      { label: "Founder Story Builder", href: "/dashboard/founder-story",      icon: Heart },
+      { label: "Quantum Compass",  href: "/dashboard/compass",        icon: Compass },
+      { label: "Idea Validator",   href: "/dashboard/idea-validator", icon: Lightbulb },
+      { label: "Co-founder Match", href: "/dashboard/cofounder",      icon: UserPlus },
     ],
   },
   {
-    key: "WRITE",
+    key: "CREATE",
     items: [
-      { label: "Investor Email Writer", href: "/dashboard/investor-email",     icon: Mail },
-      { label: "Demo Script Writer",    href: "/dashboard/demo-script",        icon: Play },
-      { label: "Press Release AI",      href: "/dashboard/press-release",      icon: Newspaper },
-      { label: "Grant Writer",          href: "/dashboard/grant-writer",       icon: Award },
-      { label: "Board Update Writer",   href: "/dashboard/board-update",       icon: BarChart2 },
+      { label: "One Pager",      href: "/dashboard/one-pager",     icon: FileText },
+      { label: "Press Release",  href: "/dashboard/press-release", icon: Newspaper },
+      { label: "Demo Script",    href: "/dashboard/demo-script",   icon: Play },
+      { label: "Investor Email", href: "/dashboard/investor-email",icon: Mail },
+      { label: "Founder Story",  href: "/dashboard/founder-story", icon: Heart },
+      { label: "Manifesto",      href: "/dashboard/manifesto",     icon: BookOpen },
     ],
   },
   {
-    key: "GROW",
+    key: "STRATEGY",
     items: [
-      { label: "Pricing Intelligence",  href: "/dashboard/pricing-intelligence",       icon: DollarSign },
-      { label: "Investor Match",        href: "/dashboard/founder/investor-match",     icon: Users },
-      { label: "Co-founder Match",      href: "/dashboard/cofounder",                  icon: UserPlus },
-      { label: "Runway Calculator",     href: "/dashboard/founder/runway-calculator",  icon: Calculator },
+      { label: "Pricing Intelligence", href: "/dashboard/pricing-intelligence",      icon: DollarSign },
+      { label: "Content Plan",         href: "/dashboard/content-plan",              icon: Calendar },
+      { label: "Runway Calculator",    href: "/dashboard/founder/runway-calculator", icon: Calculator },
     ],
   },
   {
     key: "COMMUNITY",
     items: [
-      { label: "Community",      href: "/dashboard/community",  icon: Globe },
-      { label: "Messages",       href: "/dashboard/messages",   icon: MessageCircle },
-      { label: "Private Rooms",  href: "/dashboard/rooms",      icon: Lock },
-      { label: "Mentors",        href: "/dashboard/mentors",    icon: Star },
-      { label: "Leaderboard",    href: "/dashboard/leaderboard",icon: Trophy },
-    ],
-  },
-  {
-    key: "INTELLIGENCE",
-    items: [
-      { label: "Market Intelligence", href: "/dashboard/market",    icon: TrendingUp },
-      { label: "Daily Briefing",      href: "/dashboard/briefing",  icon: Zap },
-      { label: "Alerts",              href: "/dashboard/alerts",    icon: Bell },
+      { label: "Founders Chat", href: "/dashboard/chat",        icon: MessageSquare },
+      { label: "Founder Wall",  href: "/dashboard/leaderboard", icon: Trophy },
+      { label: "Alerts",        href: "/dashboard/alerts",      icon: Bell },
+      { label: "Founder Feed",  href: "/dashboard/market",      icon: TrendingUp },
     ],
   },
   {
@@ -185,14 +186,12 @@ export function Sidebar({ plan }: SidebarProps) {
       {/* Bottom badges */}
       {!collapsed && (
         <div className="p-3 border-t border-[#1A1040] space-y-2 flex-shrink-0">
-          {/* Early Access banner */}
           <div className="px-3 py-1.5 rounded-md bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center gap-2">
             <Zap className="w-3 h-3 text-[#C9A84C] flex-shrink-0" />
             <span className="text-[10px] font-semibold text-[#C9A84C] uppercase tracking-wide">
               All features free
             </span>
           </div>
-          {/* Founding Member badge */}
           <div
             className="flex items-center gap-2 px-3 py-2 bg-[#C9A84C]/5 border border-[#C9A84C]/30 rounded-md"
             title="One of Quantum's earliest members."

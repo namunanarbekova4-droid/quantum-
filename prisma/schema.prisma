@@ -43,6 +43,7 @@ model User {
   ideaValidations   IdeaValidation[]
   cofounderProfile    CofounderProfile?
   pitchMirrorSessions PitchMirrorSession[]
+  founderChats        FounderChat[]
 }
 
 enum UserRole {
@@ -373,4 +374,13 @@ model CofounderProfile {
   isActive         Boolean  @default(true)
   createdAt        DateTime @default(now())
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FounderChat {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

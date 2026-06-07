@@ -41,14 +41,12 @@ interface Indicator {
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 const CATEGORIES: { label: string; keywords: string[]; Icon: React.ElementType }[] = [
-  { label: "Funding",    keywords: ["funding","investment","series a","series b","raised","venture capital"," vc "], Icon: Coins },
-  { label: "Markets",    keywords: ["stocks","market","shares","earnings","nasdaq","s&p","dow"],                    Icon: MarketsIcon },
-  { label: "AI & Tech",  keywords: ["ai","artificial intelligence","tech","openai","google","chip","software"],     Icon: Cpu },
-  { label: "Startups",   keywords: ["startup","founder","entrepreneur"],                                           Icon: Rocket },
-  { label: "Economy",    keywords: ["inflation","gdp","economy","recession","rates","fed"],                        Icon: BarChart2 },
-  { label: "Crypto",     keywords: ["crypto","bitcoin","ethereum","token","blockchain"],                           Icon: Bitcoin },
-  { label: "Leadership", keywords: ["ceo","executive","leadership","management"],                                  Icon: Building2 },
-  { label: "M&A",        keywords: ["acquisition","merger","buyout"],                                             Icon: Handshake },
+  { label: "Funding",        keywords: ["funding","investment","series","raised","venture capital","seed round","pre-seed","angel"], Icon: Coins },
+  { label: "New Tools",      keywords: ["tool","saas","launch","product hunt","beta","new feature","release"],                      Icon: Cpu },
+  { label: "Founder Stories",keywords: ["founder","startup story","built","raised","journey","entrepreneur","solofounder"],        Icon: Rocket },
+  { label: "Opportunities",  keywords: ["grant","accelerator","ycombinator","techstars","program","apply","open application","fellowship"], Icon: BarChart2 },
+  { label: "Tips & Lessons", keywords: ["how to","tips","advice","lesson","mistake","learned","playbook"],                         Icon: Building2 },
+  { label: "AI & Tech",      keywords: ["ai","artificial intelligence","openai","claude","gpt","llm","automation"],                 Icon: Cpu },
 ];
 
 function detectCategory(title: string) {
@@ -234,7 +232,7 @@ function ChangeTag({ value }: { value: number }) {
 
 // ── page ──────────────────────────────────────────────────────────────────────
 
-export default function MarketPage() {
+export default function FounderFeedPage() {
   const { t } = useLanguage();
   const [articles, setArticles] = useState<Article[]>([]);
   const [ticker, setTicker] = useState<TickerData | null>(null);
@@ -267,10 +265,10 @@ export default function MarketPage() {
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <Globe className="w-6 h-6 text-[#C9A84C]" />
-              <h1 className="text-2xl font-bold text-white">{t.market.title}</h1>
+              <Rocket className="w-6 h-6 text-[#C9A84C]" />
+              <h1 className="text-2xl font-bold text-white">Founder Feed</h1>
             </div>
-            <p className="text-[#888888] text-sm">{t.market.subtitle}</p>
+            <p className="text-[#888888] text-sm">Articles, insights and opportunities for builders like you.</p>
           </div>
           <button
             onClick={() => { setRefreshing(true); load(); }}
@@ -286,7 +284,7 @@ export default function MarketPage() {
 
           {/* News feed */}
           <div className="space-y-6">
-            <h2 className="text-xs font-semibold text-[#888888] uppercase tracking-widest">{t.market.businessNews}</h2>
+            <h2 className="text-xs font-semibold text-[#888888] uppercase tracking-widest">For Founders</h2>
 
             {loading ? (
               <div className="space-y-6">
