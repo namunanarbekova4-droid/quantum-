@@ -48,6 +48,9 @@ model User {
   coldEmailCampaigns      ColdEmailCampaign[]
   pitchCoachLiveSessions  PitchCoachLiveSession[]
   contentPlans            ContentPlan[]
+  qaSessions              QaSession[]
+  landingPages            LandingPageGen[]
+  investorOutreaches      InvestorOutreach[]
 }
 
 enum UserRole {
@@ -381,10 +384,13 @@ model CofounderProfile {
 }
 
 model FounderChat {
-  id        String   @id @default(cuid())
-  userId    String
-  message   String   @db.Text
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  message     String   @db.Text
+  messageType String   @default("text")
+  stickerId   String?
+  reactions   Json     @default("{}")
+  createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -461,6 +467,45 @@ model PitchCoachLiveSession {
   grade              String   @default("")
   analysis           Json     @default("{}")
   createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model QaSession {
+  id                  String   @id @default(cuid())
+  userId              String
+  startupName         String
+  startupDescription  String   @db.Text
+  stage               String
+  raisingAmount       String
+  questionsAndAnswers Json     @default("[]")
+  overallScore        Int      @default(0)
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LandingPageGen {
+  id            String   @id @default(cuid())
+  userId        String
+  startupName   String
+  generatedCopy Json     @default("{}")
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model InvestorOutreach {
+  id            String   @id @default(cuid())
+  userId        String
+  investorName  String
+  fund          String
+  matchScore    Int      @default(0)
+  status        String   @default("not_contacted")
+  lastContact   DateTime?
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

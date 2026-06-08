@@ -49,13 +49,20 @@ export default function SignUpPage() {
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Registration failed."); setLoading(false); return; }
       const result = await signIn("credentials", { email, password, redirect: false });
-      if (result?.error) {
-        setError("Account created. Please sign in.");
-        setLoading(false);
-        router.push("/auth/signin");
+      if (result?.ok && !result?.error) {
+        window.location.href = "/onboarding";
         return;
       }
-      router.push("/onboarding");
+      // Retry once after brief delay (DB write may not be committed yet)
+      await new Promise((r) => setTimeout(r, 600));
+      const retry = await signIn("credentials", { email, password, redirect: false });
+      if (retry?.ok && !retry?.error) {
+        window.location.href = "/onboarding";
+        return;
+      }
+      setError("Account created. Please sign in.");
+      setLoading(false);
+      router.push("/auth/signin");
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);

@@ -43,6 +43,7 @@ const NAV_GROUPS: {
       { labelKey: "findFirstCustomer",labelEn: "Find First Customer", href: "/dashboard/first-customer",  icon: Target },
       { labelKey: "coldEmails",       labelEn: "Cold Emails",         href: "/dashboard/cold-emails",     icon: Send },
       { labelKey: "investorFinder",   labelEn: "Investor Finder",     href: "/dashboard/investor-finder", icon: Search },
+      { labelKey: "investorQa",       labelEn: "Investor Q&A",        href: "/dashboard/investor-qa",     icon: MessageSquare },
     ],
   },
   {
@@ -57,6 +58,7 @@ const NAV_GROUPS: {
     groupKey: "groupCreate",
     items: [
       { labelKey: "sideOnePager",      labelEn: "One Pager",      href: "/dashboard/one-pager",     icon: FileText },
+      { labelKey: "landingPage",       labelEn: "Landing Page",   href: "/dashboard/landing-page",  icon: Layers },
       { labelKey: "sidePressRelease",  labelEn: "Press Release",  href: "/dashboard/press-release", icon: Newspaper },
       { labelKey: "sideDemoScript",    labelEn: "Demo Script",    href: "/dashboard/demo-script",   icon: Play },
       { labelKey: "sideInvestorEmail", labelEn: "Investor Email", href: "/dashboard/investor-email",icon: Mail },
