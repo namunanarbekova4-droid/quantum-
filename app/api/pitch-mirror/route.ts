@@ -9,6 +9,7 @@ const LANG_MAP: Record<string, string> = {
   ru: "Russian",
   es: "Spanish",
   zh: "Chinese",
+  kz: "Kazakh",
 };
 
 export async function POST(req: Request) {

@@ -52,7 +52,7 @@ export async function GET() {
     where: { id: session.user.id },
   });
   const locale = (userProfile as Record<string, unknown> & { language?: string })?.language ?? "en";
-  const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+  const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh" };
   const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
   // Get recent decisions for context

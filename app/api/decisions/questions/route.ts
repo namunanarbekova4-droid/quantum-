@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { decisionText } = body;
   const locale: string = body.locale ?? "en";
-  const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+  const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh" };
   const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
   if (!decisionText?.trim()) return NextResponse.json({ questions: [] });
 

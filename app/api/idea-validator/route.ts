@@ -42,6 +42,7 @@ export async function POST(req: Request) {
     ru: "Russian",
     es: "Spanish",
     zh: "Chinese",
+    kz: "Kazakh",
   };
   const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 

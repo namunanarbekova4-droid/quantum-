@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const LANG_MAP: Record<string, string> = {
-  en: "English", ru: "Russian", es: "Spanish", zh: "Chinese",
+  en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh",
 };
 
 export async function POST(req: Request) {

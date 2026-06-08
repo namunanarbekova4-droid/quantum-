@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     if (body.action === "find") {
       const { industry, country, stage, description } = body;
       const locale: string = body.locale ?? "en";
-      const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+      const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh" };
       const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
       const grants = await generateJSON<{
         grants: {
@@ -38,7 +38,7 @@ Return a JSON object with a "grants" array of 6 grants. Each grant has:
     if (body.action === "write") {
       const { grantName, grantOrg, startupDescription, founderBackground } = body;
       const locale: string = body.locale ?? "en";
-      const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese" };
+      const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh" };
       const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
       const application = await generateJSON<{
         sections: {

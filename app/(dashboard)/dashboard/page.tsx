@@ -195,6 +195,51 @@ const T = {
     challenge_desc: "有重大决策？让Quantum在你承诺之前反驳它。在投资人发现之前找到缺陷。",
     challenge_btn: "挑战一个决策 →",
   },
+  kz: {
+    greeting_morning: "Қайырлы таң",
+    greeting_afternoon: "Қайырлы күн",
+    greeting_evening: "Қайырлы кеш",
+    tagline: "Әлем сенбес бұрынғы негізшілер үшін. Бүгін не құрамыз?",
+    search_placeholder: "Құралдарды іздеу...",
+    no_results: "Нәтиже жоқ",
+    pitch_arsenal: "Сіздің Презентация Арсеналыңыз",
+    pitch_arsenal_sub: "Презентацияңызды сәтті өткізуге қажет барлығы",
+    hero1_title: "Тікелей Питч-Коуч",
+    hero1_desc: "Питчіңізді дауыстап айтыңыз. Нақты уақытта адал коучинг алыңыз. Инвестормен кездесуге дейін не түзету керегін нақты біліңіз.",
+    hero1_s1: "Нақты уақытта кері байланыс", hero1_s2: "Дауыс талдауы",
+    hero1_btn: "Сессияны бастау →",
+    hero1_badge: "ТІКЕЛЕЙ",
+    hero2_title: "Питч Дек Жасаушы",
+    hero2_desc: "10 сұраққа өз сөзіңізбен жауап беріңіз. Сіздің нақты үніңізбен жазылған толық кәсіби питч дек алыңыз.",
+    hero2_s1: "12 слайд", hero2_s2: "Сіздің үніңіз", hero2_s3: "PDF экспорт",
+    hero2_btn: "Декімді жасау →",
+    hero2_badge: "AI ҚУАТТЫ",
+    hero3_title: "Питч Айнасы",
+    hero3_desc: "Өзіңізді жазып алыңыз. AI аннотацияларымен қайта қараңыз. Инвесторлардың сізді қалай көретінін біліп, мәміледен бұрын түзетіңіз.",
+    hero3_s1: "Бейне кері байланыс", hero3_s2: "AI аннотациялары",
+    hero3_btn: "Жаттығуды бастау →",
+    hero3_badge: "ЖАТТЫҒУ",
+    cat1_title: "🎯 Табу және өсу",
+    cat1_desc: "Сізге нақты мүмкіндіктер табатын құралдар",
+    cat2_title: "🧠 Құру және тексеру",
+    cat2_desc: "Құрастырмас бұрын дұрыстығына көз жеткізіңіз",
+    cat3_title: "✍️ Мазмұн жасау",
+    cat3_desc: "Сіздің үніңізде кәсіби мазмұн",
+    cat4_title: "📈 Стратегия және жоспар",
+    cat4_desc: "Келесі қадамдарыңызды сенімді жоспарлаңыз",
+    open: "Ашу →",
+    founder_wall: "🏆 Негізшілер қабырғасы",
+    see_leaderboard: "Толық кестені көру →",
+    latest_signals: "🔔 Соңғы сигналдар",
+    manage_alerts: "Ескертулерді басқару →",
+    no_leaders: "Кестеде бірінші болыңыз 🔥",
+    no_alerts: "Ескертулер жоқ. Сигнал радарын орнатыңыз.",
+    setup_alerts: "Ескертулерді орнату →",
+    day_streak: "күн қатарынан",
+    challenge_title: "Шешімге қарсы шығу",
+    challenge_desc: "Маңызды шешім бар ма? Міндеттемеге дейін Quantum-ға қарсы дәлел айтқызыңыз. Инвесторлардан бұрын кемшіліктерді табыңыз.",
+    challenge_btn: "Шешімге қарсы шығу →",
+  },
 } as const;
 
 type Lang = keyof typeof T;
@@ -610,7 +655,7 @@ export default function DashboardPage() {
   const { locale } = useLanguage();
   const [query, setQuery] = useState("");
 
-  const lang = (["en", "ru", "es", "zh"].includes(locale ?? "") ? locale : "en") as Lang;
+  const lang = (["en", "ru", "es", "zh", "kz"].includes(locale ?? "") ? locale : "en") as Lang;
   const txt = T[lang];
   const userName = session?.user?.name?.split(" ")[0] ?? "Founder";
   const greeting = getGreeting(lang, txt);
