@@ -391,6 +391,8 @@ model FounderChat {
   messageType String   @default("text")
   stickerId   String?
   reactions   Json     @default("{}")
+  reply_to_id String?
+  is_deleted  Boolean  @default(false)
   createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
