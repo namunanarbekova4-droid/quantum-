@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
 import type { TranslationKeys } from "@/lib/i18n/translations";
+import { OrbitalIcon } from "@/components/ui/QuantumLogo";
 import {
   LayoutDashboard, Mic2, Layers, Video, Target, Send, Search,
   Compass, Lightbulb, UserPlus, FileText, Newspaper, Play,
@@ -117,14 +118,10 @@ export function Sidebar({ plan }: SidebarProps) {
         )}
       >
         {collapsed ? (
-          <div className="w-8 h-8 bg-[#C9A84C] flex items-center justify-center rounded font-mono font-bold text-[#06040F] text-sm select-none">
-            Q
-          </div>
+          <OrbitalIcon svgSize={32} strokeWidth={1.2} opacity={0.6} particleScale={1.2} />
         ) : (
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-7 h-7 bg-[#C9A84C] flex items-center justify-center rounded font-mono font-bold text-[#06040F] text-xs flex-shrink-0">
-              Q
-            </div>
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <OrbitalIcon svgSize={28} strokeWidth={1.2} opacity={0.6} particleScale={1.2} />
             <span className="font-bold text-[#C9A84C] tracking-wide text-base truncate">
               Quantum
             </span>

@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { TranslationKeys } from "@/lib/i18n/translations";
 import {
   Mic2, Video, Layers, Target, Send, Search as SearchIcon,
   Compass, Lightbulb, UserPlus, FileText, Newspaper,
@@ -254,9 +255,12 @@ function getGreeting(locale: string, txt: Txt): string {
 
 // ─── Tool data ─────────────────────────────────────────────────────────────────
 
+type StringToolKey = { [K in keyof TranslationKeys["tools"]]: TranslationKeys["tools"][K] extends string ? K : never }[keyof TranslationKeys["tools"]];
+
 interface SmallTool {
+  nameKey: StringToolKey;
+  descKey: StringToolKey;
   nameEn: string;
-  descEn: string;
   href: string;
   icon: React.ElementType;
 }
@@ -272,41 +276,41 @@ const CATEGORIES: Category[] = [
     titleKey: "cat1_title",
     descKey: "cat1_desc",
     tools: [
-      { nameEn: "Find First Customer", descEn: "We find real people who need you today.", href: "/dashboard/first-customer", icon: Target },
-      { nameEn: "Cold Email Writer", descEn: "10 personalized emails ready to send.", href: "/dashboard/cold-emails", icon: Send },
-      { nameEn: "Investor Finder", descEn: "Find investors and track your outreach.", href: "/dashboard/investor-finder", icon: SearchIcon },
-      { nameEn: "Investor Q&A Trainer", descEn: "Prepare for every tough investor question.", href: "/dashboard/investor-qa", icon: TrendingUp },
+      { nameKey: "find_customer_name", descKey: "find_customer_desc", nameEn: "Find First Customer", href: "/dashboard/first-customer", icon: Target },
+      { nameKey: "cold_emails_name", descKey: "cold_emails_desc", nameEn: "Cold Email Writer", href: "/dashboard/cold-emails", icon: Send },
+      { nameKey: "investor_finder_name", descKey: "investor_finder_desc", nameEn: "Investor Finder", href: "/dashboard/investor-finder", icon: SearchIcon },
+      { nameKey: "investor_qa_name", descKey: "investor_qa_desc", nameEn: "Investor Q&A Trainer", href: "/dashboard/investor-qa", icon: TrendingUp },
     ],
   },
   {
     titleKey: "cat2_title",
     descKey: "cat2_desc",
     tools: [
-      { nameEn: "Quantum Compass", descEn: "For when you feel lost or stuck.", href: "/dashboard/compass", icon: Compass },
-      { nameEn: "Idea Validator", descEn: "Brutal honest feedback on your idea.", href: "/dashboard/idea-validator", icon: Lightbulb },
-      { nameEn: "Co-founder Match", descEn: "Find your perfect co-founder.", href: "/dashboard/cofounder", icon: UserPlus },
-      { nameEn: "Pricing Intelligence", descEn: "Find the perfect price for your product.", href: "/dashboard/pricing-intelligence", icon: DollarSign },
+      { nameKey: "compass_name", descKey: "compass_desc", nameEn: "Quantum Compass", href: "/dashboard/compass", icon: Compass },
+      { nameKey: "idea_validator_name", descKey: "idea_validator_desc", nameEn: "Idea Validator", href: "/dashboard/idea-validator", icon: Lightbulb },
+      { nameKey: "cofounder_name", descKey: "cofounder_desc", nameEn: "Co-founder Match", href: "/dashboard/cofounder", icon: UserPlus },
+      { nameKey: "pricing_name", descKey: "pricing_desc", nameEn: "Pricing Intelligence", href: "/dashboard/pricing-intelligence", icon: DollarSign },
     ],
   },
   {
     titleKey: "cat3_title",
     descKey: "cat3_desc",
     tools: [
-      { nameEn: "One Pager Generator", descEn: "Professional investor one-pager.", href: "/dashboard/one-pager", icon: FileText },
-      { nameEn: "Press Release AI", descEn: "Launch announcements that get noticed.", href: "/dashboard/press-release", icon: Newspaper },
-      { nameEn: "Demo Script Writer", descEn: "Exactly what to say during your demo.", href: "/dashboard/demo-script", icon: Play },
-      { nameEn: "Investor Email Writer", descEn: "Emails investors actually reply to.", href: "/dashboard/investor-email", icon: Mail },
-      { nameEn: "Founder Story Builder", descEn: "Your story told the way it deserves.", href: "/dashboard/founder-story", icon: Heart },
-      { nameEn: "Manifesto Builder", descEn: "Define what your company stands for.", href: "/dashboard/manifesto", icon: BookOpen },
+      { nameKey: "one_pager_name", descKey: "one_pager_desc", nameEn: "One Pager", href: "/dashboard/one-pager", icon: FileText },
+      { nameKey: "press_release_name", descKey: "press_release_desc", nameEn: "Press Release AI", href: "/dashboard/press-release", icon: Newspaper },
+      { nameKey: "demo_script_name", descKey: "demo_script_desc", nameEn: "Demo Script Writer", href: "/dashboard/demo-script", icon: Play },
+      { nameKey: "investor_email_name", descKey: "investor_email_desc", nameEn: "Investor Email Writer", href: "/dashboard/investor-email", icon: Mail },
+      { nameKey: "founder_story_name", descKey: "founder_story_desc", nameEn: "Founder Story Builder", href: "/dashboard/founder-story", icon: Heart },
+      { nameKey: "manifesto_name", descKey: "manifesto_desc", nameEn: "Manifesto Builder", href: "/dashboard/manifesto", icon: BookOpen },
     ],
   },
   {
     titleKey: "cat4_title",
     descKey: "cat4_desc",
     tools: [
-      { nameEn: "Content Plan (30 days)", descEn: "30 days of content in your voice.", href: "/dashboard/content-plan", icon: Calendar },
-      { nameEn: "Runway Calculator", descEn: "Know exactly how long your money lasts.", href: "/dashboard/founder/runway-calculator", icon: Calculator },
-      { nameEn: "Landing Page Generator", descEn: "Generate a converting landing page.", href: "/dashboard/landing-page", icon: Layers },
+      { nameKey: "content_plan_name", descKey: "content_plan_desc", nameEn: "Content Plan", href: "/dashboard/content-plan", icon: Calendar },
+      { nameKey: "runway_name", descKey: "runway_desc", nameEn: "Runway Calculator", href: "/dashboard/founder/runway-calculator", icon: Calculator },
+      { nameKey: "landing_page_name", descKey: "landing_page_desc", nameEn: "Landing Page Generator", href: "/dashboard/landing-page", icon: Layers },
     ],
   },
 ];
@@ -479,7 +483,7 @@ function HeroCard({
 
 // ─── Small tool card ───────────────────────────────────────────────────────────
 
-function SmallToolCard({ tool, delay }: { tool: SmallTool; delay: number }) {
+function SmallToolCard({ tool, delay, toolT }: { tool: SmallTool; delay: number; toolT: TranslationKeys["tools"] }) {
   const Icon = tool.icon;
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay }}>
@@ -510,9 +514,9 @@ function SmallToolCard({ tool, delay }: { tool: SmallTool; delay: number }) {
           >
             <Icon className="w-4 h-4 text-[#C9A84C]" />
           </div>
-          <h3 className="text-[15px] font-bold text-white mb-1 leading-tight flex-1">{tool.nameEn}</h3>
-          <p className="text-[12px] leading-relaxed mb-3" style={{ color: "#8B7CF8" }}>{tool.descEn}</p>
-          <span className="text-xs font-semibold text-[#C9A84C] mt-auto">Open →</span>
+          <h3 className="text-[15px] font-bold text-white mb-1 leading-tight flex-1">{toolT[tool.nameKey]}</h3>
+          <p className="text-[12px] leading-relaxed mb-3" style={{ color: "#8B7CF8" }}>{toolT[tool.descKey]}</p>
+          <span className="text-xs font-semibold text-[#C9A84C] mt-auto">{toolT.open}</span>
         </div>
       </Link>
     </motion.div>
@@ -652,7 +656,7 @@ function SearchBar({ query, onChange, placeholder }: { query: string; onChange: 
 
 export default function DashboardPage() {
   const { data: session } = useSession();
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const [query, setQuery] = useState("");
 
   const lang = (["en", "ru", "es", "zh", "kz"].includes(locale ?? "") ? locale : "en") as Lang;
@@ -663,8 +667,9 @@ export default function DashboardPage() {
   const filteredTools = useMemo(() => {
     if (!query.trim()) return null;
     const q = query.toLowerCase();
-    return ALL_TOOLS_FLAT.filter((t) =>
-      t.nameEn.toLowerCase().includes(q) || t.descEn.toLowerCase().includes(q)
+    return ALL_TOOLS_FLAT.filter((tool) =>
+      (t.tools[tool.nameKey] ?? tool.nameEn).toLowerCase().includes(q) ||
+      (t.tools[tool.descKey] ?? tool.nameEn).toLowerCase().includes(q)
     );
   }, [query]);
 
@@ -706,7 +711,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {filteredTools.map((tool, i) => (
-                    <SmallToolCard key={tool.href} tool={tool} delay={i * 0.04} />
+                    <SmallToolCard key={tool.href} tool={tool} delay={i * 0.04} toolT={t.tools} />
                   ))}
                 </div>
               )}
@@ -758,7 +763,7 @@ export default function DashboardPage() {
                     <p className="text-[13px] text-[#8B7CF8]/70 mb-4">{catDesc}</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                       {cat.tools.map((tool, ti) => (
-                        <SmallToolCard key={tool.href} tool={tool} delay={d + ti * 0.03} />
+                        <SmallToolCard key={tool.href} tool={tool} delay={d + ti * 0.03} toolT={t.tools} />
                       ))}
                     </div>
                   </motion.div>

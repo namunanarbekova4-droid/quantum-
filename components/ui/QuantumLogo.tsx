@@ -8,7 +8,7 @@ interface QuantumLogoProps {
   showTagline?: boolean;
 }
 
-function OrbitalIcon({ svgSize, strokeWidth = 0.8, opacity = 0.4, particleScale = 1 }: {
+export function OrbitalIcon({ svgSize, strokeWidth = 0.8, opacity = 0.4, particleScale = 1 }: {
   svgSize: number;
   strokeWidth?: number;
   opacity?: number;
