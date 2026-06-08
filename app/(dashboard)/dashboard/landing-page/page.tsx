@@ -235,6 +235,8 @@ function SetupScreen({
 }: {
   onGenerate: (data: FormData) => void;
 }) {
+  const { t } = useLanguage();
+  const ft = t.features.landingPage as Record<string, string>;
   const [form, setForm] = useState<FormData>({
     startupName: "",
     tagline: "",
@@ -292,10 +294,10 @@ function SetupScreen({
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <Layout className="w-7 h-7 text-[#C9A84C]" />
-          <h1 className="text-3xl font-bold text-white">Landing Page Generator</h1>
+          <h1 className="text-3xl font-bold text-white">{ft.title}</h1>
         </div>
         <p className="text-[#8B7CF8] text-sm ml-10">
-          Turn your startup description into complete landing page copy. Ready to publish in 60 seconds.
+          {ft.subtitle}
         </p>
       </div>
 
@@ -427,7 +429,7 @@ function SetupScreen({
             </span>
           ) : (
             <span className="flex items-center justify-center gap-2">
-              Generate My Landing Page
+              {ft.generate}
               <ArrowRight className="w-4 h-4" />
             </span>
           )}
@@ -448,7 +450,8 @@ function ResultsScreen({
   formData: FormData;
   onBack: () => void;
 }) {
-  const { locale } = useLanguage();
+  const { t: tl, locale } = useLanguage();
+  const ft = tl.features.landingPage as Record<string, string>;
   const [result, setResult] = useState(initialResult);
   const [selectedHeadline, setSelectedHeadline] = useState(0);
   const [selectedCTA, setSelectedCTA] = useState(0);
@@ -530,7 +533,7 @@ function ResultsScreen({
         <div>
           <div className="flex items-center gap-3 mb-1">
             <Sparkles className="w-6 h-6 text-[#C9A84C]" />
-            <h1 className="text-2xl font-bold text-white">Your Landing Page Copy</h1>
+            <h1 className="text-2xl font-bold text-white">{ft.title}</h1>
           </div>
           <p className="text-[#8B7CF8] text-sm ml-9">
             {formData.startupName} — {formData.tone} tone
@@ -769,7 +772,7 @@ function ResultsScreen({
           ) : (
             <Copy className="w-5 h-5" />
           )}
-          {copiedAll ? "Copied!" : "Copy All Copy"}
+          {copiedAll ? ft.copied : ft.copyAll}
         </button>
       </div>
     </motion.div>
@@ -779,7 +782,8 @@ function ResultsScreen({
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function LandingPageGeneratorPage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.landingPage as Record<string, string>;
   const [step, setStep] = useState<0 | 1>(0);
   const [result, setResult] = useState<LandingPageResult | null>(null);
   const [formData, setFormData] = useState<FormData | null>(null);

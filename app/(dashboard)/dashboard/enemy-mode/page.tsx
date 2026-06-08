@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send, Volume2, VolumeX, Loader2,
@@ -38,46 +38,6 @@ interface Opponent {
   tagColor: string;
 }
 
-// ─── Opponents ────────────────────────────────────────────────────────────────
-
-const OPPONENTS: Opponent[] = [
-  {
-    id: "brutal-competitor",
-    personality: "competitor",
-    emoji: "💀",
-    name: "The Brutal Competitor",
-    description: "A rival founder who built the same thing and wants to destroy your idea.",
-    tag: "Most brutal",
-    tagColor: "text-red-400 bg-red-500/10 border-red-500/20",
-  },
-  {
-    id: "skeptical-investor",
-    personality: "savage-investor",
-    emoji: "🦈",
-    name: "The Skeptical Investor",
-    description: "A VC who has seen 1000 pitches and thinks yours is nothing special.",
-    tag: "Cuts deep",
-    tagColor: "text-orange-400 bg-orange-500/10 border-orange-500/20",
-  },
-  {
-    id: "angry-customer",
-    personality: "tough-mentor",
-    emoji: "😤",
-    name: "The Angry Customer",
-    description: "Your potential user who tried everything and is fed up with bad solutions.",
-    tag: "Real talk",
-    tagColor: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
-  },
-  {
-    id: "technical-expert",
-    personality: "brutal-strategist",
-    emoji: "🤓",
-    name: "The Technical Expert",
-    description: "Someone who knows the tech inside out and sees every flaw in your approach.",
-    tag: "No mercy",
-    tagColor: "text-purple-400 bg-purple-500/10 border-purple-500/20",
-  },
-];
 
 // ─── TTS ──────────────────────────────────────────────────────────────────────
 
@@ -155,7 +115,15 @@ function VerdictBadge({ label }: { label: string }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function EnemyModePage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.startupRoaster as Record<string, string>;
+
+  const opponents = useMemo<Opponent[]>(() => [
+    { id: "brutal-competitor", personality: "competitor", emoji: "💀", name: ft.brutalCompetitor, description: ft.brutalCompetitorDesc, tag: ft.mostBrutal, tagColor: "text-red-400 bg-red-500/10 border-red-500/20" },
+    { id: "skeptical-investor", personality: "savage-investor", emoji: "🦈", name: ft.skepticalInvestor, description: ft.skepticalInvestorDesc, tag: ft.cutsDeep, tagColor: "text-orange-400 bg-orange-500/10 border-orange-500/20" },
+    { id: "angry-customer", personality: "tough-mentor", emoji: "😤", name: ft.angryCustomer, description: ft.angryCustomerDesc, tag: ft.realTalk, tagColor: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20" },
+    { id: "technical-expert", personality: "brutal-strategist", emoji: "🤓", name: ft.technicalExpert, description: ft.technicalExpertDesc, tag: ft.noMercy, tagColor: "text-purple-400 bg-purple-500/10 border-purple-500/20" },
+  ], [ft]);
 
   const [step, setStep] = useState<0 | 1 | 2>(0);
 
@@ -178,7 +146,7 @@ export default function EnemyModePage() {
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [verdictLoading, setVerdictLoading] = useState(false);
 
-  const opponent = OPPONENTS.find((o) => o.id === selectedOpponentId) ?? null;
+  const opponent = opponents.find((o) => o.id === selectedOpponentId) ?? null;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -345,10 +313,10 @@ export default function EnemyModePage() {
             >
               <div className="flex items-center justify-center gap-3">
                 <Flame className="w-8 h-8 text-red-500" />
-                <h1 className="text-3xl font-bold text-white">Startup Roaster</h1>
+                <h1 className="text-3xl font-bold text-white">{ft.title}</h1>
               </div>
               <p className="text-[#8B7CF8] text-lg">
-                Let AI be your harshest critic before the real world is.
+                {ft.subtitle}
               </p>
             </motion.div>
 
@@ -359,9 +327,9 @@ export default function EnemyModePage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="space-y-3"
             >
-              <label className="text-sm font-medium text-[#8B7CF8]">Choose your roaster:</label>
+              <label className="text-sm font-medium text-[#8B7CF8]">{ft.chooseRoaster}</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {OPPONENTS.map((opp) => {
+                {opponents.map((opp) => {
                   const isSelected = selectedOpponentId === opp.id;
                   return (
                     <button
@@ -401,11 +369,11 @@ export default function EnemyModePage() {
               className="space-y-4"
             >
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[#8B7CF8]">Describe your startup idea:</label>
+                <label className="text-sm font-medium text-[#8B7CF8]">{ft.describeStartup}</label>
                 <textarea
                   value={decisionText}
                   onChange={(e) => setDecisionText(e.target.value)}
-                  placeholder="Tell us what you're building, who it's for, and why it matters..."
+                  placeholder={ft.placeholder}
                   rows={4}
                   className="w-full bg-[#0F0A1F] border border-[#1A1040] rounded-xl px-4 py-3 text-white placeholder-[#8B7CF8]/40 resize-none focus:outline-none focus:border-red-900/60 transition-colors text-sm"
                 />
@@ -420,12 +388,12 @@ export default function EnemyModePage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[#8B7CF8]">{"What's your main claim?"}</label>
+                <label className="text-sm font-medium text-[#8B7CF8]">{ft.mainClaim}</label>
                 <input
                   type="text"
                   value={mainClaim}
                   onChange={(e) => setMainClaim(e.target.value)}
-                  placeholder="We are 10x better than competitors"
+                  placeholder={ft.claimPlaceholder}
                   className="w-full bg-[#0F0A1F] border border-[#1A1040] rounded-xl px-4 py-3 text-white placeholder-[#8B7CF8]/40 focus:outline-none focus:border-red-900/60 transition-colors text-sm"
                 />
               </div>
@@ -445,7 +413,7 @@ export default function EnemyModePage() {
               )}
             >
               <Flame className="w-4 h-4" />
-              Roast Me →
+              {ft.roastMe}
             </motion.button>
           </div>
         </div>
@@ -464,7 +432,7 @@ export default function EnemyModePage() {
             <span className="text-2xl">{opponent?.emoji}</span>
             <div>
               <p className="text-white font-bold text-sm leading-tight">{opponent?.name}</p>
-              <p className="text-[#8B7CF8] text-xs">Startup Roaster</p>
+              <p className="text-[#8B7CF8] text-xs">{ft.title}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -570,7 +538,7 @@ export default function EnemyModePage() {
                 href="/dashboard/idea-validator"
                 className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold text-[#C9A84C] border border-[#C9A84C]/30 bg-[#C9A84C]/5 hover:bg-[#C9A84C]/10 transition-colors"
               >
-                {"I'm convinced, fix my idea →"}
+                {ft.fixMyIdea}
               </Link>
             </motion.div>
           )}
@@ -623,7 +591,7 @@ export default function EnemyModePage() {
               <span>{opponent?.emoji}</span>
               <span>{opponent?.name}</span>
               <span>·</span>
-              <span>Final Verdict</span>
+              <span>{ft.verdict}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-white flex items-center justify-center gap-2">
               Roast Complete <Flame className="w-7 h-7 text-red-500" />
@@ -646,7 +614,7 @@ export default function EnemyModePage() {
             <>
               {[
                 {
-                  label: "Strongest Weakness",
+                  label: ft.strongestWeakness,
                   value: verdict.strongestWeakness,
                   icon: AlertTriangle,
                   color: "text-red-400",
@@ -654,7 +622,7 @@ export default function EnemyModePage() {
                   bg: "bg-red-500/5",
                 },
                 {
-                  label: "Biggest Blind Spot",
+                  label: ft.biggestBlindSpot,
                   value: verdict.biggestBlindSpot,
                   icon: Eye,
                   color: "text-orange-400",
@@ -662,7 +630,7 @@ export default function EnemyModePage() {
                   bg: "bg-orange-500/5",
                 },
                 {
-                  label: "What Fails First",
+                  label: ft.whatFailsFirst,
                   value: verdict.whatFailsFirst,
                   icon: Zap,
                   color: "text-yellow-400",
@@ -670,7 +638,7 @@ export default function EnemyModePage() {
                   bg: "bg-yellow-500/5",
                 },
                 {
-                  label: "Unanswered Question",
+                  label: ft.unansweredQuestion,
                   value: verdict.unansweredQuestion,
                   icon: HelpCircle,
                   color: "text-amber-400",
@@ -678,7 +646,7 @@ export default function EnemyModePage() {
                   bg: "bg-amber-500/5",
                 },
                 {
-                  label: "Strategic Strength",
+                  label: ft.strategicStrength,
                   value: verdict.strategicStrength,
                   icon: TrendingUp,
                   color: "text-green-400",
@@ -718,7 +686,7 @@ export default function EnemyModePage() {
                 }}
               >
                 <span className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider">
-                  Final Recommendation
+                  {ft.recommendation}
                 </span>
                 <p className="text-white text-sm leading-relaxed">{verdict.recommendation}</p>
               </motion.div>
@@ -735,7 +703,7 @@ export default function EnemyModePage() {
                   className="py-3 rounded-xl border border-[#1A1040] text-[#8B7CF8] hover:text-white hover:border-red-900/60 transition-all text-sm font-semibold flex items-center justify-center gap-2 bg-[#0F0A1F]"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  Roast Again 🔥
+                  {ft.roastAgain} 🔥
                 </button>
                 <Link
                   href="/dashboard/idea-validator"
@@ -745,7 +713,7 @@ export default function EnemyModePage() {
                     color: "#06040F",
                   }}
                 >
-                  Fix My Idea →
+                  {ft.fixMyIdea}
                 </Link>
               </motion.div>
             </>

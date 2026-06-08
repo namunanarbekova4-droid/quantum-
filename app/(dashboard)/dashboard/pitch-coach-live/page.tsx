@@ -279,6 +279,8 @@ function CoachTipCard({ tip }: { tip: CoachTipData }) {
 // ─── Setup screen ─────────────────────────────────────────────────────────────
 
 function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
+  const { t } = useLanguage();
+  const ft = t.features.pitchCoachLive as Record<string, string>;
   const [form, setForm] = useState<SetupData>({
     startupName: "",
     startupDescription: "",
@@ -325,8 +327,8 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
       >
         <div className="text-center mb-8">
           <QuantumAtom />
-          <h1 className="text-3xl font-black text-white mb-2">Pitch Coach Live</h1>
-          <p className="text-[#8B7CF8] text-sm">Speak your pitch. Get coached in real time.</p>
+          <h1 className="text-3xl font-black text-white mb-2">{ft.title}</h1>
+          <p className="text-[#8B7CF8] text-sm">{ft.subtitle}</p>
         </div>
 
         {!SRAvailable && (
@@ -341,7 +343,7 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
 
         <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-6 space-y-5 shadow-[0_0_40px_rgba(124,58,237,0.1)]">
           <div>
-            <label className={labelCls}>Your startup name</label>
+            <label className={labelCls}>{ft.startupName}</label>
             <input
               value={form.startupName}
               onChange={e => setForm({ ...form, startupName: e.target.value })}
@@ -351,7 +353,7 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
           </div>
 
           <div>
-            <label className={labelCls}>What does your startup do?</label>
+            <label className={labelCls}>{ft.startupDescription}</label>
             <textarea
               value={form.startupDescription}
               onChange={e => setForm({ ...form, startupDescription: e.target.value })}
@@ -362,7 +364,7 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
           </div>
 
           <div>
-            <label className={labelCls}>Who are you pitching to?</label>
+            <label className={labelCls}>{ft.audienceType}</label>
             <select
               value={form.audienceType}
               onChange={e => setForm({ ...form, audienceType: e.target.value })}
@@ -373,7 +375,7 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
           </div>
 
           <div>
-            <label className={labelCls}>Pitch duration</label>
+            <label className={labelCls}>{ft.targetDuration}</label>
             <div className="flex gap-2">
               {[1, 3, 5].map(d => (
                 <button
@@ -407,7 +409,7 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
             {requesting ? (
               <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-[#06040F]/40 border-t-[#06040F] rounded-full animate-spin" /> Requesting mic...</span>
             ) : (
-              <><Mic className="w-4 h-4" /> Start Session <ChevronRight className="w-4 h-4" /></>
+              <><Mic className="w-4 h-4" /> {ft.startSession}</>
             )}
           </button>
         </div>
@@ -915,6 +917,8 @@ function ResultsScreen({
 }: {
   analysis: Analysis; setup: SetupData; sessionId: string; onRetry: () => void;
 }) {
+  const { t: tl } = useLanguage();
+  const ft = tl.features.pitchCoachLive as Record<string, string>;
   const [copied, setCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistorySession[]>([]);
@@ -1046,7 +1050,7 @@ function ResultsScreen({
 
           {/* SECTION 5: Filler words */}
           {analysis.filler_analysis && (
-            <Section title="Filler Words" icon={<Clock className="w-4 h-4 text-[#8B7CF8]" />} color="text-[#8B7CF8]">
+            <Section title={ft.fillerWords} icon={<Clock className="w-4 h-4 text-[#8B7CF8]" />} color="text-[#8B7CF8]">
               <div className="flex items-start gap-6 mb-4">
                 <div>
                   <p className={`text-5xl font-black ${analysis.filler_analysis.total_count > 10 ? "text-red-400" : analysis.filler_analysis.total_count > 5 ? "text-yellow-400" : "text-green-400"}`}>
@@ -1145,7 +1149,7 @@ function ResultsScreen({
               onClick={onRetry}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-black rounded-xl transition-colors text-sm"
             >
-              <RotateCcw className="w-4 h-4" /> Practice Again →
+              <RotateCcw className="w-4 h-4" /> {ft.practiceAgain}
             </button>
             <button
               onClick={copyShare}
@@ -1236,7 +1240,8 @@ function ResultsScreen({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function PitchCoachLivePage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.pitchCoachLive as Record<string, string>;
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);

@@ -40,12 +40,7 @@ const QUESTIONS = [
   { q: "How much are you raising and what will you use it for?", type: "textarea" as const },
 ];
 
-const LOADING_MESSAGES = [
-  "Learning your voice...",
-  "Writing your slides...",
-  "Crafting your story...",
-  "Almost ready...",
-];
+// Loading messages are built dynamically from translations inside the component
 
 // ─── Aurora ───────────────────────────────────────────────────────────────────
 
@@ -80,7 +75,9 @@ function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function PitchDeckPage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.pitchDeck as Record<string, string>;
+  const LOADING_MESSAGES = [ft.loadingMsg1, ft.loadingMsg2, ft.loadingMsg3, ft.loadingMsg4, ft.loadingMsg5, ft.loadingMsg6];
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const [qIndex, setQIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>(Array(10).fill(""));
@@ -183,9 +180,9 @@ export default function PitchDeckPage() {
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.2)" }}>
               <Layers className="w-10 h-10 text-[#C9A84C]" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-3">Pitch Deck Creator</h1>
+            <h1 className="text-3xl font-bold text-white mb-3">{ft.title}</h1>
             <p className="text-[#8B7CF8] mb-8 leading-relaxed">
-              Answer 10 questions in your own words. Get a complete 12-slide deck written in your exact voice — ready to present.
+              {ft.subtitle}
             </p>
             <div className="flex justify-center gap-6 mb-8 text-sm text-[#8B7CF8]">
               {["12 slides", "Your voice", "5 min setup"].map((f) => (
@@ -200,7 +197,7 @@ export default function PitchDeckPage() {
               className="px-8 py-3 rounded-lg font-semibold text-sm transition-all"
               style={{ background: "#C9A84C", color: "#06040F" }}
             >
-              Start → Answer 10 Questions
+              {ft.getStarted}
             </button>
           </motion.div>
         </div>
@@ -221,7 +218,7 @@ export default function PitchDeckPage() {
             {/* Progress */}
             <div className="mb-8">
               <div className="flex justify-between text-xs text-[#8B7CF8] mb-2">
-                <span>Question {qIndex + 1} of {QUESTIONS.length}</span>
+                <span>{ft.questionOf} {qIndex + 1} {ft.of} {QUESTIONS.length}</span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className="h-1.5 rounded-full" style={{ background: "#1A1040" }}>
@@ -244,7 +241,7 @@ export default function PitchDeckPage() {
                 transition={{ duration: 0.25 }}
               >
                 <div className="rounded-xl p-6 mb-4" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
-                  <p className="text-xs font-semibold text-[#C9A84C] uppercase tracking-widest mb-3">Question {qIndex + 1}</p>
+                  <p className="text-xs font-semibold text-[#C9A84C] uppercase tracking-widest mb-3">{ft.questionOf} {qIndex + 1}</p>
                   <h2 className="text-xl font-bold text-white leading-snug mb-1">{q.q}</h2>
                   <p className="text-xs text-[#8B7CF8]/60">Be specific — the more detail you give, the better your deck</p>
                 </div>
@@ -279,7 +276,7 @@ export default function PitchDeckPage() {
                   <div>
                     {qIndex > 0 && (
                       <button onClick={goBack} className="flex items-center gap-1 text-sm text-[#8B7CF8] hover:text-white transition-colors">
-                        <ChevronLeft className="w-4 h-4" /> Back
+                        <ChevronLeft className="w-4 h-4" /> {ft.previous}
                       </button>
                     )}
                   </div>
@@ -293,7 +290,7 @@ export default function PitchDeckPage() {
                       className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-40"
                       style={{ background: current.trim() ? "#C9A84C" : "#1A1040", color: current.trim() ? "#06040F" : "#555" }}
                     >
-                      {qIndex === QUESTIONS.length - 1 ? "Generate Deck" : "Next"}
+                      {qIndex === QUESTIONS.length - 1 ? ft.generate : ft.next}
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
@@ -413,7 +410,7 @@ export default function PitchDeckPage() {
                   onClick={() => toggleNotes(slide.slide_number)}
                   className="text-xs text-[#7C3AED] hover:text-[#A855F7] transition-colors"
                 >
-                  {expandedNotes.has(slide.slide_number) ? "▲ Hide" : "▼ Speaker Notes"}
+                  {expandedNotes.has(slide.slide_number) ? `▲ ${ft.hideNotes}` : `▼ ${ft.showNotes}`}
                 </button>
                 {expandedNotes.has(slide.slide_number) && (
                   <motion.div
@@ -434,10 +431,10 @@ export default function PitchDeckPage() {
         {tab === "scripts" && (
           <div className="space-y-4">
             {[
-              { label: "Opening Hook", text: result.opening_hook, badge: "Start strong" },
-              { label: "Elevator Pitch", text: result.elevator_pitch, badge: "60 sec" },
-              { label: "3-Minute Script", text: result.three_minute_script, badge: "Full" },
-              { label: "Closing Statement", text: result.closing_statement, badge: "End strong" },
+              { label: ft.openingHook, text: result.opening_hook, badge: "Start strong" },
+              { label: ft.elevatorPitch, text: result.elevator_pitch, badge: "60 sec" },
+              { label: ft.threeMinScript, text: result.three_minute_script, badge: "Full" },
+              { label: ft.closingStatement, text: result.closing_statement, badge: "End strong" },
             ].map((s) => (
               <motion.div
                 key={s.label}
@@ -483,16 +480,16 @@ export default function PitchDeckPage() {
 
         {/* Sticky bottom bar */}
         <div className="fixed bottom-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between gap-3" style={{ background: "rgba(6,4,15,0.95)", borderTop: "1px solid #1A1040", backdropFilter: "blur(10px)" }}>
-          <CopyBtn text={result.three_minute_script} label="Copy Full Script" />
+          <CopyBtn text={result.three_minute_script} label={ft.copyScript} />
           <button
             onClick={() => { alert("PDF export coming soon!"); }}
             className="px-5 py-2 rounded-lg text-sm font-semibold transition-all"
             style={{ background: "#C9A84C", color: "#06040F" }}
           >
-            Download PDF
+            {ft.downloadPDF}
           </button>
           <button onClick={reset} className="flex items-center gap-1.5 text-sm text-[#555] hover:text-[#8B7CF8] transition-colors">
-            <RotateCcw className="w-3.5 h-3.5" /> Start Over
+            <RotateCcw className="w-3.5 h-3.5" /> {ft.startOver}
           </button>
         </div>
       </div>

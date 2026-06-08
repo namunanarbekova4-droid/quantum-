@@ -58,12 +58,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 
 const STATUS_KEYS = Object.keys(STATUS_CONFIG);
 
-const LOADING_MESSAGES = [
-  "Scanning investor databases...",
-  "Matching your startup profile...",
-  "Analyzing investment thesis fit...",
-  "Ranking by match score...",
-];
+// Loading messages are built from translations inside the component
 
 // ---- Helper: initials ----
 function initials(name: string) {
@@ -83,10 +78,12 @@ function InvestorCard({
   investor,
   onAddToPipeline,
   savedIds,
+  ft,
 }: {
   investor: InvestorProfile;
   onAddToPipeline: (inv: InvestorProfile) => void;
   savedIds: Set<string>;
+  ft: Record<string, string>;
 }) {
   const isSaved = savedIds.has(investor.id);
 
@@ -137,14 +134,14 @@ function InvestorCard({
 
       {/* Why Match */}
       <div className="bg-[#06040F] rounded-xl p-3">
-        <p className="text-[#8B7CF8]/80 text-xs font-medium mb-1">Why they match:</p>
+        <p className="text-[#8B7CF8]/80 text-xs font-medium mb-1">{ft.whyMatch}:</p>
         <p className="text-[#8B7CF8] text-sm italic leading-relaxed">{investor.whyMatch}</p>
       </div>
 
       {/* Match Score */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-[#8B7CF8]/60">Match Score</span>
+          <span className="text-xs text-[#8B7CF8]/60">{ft.matchScore}</span>
           <span className={`font-bold text-base ${scoreColor(investor.matchScore)}`}>
             {investor.matchScore}%
           </span>
@@ -216,7 +213,7 @@ function InvestorCard({
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
-            {isSaved ? "Saved" : "Add to Pipeline"}
+            {isSaved ? ft.addedPipeline : ft.addPipeline}
           </button>
         </div>
       </div>
@@ -296,7 +293,9 @@ function PipelineRow({
 
 // ---- Main Page ----
 export default function InvestorFinderPage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.investorFinder as Record<string, string>;
+  const LOADING_MESSAGES = [ft.generating, ft.generating, ft.generating, ft.generating];
 
   // Step: 0 = setup, 1 = results
   const [step, setStep] = useState(0);
@@ -474,9 +473,9 @@ export default function InvestorFinderPage() {
                 <div className="w-16 h-16 rounded-2xl bg-[#C9A84C]/10 border border-[#C9A84C]/20 flex items-center justify-center mx-auto mb-4">
                   <Search className="w-8 h-8 text-[#C9A84C]" />
                 </div>
-                <h1 className="text-3xl font-bold text-white mb-2">Investor Finder</h1>
+                <h1 className="text-3xl font-bold text-white mb-2">{ft.title}</h1>
                 <p className="text-[#8B7CF8] leading-relaxed">
-                  AI finds investors who fund startups like yours. Track your outreach pipeline.
+                  {ft.subtitle}
                 </p>
               </div>
 
@@ -485,7 +484,7 @@ export default function InvestorFinderPage() {
                 {/* Startup name */}
                 <div>
                   <label className="block text-sm text-[#8B7CF8] mb-1.5 font-medium">
-                    Your startup name
+                    {ft.startupName}
                   </label>
                   <input
                     value={startupName}
@@ -513,7 +512,7 @@ export default function InvestorFinderPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-[#8B7CF8] mb-1.5 font-medium">
-                      Industry
+                      {ft.industry}
                     </label>
                     <select
                       value={industry}
@@ -529,7 +528,7 @@ export default function InvestorFinderPage() {
                   </div>
                   <div>
                     <label className="block text-sm text-[#8B7CF8] mb-1.5 font-medium">
-                      Stage
+                      {ft.stage}
                     </label>
                     <select
                       value={stage}
@@ -549,7 +548,7 @@ export default function InvestorFinderPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-[#8B7CF8] mb-1.5 font-medium">
-                      Amount raising
+                      {ft.raising}
                     </label>
                     <input
                       value={amount}
@@ -560,7 +559,7 @@ export default function InvestorFinderPage() {
                   </div>
                   <div>
                     <label className="block text-sm text-[#8B7CF8] mb-1.5 font-medium">
-                      Geography preference
+                      {ft.location}
                     </label>
                     <select
                       value={geography}
@@ -593,7 +592,7 @@ export default function InvestorFinderPage() {
                   ) : (
                     <>
                       <Search className="w-4 h-4" />
-                      Find My Investors →
+                      {ft.generate}
                     </>
                   )}
                 </button>
@@ -616,12 +615,12 @@ export default function InvestorFinderPage() {
                     className="flex items-center gap-1.5 text-[#8B7CF8] hover:text-white transition-colors text-sm"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Search Again
+                    {ft.generateBtn}
                   </button>
                   <div className="w-px h-5 bg-[#1A1040]" />
                   <div className="flex items-center gap-2">
                     <Search className="w-5 h-5 text-[#C9A84C]" />
-                    <span className="text-white font-bold text-lg">Investor Finder</span>
+                    <span className="text-white font-bold text-lg">{ft.title}</span>
                   </div>
                 </div>
 
@@ -645,7 +644,7 @@ export default function InvestorFinderPage() {
                         : "text-[#8B7CF8] hover:text-white"
                     }`}
                   >
-                    Pipeline ({pipeline.length})
+                    {ft.pipeline} ({pipeline.length})
                   </button>
                 </div>
               </div>
@@ -672,6 +671,7 @@ export default function InvestorFinderPage() {
                           investor={inv}
                           onAddToPipeline={handleAddToPipeline}
                           savedIds={savedIds}
+                          ft={ft}
                         />
                       </motion.div>
                     ))}
@@ -689,10 +689,7 @@ export default function InvestorFinderPage() {
                       <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-12 text-center">
                         <Star className="w-10 h-10 text-[#8B7CF8]/30 mx-auto mb-3" />
                         <p className="text-[#8B7CF8]/60 text-sm">
-                          No investors in your pipeline yet.
-                        </p>
-                        <p className="text-[#8B7CF8]/40 text-xs mt-1">
-                          Add investors from the Investors tab.
+                          {ft.noPipeline}
                         </p>
                       </div>
                     ) : (
@@ -702,22 +699,22 @@ export default function InvestorFinderPage() {
                             <thead>
                               <tr className="border-b border-[#1A1040]">
                                 <th className="py-3 px-4 text-left text-xs font-medium text-[#8B7CF8]/60 uppercase tracking-wider">
-                                  Name
+                                  {ft.startupName}
                                 </th>
                                 <th className="py-3 px-4 text-left text-xs font-medium text-[#8B7CF8]/60 uppercase tracking-wider">
-                                  Fund
+                                  {ft.industry}
                                 </th>
                                 <th className="py-3 px-4 text-left text-xs font-medium text-[#8B7CF8]/60 uppercase tracking-wider">
-                                  Match%
+                                  {ft.matchScore}
                                 </th>
                                 <th className="py-3 px-4 text-left text-xs font-medium text-[#8B7CF8]/60 uppercase tracking-wider">
-                                  Status
+                                  {ft.status}
                                 </th>
                                 <th className="py-3 px-4 text-left text-xs font-medium text-[#8B7CF8]/60 uppercase tracking-wider">
-                                  Notes
+                                  {ft.notes}
                                 </th>
                                 <th className="py-3 px-4 text-left text-xs font-medium text-[#8B7CF8]/60 uppercase tracking-wider">
-                                  Added
+                                  {ft.updateStatus}
                                 </th>
                               </tr>
                             </thead>

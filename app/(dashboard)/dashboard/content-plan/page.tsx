@@ -213,6 +213,8 @@ interface PostCardProps {
 }
 
 function PostCard({ post, onRegenerate, regenerating, locale }: PostCardProps) {
+  const { t: tl } = useLanguage();
+  const ft = tl.features.contentPlan as Record<string, string>;
   const [expanded, setExpanded] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -287,7 +289,7 @@ function PostCard({ post, onRegenerate, regenerating, locale }: PostCardProps) {
           }`}
         >
           {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-          {copied ? `Copied! Paste on ${post.platform}` : "Copy Post"}
+          {copied ? ft.copied : ft.copy}
         </button>
         <button
           onClick={onRegenerate}
@@ -295,15 +297,15 @@ function PostCard({ post, onRegenerate, regenerating, locale }: PostCardProps) {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#1A1040] text-[#8B7CF8] hover:border-[#7C3AED]/40 disabled:opacity-40 transition-all"
         >
           {regenerating
-            ? <><div className="w-3 h-3 border border-[#8B7CF8]/40 border-t-[#8B7CF8] rounded-full animate-spin" /> Rewriting...</>
-            : <><RefreshCw className="w-3 h-3" /> Regenerate</>
+            ? <><div className="w-3 h-3 border border-[#8B7CF8]/40 border-t-[#8B7CF8] rounded-full animate-spin" /> {ft.generating}</>
+            : <><RefreshCw className="w-3 h-3" /> {ft.regeneratePost}</>
           }
         </button>
         <button
           onClick={() => setShowWhy(w => !w)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border border-[#1A1040] text-white/30 hover:text-[#8B7CF8] transition-colors"
         >
-          <Lightbulb className="w-3 h-3" /> Why this works
+          <Lightbulb className="w-3 h-3" /> {ft.whyWorks}
         </button>
       </div>
     </motion.div>
@@ -316,9 +318,10 @@ interface SetupScreenProps {
   onGenerate: (data: SetupData) => void;
   history: HistoryItem[];
   historyLoading: boolean;
+  ft: Record<string, string>;
 }
 
-function SetupScreen({ onGenerate, history, historyLoading }: SetupScreenProps) {
+function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenProps) {
   const [form, setForm] = useState<SetupData>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -367,8 +370,8 @@ function SetupScreen({ onGenerate, history, historyLoading }: SetupScreenProps) 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
           <QuantumAtom size={80} />
-          <h1 className="text-3xl font-black text-white mb-2">30-Day Content Plan</h1>
-          <p className="text-[#8B7CF8] text-sm">Answer 8 questions. Get 30 days of content written in your voice.</p>
+          <h1 className="text-3xl font-black text-white mb-2">{ft.title}</h1>
+          <p className="text-[#8B7CF8] text-sm">{ft.subtitle}</p>
         </motion.div>
 
         {/* History */}
@@ -482,7 +485,7 @@ function SetupScreen({ onGenerate, history, historyLoading }: SetupScreenProps) 
             onClick={submit}
             className="w-full h-12 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-black rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
           >
-            <Zap className="w-4 h-4" /> Generate My 30-Day Plan →
+            <Zap className="w-4 h-4" /> {ft.generate}
           </button>
         </motion.div>
       </div>
@@ -898,9 +901,10 @@ interface ResultsScreenProps {
   planId: string;
   locale: string;
   onRegenerate: () => void;
+  ft: Record<string, string>;
 }
 
-function ResultsScreen({ plan, setup, planId, locale, onRegenerate }: ResultsScreenProps) {
+function ResultsScreen({ plan, setup, planId, locale, onRegenerate, ft }: ResultsScreenProps) {
   const [activeTab, setActiveTab] = useState<Tab>("calendar");
   const [posts, setPosts] = useState<ContentPost[]>(plan.posts ?? []);
   const [regenerating, setRegenerating] = useState<Set<number>>(new Set());
@@ -1109,7 +1113,7 @@ function ResultsScreen({ plan, setup, planId, locale, onRegenerate }: ResultsScr
             onClick={downloadPlan}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-black rounded-xl transition-colors text-sm"
           >
-            <Download className="w-4 h-4" /> Download Full Plan
+            <Download className="w-4 h-4" /> {ft.downloadCSV}
           </button>
           <button
             onClick={() => copyWeek(1)}
@@ -1126,7 +1130,7 @@ function ResultsScreen({ plan, setup, planId, locale, onRegenerate }: ResultsScr
             onClick={onRegenerate}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#1A1040] text-[#8B7CF8]/60 hover:text-[#8B7CF8] hover:border-[#7C3AED]/30 text-sm transition-all"
           >
-            <RotateCcw className="w-4 h-4" /> Regenerate Plan
+            <RotateCcw className="w-4 h-4" /> {ft.newPlan}
           </button>
         </div>
       </div>
@@ -1137,7 +1141,8 @@ function ResultsScreen({ plan, setup, planId, locale, onRegenerate }: ResultsScr
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ContentPlanPage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.contentPlan as Record<string, string>;
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
   const [plan, setPlan] = useState<ContentPlan | null>(null);
@@ -1206,6 +1211,7 @@ export default function ContentPlanPage() {
               onGenerate={handleGenerate}
               history={history}
               historyLoading={historyLoading}
+              ft={ft}
             />
           </motion.div>
         )}
@@ -1222,6 +1228,7 @@ export default function ContentPlanPage() {
               planId={planId}
               locale={locale}
               onRegenerate={handleRegeneratePlan}
+              ft={ft}
             />
           </motion.div>
         )}

@@ -62,10 +62,10 @@ function scoreDot(score: number) {
   return "bg-red-400";
 }
 
-function verdictLabel(score: number) {
-  if (score >= 75) return "Investor Ready";
-  if (score >= 50) return "Almost Ready";
-  return "Needs More Practice";
+function verdictLabel(score: number, ft: Record<string, string>) {
+  if (score >= 75) return ft.investorReady;
+  if (score >= 50) return ft.almostReady;
+  return ft.needsPractice;
 }
 
 function verdictColor(score: number) {
@@ -149,9 +149,10 @@ function AuroraBackground() {
 interface SetupScreenProps {
   onStart: (data: SetupData, questions: string[]) => void;
   locale: string;
+  ft: Record<string, string>;
 }
 
-function SetupScreen({ onStart, locale }: SetupScreenProps) {
+function SetupScreen({ onStart, locale, ft }: SetupScreenProps) {
   const [form, setForm] = useState<SetupData>({
     startupName: "",
     description: "",
@@ -163,7 +164,7 @@ function SetupScreen({ onStart, locale }: SetupScreenProps) {
 
   const handleStart = async () => {
     if (!form.startupName.trim() || !form.description.trim()) {
-      setError("Please fill in your startup name and description.");
+      setError(ft.errorFill);
       return;
     }
     setError(null);
@@ -203,11 +204,10 @@ function SetupScreen({ onStart, locale }: SetupScreenProps) {
           <TrendingUp className="w-8 h-8 text-[#7C3AED]" />
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-tight">
-          Investor Q&A Trainer
+          {ft.title}
         </h1>
         <p className="text-[#8B7CF8] text-lg max-w-lg mx-auto leading-relaxed">
-          Practice the questions that make founders sweat. Master them before
-          you walk in the room.
+          {ft.subtitle}
         </p>
       </div>
 
@@ -219,7 +219,7 @@ function SetupScreen({ onStart, locale }: SetupScreenProps) {
         {/* Startup Name */}
         <div>
           <label className="block text-sm font-medium text-[#8B7CF8] mb-2">
-            Startup Name
+            {ft.startupName}
           </label>
           <input
             type="text"
@@ -233,7 +233,7 @@ function SetupScreen({ onStart, locale }: SetupScreenProps) {
         {/* Description */}
         <div>
           <label className="block text-sm font-medium text-[#8B7CF8] mb-2">
-            What does your startup do?
+            {ft.startupDoes}
           </label>
           <textarea
             value={form.description}
@@ -241,7 +241,7 @@ function SetupScreen({ onStart, locale }: SetupScreenProps) {
               setForm((f) => ({ ...f, description: e.target.value }))
             }
             rows={3}
-            placeholder="Describe your product, market, and traction in 2-3 sentences..."
+            placeholder={ft.answerPlaceholder}
             className="w-full px-4 py-3 rounded-xl bg-[#06040F] border border-[#1A1040] text-white placeholder-[#3D3060] focus:outline-none focus:border-[#7C3AED] transition-colors text-sm resize-none"
           />
         </div>
@@ -250,7 +250,7 @@ function SetupScreen({ onStart, locale }: SetupScreenProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label className="block text-sm font-medium text-[#8B7CF8] mb-2">
-              Stage
+              {ft.stage}
             </label>
             <select
               value={form.stage}
@@ -267,7 +267,7 @@ function SetupScreen({ onStart, locale }: SetupScreenProps) {
           </div>
           <div>
             <label className="block text-sm font-medium text-[#8B7CF8] mb-2">
-              How much are you raising?
+              {ft.amountRaising}
             </label>
             <input
               type="text"
@@ -299,11 +299,11 @@ function SetupScreen({ onStart, locale }: SetupScreenProps) {
           {loading ? (
             <>
               <Atom className="w-5 h-5 animate-spin" />
-              Generating your questions...
+              {ft.generatingQuestions}
             </>
           ) : (
             <>
-              Start Training
+              {ft.startTraining}
               <ChevronRight className="w-5 h-5" />
             </>
           )}
@@ -320,6 +320,7 @@ interface TrainingScreenProps {
   questions: string[];
   locale: string;
   onComplete: (entries: QAEntry[]) => void;
+  ft: Record<string, string>;
 }
 
 function TrainingScreen({
@@ -327,6 +328,7 @@ function TrainingScreen({
   questions,
   locale,
   onComplete,
+  ft,
 }: TrainingScreenProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState("");
@@ -420,13 +422,13 @@ function TrainingScreen({
       {/* Top bar */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-medium text-[#8B7CF8]">
-          Question {currentIndex + 1} of {total}
+          {ft.questionOf} {currentIndex + 1} {ft.of} {total}
         </span>
         <button
           onClick={endSession}
           className="flex items-center gap-1.5 text-xs text-[#8B7CF8] hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg border border-[#1A1040] hover:border-red-500/30"
         >
-          <X className="w-3.5 h-3.5" /> End Session
+          <X className="w-3.5 h-3.5" /> {ft.endSession}
         </button>
       </div>
 
@@ -456,7 +458,7 @@ function TrainingScreen({
               {currentQuestion}
             </p>
             <p className="text-xs text-[#3D3060]">
-              This is what investors actually ask
+              {ft.whatInvestorsAsk}
             </p>
           </div>
         </motion.div>
@@ -470,7 +472,7 @@ function TrainingScreen({
           onChange={(e) => setAnswer(e.target.value)}
           disabled={!!feedback || scoring}
           rows={5}
-          placeholder="Type your answer here... Be specific. Investors hate vague answers."
+          placeholder={ft.answerPlaceholder}
           className="w-full px-4 py-4 rounded-xl bg-[#0F0A1F] border border-[#1A1040] text-white placeholder-[#3D3060] focus:outline-none focus:border-[#7C3AED] transition-colors text-sm resize-none disabled:opacity-60"
         />
         <span className="absolute bottom-3 right-3 text-xs text-[#3D3060]">
@@ -495,11 +497,11 @@ function TrainingScreen({
           {scoring ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Evaluating your answer...
+              {ft.evaluating}
             </>
           ) : (
             <>
-              Submit Answer
+              {ft.submitAnswer}
               <ChevronRight className="w-5 h-5" />
             </>
           )}
@@ -535,7 +537,7 @@ function TrainingScreen({
             {/* What worked */}
             <div>
               <p className="text-xs font-bold text-green-400 uppercase tracking-wider mb-1.5">
-                What worked
+                {ft.whatWorked}
               </p>
               <p className="text-sm text-green-300/80 leading-relaxed">
                 {feedback.whatWorked}
@@ -545,7 +547,7 @@ function TrainingScreen({
             {/* What's missing */}
             <div>
               <p className="text-xs font-bold text-red-400 uppercase tracking-wider mb-1.5">
-                What&apos;s missing
+                {ft.whatsMissing}
               </p>
               <p className="text-sm text-red-300/80 leading-relaxed">
                 {feedback.whatsWrong}
@@ -558,7 +560,7 @@ function TrainingScreen({
               style={{ background: "#C9A84C10" }}
             >
               <p className="text-xs font-bold text-[#C9A84C] uppercase tracking-wider mb-2">
-                Better version
+                {ft.betterVersion}
               </p>
               <p className="text-sm text-[#C9A84C]/90 leading-relaxed italic">
                 &ldquo;{feedback.betterVersion}&rdquo;
@@ -575,10 +577,10 @@ function TrainingScreen({
               }}
             >
               {currentIndex + 1 >= total ? (
-                <>See Results</>
+                <>{ft.seeResults}</>
               ) : (
                 <>
-                  Next Question
+                  {ft.nextQuestion}
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
@@ -597,9 +599,10 @@ interface ResultsScreenProps {
   entries: QAEntry[];
   locale: string;
   onReset: () => void;
+  ft: Record<string, string>;
 }
 
-function ResultsScreen({ setupData, entries, locale, onReset }: ResultsScreenProps) {
+function ResultsScreen({ setupData, entries, locale, onReset, ft }: ResultsScreenProps) {
   const [saved, setSaved] = useState(false);
 
   const overallScore =
@@ -650,7 +653,7 @@ function ResultsScreen({ setupData, entries, locale, onReset }: ResultsScreenPro
         style={{ background: "#0F0A1F" }}
       >
         <p className="text-sm font-medium text-[#8B7CF8] uppercase tracking-wider mb-3">
-          Overall Readiness Score
+          {ft.overallScore}
         </p>
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
@@ -661,10 +664,10 @@ function ResultsScreen({ setupData, entries, locale, onReset }: ResultsScreenPro
           {overallScore}
         </motion.div>
         <p className={`text-2xl font-bold mb-1 ${verdictColor(overallScore)}`}>
-          {verdictLabel(overallScore)}
+          {verdictLabel(overallScore, ft)}
         </p>
         <p className="text-sm text-[#8B7CF8]">
-          Based on {entries.length} answer{entries.length !== 1 ? "s" : ""}
+          {ft.basedOn} {entries.length} {ft.answers}
         </p>
 
         <button
@@ -673,7 +676,7 @@ function ResultsScreen({ setupData, entries, locale, onReset }: ResultsScreenPro
           style={{ background: "#7C3AED", color: "white" }}
         >
           <RotateCcw className="w-4 h-4" />
-          Practice Again
+          {ft.practiceAgain}
         </button>
       </div>
 
@@ -681,7 +684,7 @@ function ResultsScreen({ setupData, entries, locale, onReset }: ResultsScreenPro
       {entries.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-lg font-bold text-white mb-4">
-            Your Answers Breakdown
+            {ft.answersBreakdown}
           </h2>
           {entries.map((entry, i) => {
             const isWeak = weakestIds.has(i);
@@ -720,7 +723,7 @@ function ResultsScreen({ setupData, entries, locale, onReset }: ResultsScreenPro
                     </div>
                     {isWeak && (
                       <p className="text-xs text-red-400/80 flex items-center gap-1 mt-2">
-                        <AlertTriangle className="w-3 h-3" /> Needs improvement
+                        <AlertTriangle className="w-3 h-3" /> {ft.needsImprovement}
                       </p>
                     )}
                   </div>
@@ -736,13 +739,13 @@ function ResultsScreen({ setupData, entries, locale, onReset }: ResultsScreenPro
           className="rounded-2xl border border-[#1A1040] p-8 text-center"
           style={{ background: "#0F0A1F" }}
         >
-          <p className="text-[#8B7CF8]">No answers recorded yet.</p>
+          <p className="text-[#8B7CF8]">{ft.noAnswers}</p>
           <button
             onClick={onReset}
             className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm"
             style={{ background: "#7C3AED", color: "white" }}
           >
-            <RotateCcw className="w-4 h-4" /> Start Over
+            <RotateCcw className="w-4 h-4" /> {ft.startOver}
           </button>
         </div>
       )}
@@ -753,7 +756,8 @@ function ResultsScreen({ setupData, entries, locale, onReset }: ResultsScreenPro
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function InvestorQAPage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.investorQA as Record<string, string>;
 
   const [step, setStep] = useState<0 | 1 | 2>(0);
   const [setupData, setSetupData] = useState<SetupData>({
@@ -796,7 +800,7 @@ export default function InvestorQAPage() {
       <div className="relative z-10 px-4 py-12 md:py-16">
         <AnimatePresence mode="wait">
           {step === 0 && (
-            <SetupScreen key="setup" onStart={handleStart} locale={locale} />
+            <SetupScreen key="setup" onStart={handleStart} locale={locale} ft={ft} />
           )}
           {step === 1 && (
             <TrainingScreen
@@ -805,6 +809,7 @@ export default function InvestorQAPage() {
               questions={questions}
               locale={locale}
               onComplete={handleComplete}
+              ft={ft}
             />
           )}
           {step === 2 && (
@@ -814,6 +819,7 @@ export default function InvestorQAPage() {
               entries={entries}
               locale={locale}
               onReset={handleReset}
+              ft={ft}
             />
           )}
         </AnimatePresence>

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calculator, TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Loader2, RotateCcw } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 interface RunwayResult {
   baseRunwayMonths: number;
@@ -22,11 +23,11 @@ interface RunwayResult {
   summary: string;
 }
 
-const urgencyConfig = {
-  LOW: { color: "text-green-400", bg: "bg-green-400/10 border-green-400/20", label: "Low Urgency" },
-  MEDIUM: { color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20", label: "Medium Urgency" },
-  HIGH: { color: "text-orange-400", bg: "bg-orange-400/10 border-orange-400/20", label: "High Urgency" },
-  CRITICAL: { color: "text-red-400", bg: "bg-red-400/10 border-red-400/20", label: "Critical" },
+const urgencyColors = {
+  LOW: { color: "text-green-400", bg: "bg-green-400/10 border-green-400/20" },
+  MEDIUM: { color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
+  HIGH: { color: "text-orange-400", bg: "bg-orange-400/10 border-orange-400/20" },
+  CRITICAL: { color: "text-red-400", bg: "bg-red-400/10 border-red-400/20" },
 };
 
 function buildChartData(result: RunwayResult, cashInBank: number) {
@@ -40,6 +41,16 @@ function buildChartData(result: RunwayResult, cashInBank: number) {
 }
 
 export default function RunwayCalculatorPage() {
+  const { t } = useLanguage();
+  const ft = t.features.runwayCalculator as Record<string, string>;
+
+  const urgencyConfig = {
+    LOW: { ...urgencyColors.LOW, label: ft.low },
+    MEDIUM: { ...urgencyColors.MEDIUM, label: ft.medium },
+    HIGH: { ...urgencyColors.HIGH, label: ft.high },
+    CRITICAL: { ...urgencyColors.CRITICAL, label: ft.critical },
+  };
+
   const [cashInBank, setCashInBank] = useState("");
   const [burnRate, setBurnRate] = useState("");
   const [revenue, setRevenue] = useState("");
@@ -84,9 +95,9 @@ export default function RunwayCalculatorPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <Calculator className="w-6 h-6 text-[#C9A84C]" />
-            <h1 className="text-2xl font-bold text-white">Runway Calculator</h1>
+            <h1 className="text-2xl font-bold text-white">{ft.title}</h1>
           </div>
-          <p className="text-[#888888] text-sm">Model your financial scenarios and get AI-powered cash preservation advice.</p>
+          <p className="text-[#888888] text-sm">{ft.subtitle}</p>
         </div>
 
         {/* Input Form */}
@@ -94,11 +105,11 @@ export default function RunwayCalculatorPage() {
           <h2 className="text-sm font-semibold text-white">Financial Inputs</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { label: "Cash in Bank ($)", value: cashInBank, setter: setCashInBank, required: true, placeholder: "500,000" },
-              { label: "Monthly Burn Rate ($)", value: burnRate, setter: setBurnRate, required: true, placeholder: "50,000" },
-              { label: "Monthly Revenue ($)", value: revenue, setter: setRevenue, required: false, placeholder: "20,000" },
+              { label: ft.cashInBank, value: cashInBank, setter: setCashInBank, required: true, placeholder: "500,000" },
+              { label: ft.monthlyBurn, value: burnRate, setter: setBurnRate, required: true, placeholder: "50,000" },
+              { label: ft.monthlyRevenue, value: revenue, setter: setRevenue, required: false, placeholder: "20,000" },
               { label: "Revenue Growth (% / month)", value: growth, setter: setGrowth, required: false, placeholder: "5" },
-              { label: "Team Size", value: teamSize, setter: setTeamSize, required: false, placeholder: "12" },
+              { label: ft.teamSize, value: teamSize, setter: setTeamSize, required: false, placeholder: "12" },
             ].map((field) => (
               <div key={field.label} className="space-y-1.5">
                 <label className="text-xs text-[#888888]">
@@ -126,7 +137,7 @@ export default function RunwayCalculatorPage() {
               )}
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin inline mr-2" /> : null}
-              {loading ? "Calculating..." : "Calculate Runway"}
+              {loading ? ft.analyzing : ft.calculate}
             </button>
             {result && (
               <button
@@ -152,7 +163,7 @@ export default function RunwayCalculatorPage() {
               <div className={cn("border rounded-lg p-4 flex items-center justify-between", urgencyConfig[result.aiRecommendations.urgency].bg)}>
                 <div>
                   <p className={cn("font-bold text-lg", urgencyConfig[result.aiRecommendations.urgency].color)}>
-                    {result.baseRunwayMonths} months runway
+                    {result.baseRunwayMonths} {ft.months} {ft.baseRunway}
                   </p>
                   <p className="text-[#888888] text-sm mt-0.5">{result.summary}</p>
                 </div>
@@ -222,7 +233,7 @@ export default function RunwayCalculatorPage() {
               <div className="bg-[#C9A84C]/5 border border-[#C9A84C]/20 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-1">
                   <TrendingUp className="w-4 h-4 text-[#C9A84C]" />
-                  <span className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider">Fundraise Window</span>
+                  <span className="text-xs font-semibold text-[#C9A84C] uppercase tracking-wider">{ft.fundraiseWindow}</span>
                 </div>
                 <p className="text-white text-sm">{result.fundraiseWindow}</p>
               </div>
@@ -232,7 +243,7 @@ export default function RunwayCalculatorPage() {
                 <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <TrendingDown className="w-4 h-4 text-[#C9A84C]" />
-                    <span className="text-xs font-semibold text-[#888888] uppercase tracking-wider">Cost Reduction</span>
+                    <span className="text-xs font-semibold text-[#888888] uppercase tracking-wider">{ft.costReduction}</span>
                   </div>
                   <ul className="space-y-2">
                     {result.aiRecommendations.costReduction.map((item, i) => (
@@ -245,7 +256,7 @@ export default function RunwayCalculatorPage() {
                 <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-[#C9A84C]" />
-                    <span className="text-xs font-semibold text-[#888888] uppercase tracking-wider">Cash Preservation</span>
+                    <span className="text-xs font-semibold text-[#888888] uppercase tracking-wider">{ft.cashPreservation}</span>
                   </div>
                   <ul className="space-y-2">
                     {result.aiRecommendations.cashPreservation.map((item, i) => (
@@ -259,7 +270,7 @@ export default function RunwayCalculatorPage() {
 
               {/* Hiring Timing */}
               <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-4">
-                <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider mb-2">Hiring Timing</p>
+                <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider mb-2">{ft.hiringTiming}</p>
                 <p className="text-sm text-white">{result.aiRecommendations.hiringTiming}</p>
               </div>
             </motion.div>

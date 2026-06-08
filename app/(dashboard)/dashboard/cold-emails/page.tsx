@@ -77,12 +77,7 @@ const GENERATING_MSGS = [
   "Ready!",
 ];
 
-const GOAL_LABELS: Record<EmailGoal, string> = {
-  demo: "Get a demo call",
-  feedback: "Get feedback",
-  investment: "Get investment meeting",
-  partnership: "Get partnership discussion",
-};
+// GOAL_LABELS is now built inside the component using ft (see ColdEmailsPage)
 
 const STATUS_COLORS: Record<string, string> = {
   sent:      "text-[#8B7CF8] bg-[#7C3AED]/10 border-[#7C3AED]/20",
@@ -193,12 +188,16 @@ function EmailCard({
   index,
   campaignSetup,
   locale,
+  ft,
+  goalLabels,
   onRegenerated,
 }: {
   email: Email;
   index: number;
   campaignSetup: SetupData;
   locale: string;
+  ft: Record<string, string>;
+  goalLabels: Record<EmailGoal, string>;
   onRegenerated: (updated: Email) => void;
 }) {
   const [expanded, setExpanded] = useState(index === 0);
@@ -220,7 +219,7 @@ function EmailCard({
           targetType: campaignSetup.targetType,
           yourName: campaignSetup.yourName,
           yourRole: campaignSetup.yourRole,
-          goal: GOAL_LABELS[campaignSetup.goal],
+          goal: goalLabels[campaignSetup.goal],
           special: campaignSetup.special,
           locale,
           regenerateOne: true,
@@ -260,7 +259,7 @@ function EmailCard({
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border", rateColor(email.subject_lines?.[0]?.open_rate ?? 0))}>
-            ~{email.subject_lines?.[0]?.open_rate ?? 0}% open
+            ~{email.subject_lines?.[0]?.open_rate ?? 0}% {ft.openRate}
           </span>
           {expanded ? <ChevronUp className="w-4 h-4 text-[#555]" /> : <ChevronDown className="w-4 h-4 text-[#555]" />}
         </div>
@@ -300,7 +299,7 @@ function EmailCard({
                         <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border", rateColor(sl.open_rate))}>
                           ~{sl.open_rate}%
                         </span>
-                        <CopyBtn text={sl.text} label="Copy" />
+                        <CopyBtn text={sl.text} label={ft.copySubject} />
                       </div>
                     </div>
                   ))}
@@ -344,8 +343,8 @@ function EmailCard({
 
               {!editing && (
                 <div className="flex flex-wrap gap-2">
-                  <CopyBtn text={editBody} label="Copy Email" />
-                  <CopyBtn text={email.subject_lines?.[0]?.text ?? ""} label="Copy Subject" />
+                  <CopyBtn text={editBody} label={ft.copyEmail} />
+                  <CopyBtn text={email.subject_lines?.[0]?.text ?? ""} label={ft.copySubject} />
                   <button
                     onClick={() => setEditing(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border bg-[#1A1040] border-[#2D1B69] text-[#8B7CF8] hover:text-white hover:border-[#7C3AED]/50 transition-all"
@@ -358,7 +357,7 @@ function EmailCard({
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border bg-[#1A1040] border-[#2D1B69] text-[#8B7CF8] hover:text-white hover:border-[#7C3AED]/50 transition-all disabled:opacity-50"
                   >
                     <RefreshCw className={cn("w-3.5 h-3.5", regenerating && "animate-spin")} />
-                    Regenerate
+                    {ft.regenerate}
                   </button>
                 </div>
               )}
@@ -502,7 +501,7 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
 
 // ─── Setup screen ───────────────────────────────────────────────────────────────
 
-function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
+function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData) => void; ft: Record<string, string>; goalLabels: Record<EmailGoal, string> }) {
   const [form, setForm] = useState<SetupData>({
     startupName: "", description: "", targetType: "customers",
     yourName: "", yourRole: "Founder", goal: "demo", special: "",
@@ -524,13 +523,13 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
           <Send className="w-5 h-5 text-[#C9A84C]" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-white">Your First 10 Cold Emails</h1>
-          <p className="text-sm text-[#8B7CF8]">Tell us about your startup. We write emails that actually get replies.</p>
+          <h1 className="text-2xl font-bold text-white">{ft.title}</h1>
+          <p className="text-sm text-[#8B7CF8]">{ft.subtitle}</p>
         </div>
       </div>
 
       <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-xl p-6 space-y-6">
-        {field("Your startup name",
+        {field(ft.startupName,
           <input
             value={form.startupName}
             onChange={e => setForm(f => ({ ...f, startupName: e.target.value }))}
@@ -538,7 +537,7 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
             className="w-full bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-sm rounded-lg px-4 py-3 outline-none transition-colors placeholder:text-[#444]"
           />
         )}
-        {field("What you built",
+        {field(ft.whatBuilt,
           <textarea
             value={form.description}
             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -547,7 +546,7 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
             className="w-full bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-sm rounded-lg px-4 py-3 resize-none outline-none transition-colors placeholder:text-[#444]"
           />
         )}
-        {field("Who are you emailing?",
+        {field(ft.whoEmailing,
           <div className="flex gap-2">
             {(["customers", "investors", "partners"] as TargetType[]).map(t => (
               <button
@@ -564,7 +563,7 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
           </div>
         )}
         <div className="grid grid-cols-2 gap-4">
-          {field("Your name",
+          {field(ft.yourName,
             <input
               value={form.yourName}
               onChange={e => setForm(f => ({ ...f, yourName: e.target.value }))}
@@ -572,7 +571,7 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
               className="w-full bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-sm rounded-lg px-4 py-3 outline-none transition-colors placeholder:text-[#444]"
             />
           )}
-          {field("Your role",
+          {field(ft.yourRole,
             <input
               value={form.yourRole}
               onChange={e => setForm(f => ({ ...f, yourRole: e.target.value }))}
@@ -581,9 +580,9 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
             />
           )}
         </div>
-        {field("What do you want from this email?",
+        {field(ft.whatWant,
           <div className="grid grid-cols-2 gap-2">
-            {(Object.entries(GOAL_LABELS) as [EmailGoal, string][]).map(([k, v]) => (
+            {(Object.entries(goalLabels) as [EmailGoal, string][]).map(([k, v]) => (
               <button
                 key={k}
                 onClick={() => setForm(f => ({ ...f, goal: k }))}
@@ -597,7 +596,7 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
             ))}
           </div>
         )}
-        {field("Anything special about your startup? (optional)",
+        {field(ft.special,
           <textarea
             value={form.special}
             onChange={e => setForm(f => ({ ...f, special: e.target.value }))}
@@ -616,7 +615,7 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
               : "bg-[#1A1040] text-[#444] cursor-not-allowed"
           )}
         >
-          Write My 10 Emails
+          {ft.generate}
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
@@ -677,9 +676,9 @@ function GeneratingScreen() {
 // ─── Results screen ─────────────────────────────────────────────────────────────
 
 function ResultsScreen({
-  campaign, setup, locale, onReset,
+  campaign, setup, locale, onReset, ft, goalLabels,
 }: {
-  campaign: Campaign; setup: SetupData; locale: string; onReset: () => void;
+  campaign: Campaign; setup: SetupData; locale: string; onReset: () => void; ft: Record<string, string>; goalLabels: Record<EmailGoal, string>;
 }) {
   const [emails, setEmails] = useState(campaign.emails ?? []);
 
@@ -715,6 +714,8 @@ function ResultsScreen({
             index={i}
             campaignSetup={setup}
             locale={locale}
+            ft={ft}
+            goalLabels={goalLabels}
             onRegenerated={(updated) => handleRegenerated(i, updated)}
           />
         ))}
@@ -724,14 +725,14 @@ function ResultsScreen({
         <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-xl p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-[#C9A84C]" />
-            <h3 className="text-sm font-bold text-white">Your Email Strategy</h3>
+            <h3 className="text-sm font-bold text-white">{ft.yourStrategy}</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { label: "Best time to send",  value: s.best_time },
-              { label: "Send sequence",      value: s.sequence },
-              { label: "Follow-up timing",   value: s.follow_up_timing },
-              { label: "Subject line style", value: s.subject_style },
+              { label: ft.bestTime,    value: s.best_time },
+              { label: ft.sequence,    value: s.sequence },
+              { label: ft.followUp,    value: s.follow_up_timing },
+              { label: ft.subjectStyle, value: s.subject_style },
             ].map(({ label, value }) => value && (
               <div key={label} className="bg-[#06040F] rounded-lg p-3 border border-[#1A1040]">
                 <p className="text-[10px] font-semibold text-[#C9A84C] uppercase tracking-wide mb-1">{label}</p>
@@ -750,7 +751,14 @@ function ResultsScreen({
 // ─── Page ───────────────────────────────────────────────────────────────────────
 
 export default function ColdEmailsPage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.coldEmails as Record<string, string>;
+  const goalLabels: Record<EmailGoal, string> = {
+    demo: ft.getDemo,
+    feedback: ft.getFeedback,
+    investment: ft.getMeeting,
+    partnership: ft.getPartnership,
+  };
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -770,7 +778,7 @@ export default function ColdEmailsPage() {
           targetType: data.targetType,
           yourName: data.yourName,
           yourRole: data.yourRole,
-          goal: GOAL_LABELS[data.goal],
+          goal: goalLabels[data.goal],
           special: data.special,
           locale,
         }),
@@ -803,13 +811,15 @@ export default function ColdEmailsPage() {
               <p className="text-sm text-red-400">{error}</p>
             </motion.div>
           )}
-          {step === "setup"   && <SetupScreen onSubmit={handleSubmit} />}
+          {step === "setup"   && <SetupScreen onSubmit={handleSubmit} ft={ft} goalLabels={goalLabels} />}
           {step === "results" && campaign && setup && (
             <ResultsScreen
               campaign={campaign}
               setup={setup}
               locale={locale ?? "en"}
               onReset={() => { setStep("setup"); setCampaign(null); }}
+              ft={ft}
+              goalLabels={goalLabels}
             />
           )}
         </div>

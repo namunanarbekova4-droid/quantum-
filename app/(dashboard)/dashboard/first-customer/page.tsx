@@ -61,16 +61,6 @@ const INDUSTRIES = [
   "Media / Content", "Gaming", "AI / ML", "Other",
 ];
 
-const SEARCHING_MSGS = [
-  "Scanning startup communities...",
-  "Analyzing pain points on Reddit...",
-  "Searching ProductHunt discussions...",
-  "Finding people with your problem...",
-  "Matching ideal customer profiles...",
-  "Scoring compatibility...",
-  "Building outreach strategies...",
-];
-
 // ─── Quantum atom for searching screen ─────────────────────────────────────────
 
 function QuantumAtom() {
@@ -118,7 +108,7 @@ function ProfileAvatar({ name }: { name: string }) {
 
 // ─── Customer card ──────────────────────────────────────────────────────────────
 
-function CustomerCard({ profile, index }: { profile: CustomerProfile; index: number }) {
+function CustomerCard({ profile, index, ft }: { profile: CustomerProfile; index: number; ft: Record<string, string> }) {
   const isPainHigh = profile.pain_level === "HIGH";
 
   return (
@@ -148,7 +138,7 @@ function CustomerCard({ profile, index }: { profile: CustomerProfile; index: num
                     ? "text-red-400 bg-red-400/10 border-red-400/30"
                     : "text-amber-400 bg-amber-400/10 border-amber-400/30"
                 )}>
-                  {profile.pain_level} PAIN
+                  {isPainHigh ? ft.highPain : ft.mediumPain}
                 </span>
               </div>
             </div>
@@ -163,14 +153,14 @@ function CustomerCard({ profile, index }: { profile: CustomerProfile; index: num
 
         {/* Why they need it */}
         <div className="bg-[#06040F] rounded-lg p-3 mb-4 border border-[#1A1040]">
-          <p className="text-xs text-[#C9A84C] font-semibold mb-1">Why they need you</p>
+          <p className="text-xs text-[#C9A84C] font-semibold mb-1">{ft.matchScore}</p>
           <p className="text-xs text-[#ccc] leading-relaxed">{profile.why_they_need}</p>
         </div>
 
         {/* Where to find */}
         <div className="mb-4">
           <p className="text-xs text-[#8B7CF8] font-semibold mb-2 flex items-center gap-1">
-            <Users className="w-3.5 h-3.5" /> Where to find them
+            <Users className="w-3.5 h-3.5" /> {ft.whereToFind}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {profile.where_to_find.map((place, i) => (
@@ -184,7 +174,7 @@ function CustomerCard({ profile, index }: { profile: CustomerProfile; index: num
         {/* Best approach */}
         <div className="mb-4 p-3 bg-[#06040F] rounded-lg border-l-2 border-[#C9A84C]/40">
           <p className="text-xs text-[#C9A84C] font-semibold mb-1 flex items-center gap-1">
-            <Zap className="w-3 h-3" /> Best approach
+            <Zap className="w-3 h-3" /> {ft.bestApproach}
           </p>
           <p className="text-xs text-[#ccc] leading-relaxed">{profile.best_approach}</p>
         </div>
@@ -194,7 +184,7 @@ function CustomerCard({ profile, index }: { profile: CustomerProfile; index: num
           <Link href="/dashboard/cold-emails" className="flex-1">
             <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-[#C9A84C] hover:bg-[#d4b660] text-[#06040F] text-xs font-bold rounded-lg transition-colors">
               <Mail className="w-3.5 h-3.5" />
-              Write Email →
+              {ft.writeEmail}
             </button>
           </Link>
         </div>
@@ -205,7 +195,7 @@ function CustomerCard({ profile, index }: { profile: CustomerProfile; index: num
 
 // ─── Setup screen ───────────────────────────────────────────────────────────────
 
-function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
+function SetupScreen({ onSubmit, ft }: { onSubmit: (data: SetupData) => void; ft: Record<string, string> }) {
   const [form, setForm] = useState<SetupData>({
     productDescription: "",
     idealCustomer: "",
@@ -231,16 +221,16 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
             <Target className="w-5 h-5 text-[#C9A84C]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Find My First Customer</h1>
-            <p className="text-sm text-[#8B7CF8]">Describe what you built. We find who needs it today.</p>
+            <h1 className="text-2xl font-bold text-white">{ft.title}</h1>
+            <p className="text-sm text-[#8B7CF8]">{ft.subtitle}</p>
           </div>
         </div>
       </div>
 
       <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-xl p-6 space-y-6">
         {field(
-          "What does your product do?",
-          "Be specific — what action does it perform for the user?",
+          ft.productDescription,
+          ft.productDescription,
           <textarea
             value={form.productDescription}
             onChange={e => setForm(f => ({ ...f, productDescription: e.target.value }))}
@@ -251,8 +241,8 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
         )}
 
         {field(
-          "Who is your ideal customer?",
-          "Job title, company type, company size — be specific",
+          ft.idealCustomer,
+          ft.idealCustomer,
           <input
             type="text"
             value={form.idealCustomer}
@@ -263,8 +253,8 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
         )}
 
         {field(
-          "What problem do you solve?",
-          "What painful, expensive, or time-consuming problem goes away when they use you?",
+          ft.problem,
+          ft.problem,
           <textarea
             value={form.problem}
             onChange={e => setForm(f => ({ ...f, problem: e.target.value }))}
@@ -275,8 +265,8 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
         )}
 
         {field(
-          "What industry?",
-          "The primary industry you're targeting",
+          ft.industry,
+          ft.industry,
           <select
             value={form.industry}
             onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
@@ -298,7 +288,7 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
               : "bg-[#1A1040] text-[#444] cursor-not-allowed"
           )}
         >
-          Find My Customers
+          {ft.findBtn}
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
@@ -308,18 +298,18 @@ function SetupScreen({ onSubmit }: { onSubmit: (data: SetupData) => void }) {
 
 // ─── Searching screen ───────────────────────────────────────────────────────────
 
-function SearchingScreen() {
+function SearchingScreen({ searchingMsgs }: { searchingMsgs: string[] }) {
   const [msgIndex, setMsgIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const msgTimer = setInterval(() => setMsgIndex(i => (i + 1) % SEARCHING_MSGS.length), 2000);
+    const msgTimer = setInterval(() => setMsgIndex(i => (i + 1) % searchingMsgs.length), 2000);
     const progTimer = setInterval(() => setProgress(p => {
       if (p >= 92) return p;
       return p + (p < 40 ? 3 : p < 70 ? 2 : 0.8);
     }), 300);
     return () => { clearInterval(msgTimer); clearInterval(progTimer); };
-  }, []);
+  }, [searchingMsgs.length]);
 
   return (
     <motion.div
@@ -340,11 +330,11 @@ function SearchingScreen() {
             transition={{ duration: 0.3 }}
             className="text-lg font-semibold text-white"
           >
-            {SEARCHING_MSGS[msgIndex]}
+            {searchingMsgs[msgIndex]}
           </motion.p>
         </AnimatePresence>
 
-        <p className="text-sm text-[#8B7CF8]">Finding people who need you right now...</p>
+        <p className="text-sm text-[#8B7CF8]">{searchingMsgs[0]}</p>
 
         {/* Progress bar */}
         <div className="w-full h-1.5 bg-[#1A1040] rounded-full overflow-hidden mt-6">
@@ -366,15 +356,17 @@ function ResultsScreen({
   result,
   setup,
   onReset,
+  ft,
 }: {
   result: SearchResult;
   setup: SetupData;
   onReset: () => void;
+  ft: Record<string, string>;
 }) {
   const planSteps = [
-    { label: "Do this TODAY", value: result.acquisition_plan?.today, color: "#C9A84C", border: "#C9A84C/30" },
-    { label: "Do this THIS WEEK", value: result.acquisition_plan?.this_week, color: "#A855F7", border: "#7C3AED/30" },
-    { label: "Do this THIS MONTH", value: result.acquisition_plan?.this_month, color: "#34D399", border: "#34D399/30" },
+    { label: ft.doToday, value: result.acquisition_plan?.today, color: "#C9A84C", border: "#C9A84C/30" },
+    { label: ft.doThisWeek, value: result.acquisition_plan?.this_week, color: "#A855F7", border: "#7C3AED/30" },
+    { label: ft.doThisMonth, value: result.acquisition_plan?.this_month, color: "#34D399", border: "#34D399/30" },
   ];
 
   const platformColors: Record<string, string> = {
@@ -390,7 +382,7 @@ function ResultsScreen({
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Your First Customers</h1>
+          <h1 className="text-2xl font-bold text-white">{ft.title}</h1>
           <p className="text-sm text-[#8B7CF8] mt-1">
             10 people who need <span className="text-white font-semibold">{setup.industry}</span> solutions like yours, right now.
           </p>
@@ -399,7 +391,7 @@ function ResultsScreen({
           onClick={onReset}
           className="flex items-center gap-2 px-4 py-2 bg-[#1A1040] border border-[#2D1B69] text-[#8B7CF8] hover:text-white hover:border-[#7C3AED]/50 rounded-lg text-sm font-medium transition-all"
         >
-          <RefreshCw className="w-4 h-4" /> Search Again
+          <RefreshCw className="w-4 h-4" /> {ft.findSimilar}
         </button>
       </div>
 
@@ -410,7 +402,7 @@ function ResultsScreen({
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {(result.profiles ?? []).map((profile, i) => (
-            <CustomerCard key={i} profile={profile} index={i} />
+            <CustomerCard key={i} profile={profile} index={i} ft={ft} />
           ))}
         </div>
       </div>
@@ -419,7 +411,7 @@ function ResultsScreen({
       {result.communities?.length > 0 && (
         <div>
           <h2 className="text-xs font-semibold text-[#8B7CF8]/60 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <Users className="w-4 h-4" /> WHERE YOUR CUSTOMERS HANG OUT
+            <Users className="w-4 h-4" /> {ft.whereHang}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {result.communities.map((c, i) => {
@@ -451,7 +443,7 @@ function ResultsScreen({
       {result.acquisition_plan && (
         <div>
           <h2 className="text-xs font-semibold text-[#8B7CF8]/60 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" /> YOUR CUSTOMER ACQUISITION PLAN
+            <TrendingUp className="w-4 h-4" /> {ft.acquisitionPlan}
           </h2>
           <div className="space-y-4">
             {planSteps.map((step, i) => step.value && (
@@ -483,8 +475,8 @@ function ResultsScreen({
             <Mail className="w-6 h-6 text-[#C9A84C]" />
           </div>
           <div className="flex-1">
-            <p className="font-bold text-white mb-1">Ready to reach out?</p>
-            <p className="text-sm text-[#8B7CF8]/80">Write 10 personalized cold emails for these exact people.</p>
+            <p className="font-bold text-white mb-1">{ft.writeEmail}</p>
+            <p className="text-sm text-[#8B7CF8]/80">{ft.bestApproach}</p>
           </div>
           <ChevronRight className="w-5 h-5 text-[#C9A84C] group-hover:translate-x-1 transition-transform" />
         </div>
@@ -496,7 +488,11 @@ function ResultsScreen({
 // ─── Page ───────────────────────────────────────────────────────────────────────
 
 export default function FirstCustomerPage() {
-  const { locale } = useLanguage();
+  const { t, locale } = useLanguage();
+  const ft = t.features.findCustomer as Record<string, string>;
+
+  const SEARCHING_MSGS = [ft.searching, ft.scanningCommunities, ft.analyzingPain, ft.searchingProductHunt, ft.findingPeople, ft.matchingProfiles, ft.scoringCompatibility, ft.buildingStrategies];
+
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
   const [result, setResult] = useState<SearchResult | null>(null);
@@ -518,14 +514,14 @@ export default function FirstCustomerPage() {
       setStep("results");
     } catch (err) {
       setStep("setup");
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : ft.errorFill);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#06040F] p-5 lg:p-8">
       <AnimatePresence mode="wait">
-        {step === "searching" && <SearchingScreen key="searching" />}
+        {step === "searching" && <SearchingScreen key="searching" searchingMsgs={SEARCHING_MSGS} />}
       </AnimatePresence>
 
       {step !== "searching" && (
@@ -540,9 +536,9 @@ export default function FirstCustomerPage() {
               <p className="text-sm text-red-400">{error}</p>
             </motion.div>
           )}
-          {step === "setup" && <SetupScreen onSubmit={handleSubmit} />}
+          {step === "setup" && <SetupScreen onSubmit={handleSubmit} ft={ft} />}
           {step === "results" && result && setup && (
-            <ResultsScreen result={result} setup={setup} onReset={() => { setStep("setup"); setResult(null); }} />
+            <ResultsScreen result={result} setup={setup} onReset={() => { setStep("setup"); setResult(null); }} ft={ft} />
           )}
         </div>
       )}
