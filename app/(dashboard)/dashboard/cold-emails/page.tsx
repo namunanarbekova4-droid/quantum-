@@ -558,7 +558,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
                     ? "bg-[#C9A84C]/15 border-[#C9A84C]/60 text-[#C9A84C]"
                     : "bg-[#06040F] border-[#1A1040] text-[#8B7CF8]/60 hover:text-[#8B7CF8] hover:border-[#2D1B69]"
                 )}
-              >{t}</button>
+              >{ft[t]}</button>
             ))}
           </div>
         )}
