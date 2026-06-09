@@ -47,16 +47,16 @@ const INDUSTRIES = ["AI", "EdTech", "Fintech", "HealthTech", "Consumer", "SaaS",
 const STAGES_OPTIONS = ["Idea", "MVP", "Revenue", "Growth"];
 const GEO_OPTIONS = ["Kazakhstan", "Central Asia", "Global", "USA", "Europe"];
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  not_contacted: { label: "Not Contacted", color: "bg-[#2a2a3a] text-[#8B7CF8]" },
-  email_sent: { label: "Email Sent", color: "bg-blue-900/40 text-blue-300" },
-  replied: { label: "Replied", color: "bg-yellow-900/40 text-yellow-300" },
-  meeting_scheduled: { label: "Meeting Scheduled", color: "bg-[#7C3AED]/30 text-[#8B7CF8]" },
-  passed: { label: "Passed", color: "bg-red-900/40 text-red-300" },
-  invested: { label: "🎉 Invested!", color: "bg-[#C9A84C]/20 text-[#C9A84C]" },
+const STATUS_COLORS: Record<string, string> = {
+  not_contacted: "bg-[#2a2a3a] text-[#8B7CF8]",
+  email_sent: "bg-blue-900/40 text-blue-300",
+  replied: "bg-yellow-900/40 text-yellow-300",
+  meeting_scheduled: "bg-[#7C3AED]/30 text-[#8B7CF8]",
+  passed: "bg-red-900/40 text-red-300",
+  invested: "bg-[#C9A84C]/20 text-[#C9A84C]",
 };
 
-const STATUS_KEYS = Object.keys(STATUS_CONFIG);
+const STATUS_KEYS = Object.keys(STATUS_COLORS);
 
 // Loading messages are built from translations inside the component
 
@@ -225,13 +225,15 @@ function InvestorCard({
 function PipelineRow({
   record,
   onUpdate,
+  ft,
 }: {
   record: PipelineRecord;
   onUpdate: (id: string, patch: { status?: string; notes?: string }) => void;
+  ft: Record<string, string>;
 }) {
   const [notes, setNotes] = useState(record.notes ?? "");
   const [editingNotes, setEditingNotes] = useState(false);
-  const cfg = STATUS_CONFIG[record.status] ?? STATUS_CONFIG.not_contacted;
+  const statusColor = STATUS_COLORS[record.status] ?? STATUS_COLORS.not_contacted;
 
   function saveNotes() {
     setEditingNotes(false);
@@ -253,12 +255,12 @@ function PipelineRow({
         <select
           value={record.status}
           onChange={(e) => onUpdate(record.id, { status: e.target.value })}
-          className={`text-xs px-2 py-1 rounded-full border-0 outline-none cursor-pointer ${cfg.color} bg-transparent`}
+          className={`text-xs px-2 py-1 rounded-full border-0 outline-none cursor-pointer ${statusColor} bg-transparent`}
           style={{ WebkitAppearance: "none" }}
         >
           {STATUS_KEYS.map((s) => (
             <option key={s} value={s} className="bg-[#0F0A1F] text-white">
-              {STATUS_CONFIG[s].label}
+              {ft[s.replace(/_([a-z])/g, (_, c) => c.toUpperCase())] ?? s}
             </option>
           ))}
         </select>
@@ -724,6 +726,7 @@ export default function InvestorFinderPage() {
                                   key={record.id}
                                   record={record}
                                   onUpdate={handleUpdateRecord}
+                                  ft={ft}
                                 />
                               ))}
                             </tbody>
