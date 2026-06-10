@@ -4,6 +4,71 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Layers, ChevronRight, ChevronLeft, Copy, Check, RotateCcw, Loader2 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
+function downloadPDF(result: PitchDeckResult, startupName: string) {
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>${startupName} — Pitch Deck</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #fff; color: #111; }
+  .page { width: 100%; page-break-after: always; padding: 48px 56px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; border-bottom: 2px solid #eee; }
+  .page:last-of-type { page-break-after: avoid; }
+  .slide-number { font-size: 11px; color: #999; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+  .slide-type { display: inline-block; background: #7C3AED; color: #fff; font-size: 10px; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+  h1 { font-size: 32px; font-weight: 800; color: #111; line-height: 1.2; margin-bottom: 10px; }
+  .subtitle { font-size: 16px; color: #7C3AED; font-style: italic; margin-bottom: 24px; }
+  .content { font-size: 15px; color: #333; line-height: 1.7; }
+  .key-stat { font-size: 42px; font-weight: 900; color: #C9A84C; margin: 20px 0; }
+  .notes { margin-top: 24px; padding: 16px; background: #f8f6ff; border-left: 3px solid #7C3AED; border-radius: 4px; }
+  .notes-label { font-size: 10px; color: #7C3AED; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .notes-text { font-size: 13px; color: #555; font-style: italic; line-height: 1.6; }
+  .extra-section { margin-top: 40px; padding: 32px 56px; border-top: 2px solid #eee; }
+  .extra-section h2 { font-size: 22px; font-weight: 700; color: #7C3AED; margin-bottom: 16px; }
+  .extra-section p { font-size: 14px; color: #333; line-height: 1.8; white-space: pre-wrap; }
+  .qa-item { margin-bottom: 20px; padding: 16px; border: 1px solid #eee; border-radius: 8px; }
+  .qa-q { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 8px; }
+  .qa-a { font-size: 13px; color: #555; line-height: 1.6; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+${result.slides.map(slide => `
+<div class="page">
+  <div class="slide-number">Slide ${slide.slide_number} of ${result.slides.length}</div>
+  <div class="slide-type">${slide.slide_type.replace(/_/g, ' ')}</div>
+  <h1>${slide.title}</h1>
+  ${slide.subtitle ? `<p class="subtitle">${slide.subtitle}</p>` : ''}
+  ${slide.key_stat ? `<div class="key-stat">${slide.key_stat}</div>` : ''}
+  <div class="content">${slide.main_content}</div>
+  ${slide.speaker_notes ? `<div class="notes"><div class="notes-label">Speaker Notes</div><div class="notes-text">${slide.speaker_notes}</div></div>` : ''}
+</div>`).join('')}
+<div class="extra-section">
+  <h2>3-Minute Script</h2>
+  <p>${result.three_minute_script}</p>
+</div>
+<div class="extra-section">
+  <h2>Elevator Pitch (30 sec)</h2>
+  <p>${result.elevator_pitch}</p>
+</div>
+<div class="extra-section">
+  <h2>Investor Q&amp;A</h2>
+  ${result.investor_questions?.map(qa => `<div class="qa-item"><div class="qa-q">Q: ${qa.question}</div><div class="qa-a">A: ${qa.answer}</div></div>`).join('') ?? ''}
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (win) {
+    win.onload = () => {
+      setTimeout(() => { win.print(); URL.revokeObjectURL(url); }, 500);
+    };
+  }
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface PitchSlide {
@@ -85,6 +150,7 @@ export default function PitchDeckPage() {
   const [direction, setDirection] = useState(1);
   const [loadingMsg, setLoadingMsg] = useState(0);
   const [result, setResult] = useState<PitchDeckResult | null>(null);
+  const [deckName, setDeckName] = useState("My Startup");
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"slides" | "scripts" | "qa">("slides");
   const [expandedNotes, setExpandedNotes] = useState<Set<number>>(new Set());
@@ -100,6 +166,7 @@ export default function PitchDeckPage() {
     setStep(2);
     setError("");
     const startupName = finalAnswers[0].split(/[,.\n]/)[0].trim() || "My Startup";
+    setDeckName(startupName);
     try {
       const res = await fetch("/api/pitch-deck", {
         method: "POST",
@@ -482,7 +549,7 @@ export default function PitchDeckPage() {
         <div className="fixed bottom-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between gap-3" style={{ background: "rgba(6,4,15,0.95)", borderTop: "1px solid #1A1040", backdropFilter: "blur(10px)" }}>
           <CopyBtn text={result.three_minute_script} label={ft.copyScript} />
           <button
-            onClick={() => { alert("PDF export coming soon!"); }}
+            onClick={() => result && downloadPDF(result, deckName)}
             className="px-5 py-2 rounded-lg text-sm font-semibold transition-all"
             style={{ background: "#C9A84C", color: "#06040F" }}
           >
