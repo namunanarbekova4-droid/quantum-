@@ -1,13 +1,28 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey =
-  process.env.GEMINI_API_KEY ||
-  process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
-  "";
+function getApiKey(): string {
+  const key = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+  if (!key) throw new Error("AI service not configured. Please contact support.");
+  return key;
+}
 
-function getModel() {
-  const genAI = new GoogleGenerativeAI(apiKey);
-  return genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+function getModel(modelName = "gemini-1.5-flash") {
+  const genAI = new GoogleGenerativeAI(getApiKey());
+  return genAI.getGenerativeModel({ model: modelName });
+}
+
+function classifyError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes("API_KEY") || msg.includes("API key") || msg.includes("not configured")) {
+    return "AI service not configured. Please contact support.";
+  }
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED")) {
+    return "AI service is temporarily busy. Please try again in a moment.";
+  }
+  if (msg.includes("fetch") || msg.includes("network") || msg.includes("ECONNREFUSED")) {
+    return "Connection error. Please check your internet and try again.";
+  }
+  return msg || "Generation failed. Please try again.";
 }
 
 export async function generateWithRetry(
@@ -25,12 +40,10 @@ export async function generateWithRetry(
     } catch (err: unknown) {
       lastError = err;
       const msg = err instanceof Error ? err.message : String(err);
-      // Rate limit or quota — wait before retry
       if (msg.includes("429") || msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED")) {
         await new Promise((r) => setTimeout(r, (attempt + 1) * 2000));
         continue;
       }
-      // Non-retriable error
       throw err;
     }
   }
@@ -40,14 +53,14 @@ export async function generateWithRetry(
 export async function generateJSON<T>(prompt: string, maxRetries = 3): Promise<T> {
   const fullPrompt = `${prompt}\n\nRespond with valid JSON only. No markdown, no code fences, no explanation. Just the JSON object.`;
   const raw = await generateWithRetry(fullPrompt, maxRetries);
-  // Strip any accidental markdown fences
   const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim();
   try {
     return JSON.parse(cleaned) as T;
   } catch {
-    // Try extracting JSON from the response
     const match = cleaned.match(/\{[\s\S]*\}/);
     if (match) return JSON.parse(match[0]) as T;
     throw new Error("Failed to parse AI response as JSON");
   }
 }
+
+export { classifyError };

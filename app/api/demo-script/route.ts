@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { generateWithRetry } from "@/lib/gemini";
+import { generateWithRetry, classifyError } from "@/lib/gemini";
 
 export const maxDuration = 60;
 
@@ -52,6 +52,11 @@ Write a professional demo script with:
 
 Format the script clearly. Use --- to separate scenes. Be specific about every click, word, and transition. This should be performable without any preparation.${langInstruction}`;
 
-  const script = await generateWithRetry(prompt);
-  return NextResponse.json({ script });
+  try {
+    const script = await generateWithRetry(prompt);
+    return NextResponse.json({ script });
+  } catch (err) {
+    console.error("demo-script error:", err);
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
+  }
 }

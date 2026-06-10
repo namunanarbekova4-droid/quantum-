@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { generateJSON } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60;
@@ -106,7 +106,7 @@ Return a JSON object with this exact structure:
     } catch (err) {
       console.error("investor-finder find error:", err);
       return NextResponse.json(
-        { error: "Generation failed. Please try again." },
+        { error: classifyError(err) },
         { status: 500 }
       );
     }

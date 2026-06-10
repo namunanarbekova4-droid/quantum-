@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { generateWithRetry } from "@/lib/gemini";
+import { generateWithRetry, classifyError } from "@/lib/gemini";
 
 export const maxDuration = 60;
 
@@ -57,8 +57,12 @@ ${conversationText}
 Now give your final response. Be direct, specific, and honest. No bullet points. No lists. Speak in flowing paragraphs. Max 3 paragraphs. This is the moment they need real guidance — give it to them.${langInstruction}`;
   }
 
-  const content = await generateWithRetry(prompt);
-  const type = userMessages.length < 3 ? "question" : "response";
-
-  return NextResponse.json({ type, content });
+  try {
+    const content = await generateWithRetry(prompt);
+    const type = userMessages.length < 3 ? "question" : "response";
+    return NextResponse.json({ type, content });
+  } catch (err) {
+    console.error("compass error:", err);
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
+  }
 }

@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
   if (!decisionText?.trim()) return NextResponse.json({ questions: [] });
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
   if (!apiKey) return NextResponse.json({ questions: [] });
 
   try {

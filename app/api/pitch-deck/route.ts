@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { generateJSON } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60;
@@ -88,16 +88,21 @@ Generate all 12 slides in order: cover, problem, personal_story, solution, marke
 Make titles punchy like "We Found the Problem No One Wanted to Solve" not just "Problem".
 Generate 5 investor_questions with strong answers.${langInstruction}`;
 
-  const result = await generateJSON<PitchDeckResult>(prompt);
+  try {
+    const result = await generateJSON<PitchDeckResult>(prompt);
 
-  await prisma.pitchDeck.create({
-    data: {
-      userId: session.user.id,
-      startupName: startupName || "Untitled",
-      answers,
-      generatedDeck: result as object,
-    },
-  });
+    await prisma.pitchDeck.create({
+      data: {
+        userId: session.user.id,
+        startupName: startupName || "Untitled",
+        answers,
+        generatedDeck: result as object,
+      },
+    });
 
-  return NextResponse.json(result);
+    return NextResponse.json(result);
+  } catch (err) {
+    console.error("pitch-deck error:", err);
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
+  }
 }

@@ -90,7 +90,7 @@ Keep responses to 2-5 sentences. Be specific to the exact decision context. Neve
       ? `${systemPrompt}\n\nConversation so far:\n${conversationText}\n\nUser: ${message}\n${p.name}:`
       : `${systemPrompt}\n\n${p.name} (opening challenge):`;
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "");
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const result = await model.generateContent(fullPrompt);

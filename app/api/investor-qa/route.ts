@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { generateJSON } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60;
@@ -168,7 +168,7 @@ Return ONLY valid JSON:
   } catch (err) {
     console.error("[investor-qa] error:", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: classifyError(err) },
       { status: 500 }
     );
   }

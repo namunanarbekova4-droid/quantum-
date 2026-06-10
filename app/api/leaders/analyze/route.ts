@@ -79,8 +79,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unknown leader" }, { status: 400 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
+  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
+  if (!apiKey) return NextResponse.json({ error: "AI service not configured. Please contact support." }, { status: 500 });
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({

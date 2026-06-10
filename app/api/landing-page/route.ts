@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { generateJSON } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60;
@@ -138,15 +138,20 @@ Generate complete landing page copy. Return ONLY a JSON object with this exact s
 
 Headlines should be specific, benefit-driven, and match the ${tone} tone. Problem statements should make the ideal customer feel deeply understood. Features should focus on outcomes, not features. Testimonials should sound like real humans, not marketing copy.${langInstruction}`;
 
-  const result = await generateJSON<LandingPageResult>(prompt);
+  try {
+    const result = await generateJSON<LandingPageResult>(prompt);
 
-  await prisma.landingPageGen.create({
-    data: {
-      userId: session.user.id,
-      startupName,
-      generatedCopy: result as object,
-    },
-  });
+    await prisma.landingPageGen.create({
+      data: {
+        userId: session.user.id,
+        startupName,
+        generatedCopy: result as object,
+      },
+    });
 
-  return NextResponse.json(result);
+    return NextResponse.json(result);
+  } catch (err) {
+    console.error("landing-page error:", err);
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
+  }
 }
