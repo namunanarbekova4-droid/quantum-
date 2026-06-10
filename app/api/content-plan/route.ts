@@ -25,82 +25,37 @@ export async function POST(req: Request) {
   const platformList = (platforms as string[]).join(", ");
   const topicList = (topics as string[]).join(", ");
 
-  const prompt = `You are the world's best content strategist for startup founders. You have helped 500+ founders build audiences from zero.
+  const prompt = `You are a content strategist for startup founders. Create a 30-day content plan.
 
-Your job is to create a complete 30-day content plan for this founder. Write every single post in their EXACT voice and style.
-
-FOUNDER INFORMATION:
 Startup: ${startupName}
-Target audience: ${targetAudience}
+Audience: ${targetAudience}
 Platforms: ${platformList}
 Goal: ${goal}
 Topics: ${topicList}
 Tone: ${tone}
 Personal story: ${personalStory || "Not provided"}
 Avoid: ${avoidContent || "Nothing specified"}
+Language: ${lang}
 
-CRITICAL RULES:
-- Write in the founder's exact tone and style
-- Every post must feel personal and real, never corporate
-- Never use hashtag spam (max 2-3 relevant hashtags per post)
-- Each post must provide real value
-- Mix content types: stories, tips, opinions, behind scenes, wins, losses
-- LinkedIn posts: 150-300 words
-- Twitter/X posts: under 280 characters
-- Instagram posts: 100-200 words
-- Every post must have a scroll-stopping hook as first line
-- Use the personal story naturally across multiple posts
-- Never repeat the same idea twice
-- Distribute posts across all selected platforms evenly
-- Make people want to follow this founder
+Rules: posts must be personal, valuable, varied (stories/tips/opinions/wins/losses). Max 2 hashtags. LinkedIn max 200 words, Twitter max 280 chars, Instagram max 150 words. Strong hook as first line.
 
-IMPORTANT: Respond entirely in ${lang}. All post content must be in ${lang}.
-
-Return ONLY this JSON object, no markdown, no code fences, nothing else:
+Return ONLY valid JSON, no markdown:
 {
-  "founder_voice": {
-    "tone": "description of their voice in 1 sentence",
-    "style": "how they communicate in 1 sentence",
-    "key_themes": ["theme1", "theme2", "theme3"]
-  },
-  "weekly_strategy": {
-    "week1": "one sentence strategy for week 1",
-    "week2": "one sentence strategy for week 2",
-    "week3": "one sentence strategy for week 3",
-    "week4": "one sentence strategy for week 4"
-  },
+  "founder_voice": {"tone": "1 sentence", "style": "1 sentence", "key_themes": ["theme1","theme2","theme3"]},
+  "weekly_strategy": {"week1": "1 sentence", "week2": "1 sentence", "week3": "1 sentence", "week4": "1 sentence"},
   "posts": [
-    {
-      "day": 1,
-      "week": 1,
-      "platform": "LinkedIn",
-      "content_type": "story",
-      "title": "short internal label",
-      "hook": "first line that stops the scroll",
-      "full_post": "complete post text ready to copy and publish",
-      "best_time_to_post": "Tuesday 9am",
-      "expected_engagement": "HIGH",
-      "why_this_works": "one sentence explanation"
-    }
+    {"day": 1, "week": 1, "platform": "LinkedIn", "content_type": "story", "title": "label", "hook": "hook line", "full_post": "full post text", "best_time_to_post": "Tue 9am", "expected_engagement": "HIGH", "why_this_works": "1 sentence"}
   ],
   "bonus_content": {
-    "bio_linkedin": "optimized LinkedIn bio ready to use",
-    "bio_twitter": "optimized Twitter bio under 160 chars",
-    "pinned_post": "best post to pin first — the complete post text",
-    "content_pillars": [
-      {
-        "pillar": "pillar name",
-        "description": "what this content pillar covers",
-        "post_frequency": "3x per week"
-      }
-    ]
+    "bio_linkedin": "LinkedIn bio",
+    "bio_twitter": "Twitter bio under 160 chars",
+    "pinned_post": "best pinned post text",
+    "content_pillars": [{"pillar": "name", "description": "what it covers", "post_frequency": "3x/week"}]
   },
-  "growth_tips": [
-    "specific growth tip for this founder based on their goal and audience"
-  ]
+  "growth_tips": ["tip1","tip2","tip3"]
 }
 
-Generate exactly 30 posts in the posts array. Distribute them across days 1-30. Assign week 1 to days 1-7, week 2 to days 8-14, week 3 to days 15-21, week 4 to days 22-30. Not every day needs a post. Provide exactly 5 growth tips.`;
+Generate exactly 30 posts across days 1-30 (week1=days1-7, week2=days8-14, week3=days15-21, week4=days22-30). All text in ${lang}. Be concise but impactful.`;
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
