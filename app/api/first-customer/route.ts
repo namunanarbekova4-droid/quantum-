@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { classifyError } from "@/lib/gemini";
 
 const LANG_MAP: Record<string, string> = {
   en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh",
@@ -103,7 +104,7 @@ IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON (no markdown, no 
     return NextResponse.json({ id: saved.id, ...data });
   } catch (err) {
     console.error("first-customer error:", err);
-    return NextResponse.json({ error: "Search failed. Please try again." }, { status: 500 });
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
   }
 }
 

@@ -1,6 +1,7 @@
 export const maxDuration = 60;
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { classifyError } from "@/lib/gemini";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -99,13 +100,6 @@ Return ONLY valid JSON, no markdown, no code fences:
     return NextResponse.json(analysis);
   } catch (error: unknown) {
     console.error("analyze-pitch error:", error);
-    const msg = error instanceof Error ? error.message : "";
-    if (msg.includes("429") || msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED")) {
-      return NextResponse.json(
-        { error: "AI analysis temporarily unavailable. Please try again in a few minutes." },
-        { status: 429 }
-      );
-    }
-    return NextResponse.json({ error: "Analysis failed" }, { status: 500 });
+    return NextResponse.json({ error: classifyError(error) }, { status: 500 });
   }
 }

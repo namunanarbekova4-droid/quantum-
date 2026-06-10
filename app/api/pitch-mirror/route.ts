@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { classifyError } from "@/lib/gemini";
 
 const LANG_MAP: Record<string, string> = {
   en: "English",
@@ -173,7 +174,7 @@ Return ONLY valid JSON with this exact structure (no markdown, no code fences):
     return NextResponse.json({ id: saved.id, feedback });
   } catch (err) {
     console.error("pitch-mirror error:", err);
-    return NextResponse.json({ error: "Analysis failed. Please try again." }, { status: 500 });
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
   }
 }
 

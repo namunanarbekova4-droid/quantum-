@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { generateJSON } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 
 export const maxDuration = 60;
 
@@ -65,6 +65,11 @@ Create a powerful company manifesto and brand foundations. Return ONLY a JSON ob
 
 Make it specific to their answers. No generic startup platitudes. This should feel unmistakably like THEM.${langInstruction}`;
 
-  const result = await generateJSON<ManifestoResult>(prompt);
-  return NextResponse.json(result);
+  try {
+    const result = await generateJSON<ManifestoResult>(prompt);
+    return NextResponse.json(result);
+  } catch (err) {
+    console.error("manifesto error:", err);
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
+  }
 }

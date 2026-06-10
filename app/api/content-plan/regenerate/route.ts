@@ -1,7 +1,10 @@
+export const maxDuration = 60;
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { classifyError } from "@/lib/gemini";
 
 const LANG_MAP: Record<string, string> = {
   en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh",
@@ -78,6 +81,6 @@ Return ONLY this JSON, nothing else:
     return NextResponse.json(post);
   } catch (err) {
     console.error("content-plan/regenerate error:", err);
-    return NextResponse.json({ error: "Regeneration failed. Please try again." }, { status: 500 });
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
   }
 }
