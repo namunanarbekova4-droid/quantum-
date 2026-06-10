@@ -6,6 +6,19 @@ import { prisma } from "@/lib/prisma";
 
 export const maxDuration = 60;
 
+export async function GET(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const decks = await prisma.pitchDeck.findMany({
+    where: { userId: session.user.id },
+    select: { id: true, startupName: true, createdAt: true },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+  return NextResponse.json(decks);
+}
+
 interface PitchSlide {
   slide_number: number;
   slide_type: string;
