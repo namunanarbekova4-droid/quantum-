@@ -77,7 +77,7 @@ IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON:
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         generationConfig: { temperature: 0.9, maxOutputTokens: 1024 },
       });
       const result = await model.generateContent(prompt);
@@ -153,7 +153,7 @@ IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON (no markdown, no 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       generationConfig: { temperature: 0.85, maxOutputTokens: 6000 },
     });
 
