@@ -827,27 +827,33 @@ function BonusTab({ plan }: { plan: ContentPlan }) {
   return (
     <div className="space-y-6">
       {/* Optimized bios */}
+      {(bc.bio_linkedin || bc.bio_twitter) && (
       <div>
         <h3 className="text-[#C9A84C] text-sm font-bold mb-4 flex items-center gap-2">
           <Mic className="w-4 h-4" /> Optimized Bios
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {bc.bio_linkedin && (
           <div className="p-4 rounded-xl border border-blue-600/30 bg-blue-600/5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-blue-400 text-xs font-bold uppercase tracking-wider">💼 LinkedIn Bio</p>
-              <CopyBtn text={bc.bio_linkedin} />
+              <CopyBtn text={bc.bio_linkedin ?? ""} />
             </div>
             <p className="text-white/80 text-sm leading-relaxed">{bc.bio_linkedin}</p>
           </div>
+          )}
+          {bc.bio_twitter && (
           <div className="p-4 rounded-xl border border-white/10 bg-white/5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-white/60 text-xs font-bold uppercase tracking-wider">𝕏 Twitter Bio</p>
-              <CopyBtn text={bc.bio_twitter} />
+              <CopyBtn text={bc.bio_twitter ?? ""} />
             </div>
             <p className="text-white/80 text-sm leading-relaxed">{bc.bio_twitter}</p>
           </div>
+          )}
         </div>
       </div>
+      )}
 
       {/* Pinned post */}
       {bc.pinned_post && (
