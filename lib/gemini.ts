@@ -6,9 +6,12 @@ function getApiKey(): string {
   return key;
 }
 
-function getModel(modelName = "gemini-2.5-flash") {
+function getModel(modelName = "gemini-2.5-flash", jsonMode = false) {
   const genAI = new GoogleGenerativeAI(getApiKey());
-  return genAI.getGenerativeModel({ model: modelName });
+  return genAI.getGenerativeModel({
+    model: modelName,
+    ...(jsonMode ? { generationConfig: { responseMimeType: "application/json" } } : {}),
+  });
 }
 
 function classifyError(err: unknown): string {
@@ -51,16 +54,32 @@ export async function generateWithRetry(
 }
 
 export async function generateJSON<T>(prompt: string, maxRetries = 3): Promise<T> {
-  const fullPrompt = `${prompt}\n\nRespond with valid JSON only. No markdown, no code fences, no explanation. Just the JSON object.`;
-  const raw = await generateWithRetry(fullPrompt, maxRetries);
-  const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim();
-  try {
-    return JSON.parse(cleaned) as T;
-  } catch {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]) as T;
-    throw new Error("Failed to parse AI response as JSON");
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const model = getModel("gemini-2.5-flash", true);
+      const fullPrompt = `${prompt}\n\nReturn valid JSON only. No markdown, no code fences.`;
+      const result = await model.generateContent(fullPrompt);
+      const raw = result.response.text().trim();
+      const cleaned = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim();
+      try {
+        return JSON.parse(cleaned) as T;
+      } catch {
+        const match = cleaned.match(/\{[\s\S]*\}/);
+        if (match) return JSON.parse(match[0]) as T;
+        throw new Error("Failed to parse AI response as JSON");
+      }
+    } catch (err: unknown) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("429") || msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED")) {
+        await new Promise((r) => setTimeout(r, (attempt + 1) * 2000));
+        continue;
+      }
+      throw err;
+    }
   }
+  throw lastError;
 }
 
 export { classifyError };

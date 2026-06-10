@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     const prompt = `You are an expert venture capital analyst and investor database specialist.
 
-Generate exactly 15 realistic investor profiles that would be a strong match for the following startup.
+Generate exactly 8 realistic investor profiles that would be a strong match for the following startup.
 
 STARTUP PROFILE:
 Name: ${startupName}
