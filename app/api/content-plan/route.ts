@@ -55,7 +55,7 @@ Return ONLY valid JSON, no markdown:
   "growth_tips": ["tip1","tip2","tip3"]
 }
 
-Generate exactly 30 posts across days 1-30 (week1=days1-7, week2=days8-14, week3=days15-21, week4=days22-30). All text in ${lang}. Be concise but impactful.`;
+Generate exactly 10 posts. Spread them across days 1-28 (week1=days1-7, week2=days8-14, week3=days15-21, week4=days22-28). Vary platforms and content types. All text in ${lang}.`;
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
