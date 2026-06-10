@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateJSON, classifyError } from "@/lib/gemini";
 
 export const maxDuration = 60;
 
@@ -20,9 +20,6 @@ export async function POST(req: Request) {
   if (!startupName?.trim() || !targetAudience?.trim()) {
     return NextResponse.json({ error: "Startup name and target audience are required." }, { status: 400 });
   }
-
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
-  if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
 
   const lang = LANG_MAP[locale] ?? "English";
   const platformList = (platforms as string[]).join(", ");
@@ -106,20 +103,10 @@ Return ONLY this JSON object, no markdown, no code fences, nothing else:
 Generate exactly 30 posts in the posts array. Distribute them across days 1-30. Assign week 1 to days 1-7, week 2 to days 8-14, week 3 to days 15-21, week 4 to days 22-30. Not every day needs a post. Provide exactly 5 growth tips.`;
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: { temperature: 0.85, maxOutputTokens: 8192 },
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const plan = await generateJSON<any>(prompt);
 
-    const result = await model.generateContent(prompt);
-    let raw = result.response.text().trim();
-    raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON in response");
-    const plan = JSON.parse(match[0]);
-
-    if (!Array.isArray(plan.posts) || plan.posts.length === 0) {
+    if (!Array.isArray(plan.posts) || (plan.posts as unknown[]).length === 0) {
       throw new Error("No posts in response");
     }
 
@@ -139,11 +126,7 @@ Generate exactly 30 posts in the posts array. Distribute them across days 1-30. 
     return NextResponse.json({ id: saved.id, plan });
   } catch (err) {
     console.error("content-plan error:", err);
-    const msg = err instanceof Error ? err.message : "";
-    if (msg.includes("429") || msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED")) {
-      return NextResponse.json({ error: "AI generation temporarily unavailable. Please try again in a few minutes." }, { status: 429 });
-    }
-    return NextResponse.json({ error: "Generation failed. Please try again." }, { status: 500 });
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
   }
 }
 
