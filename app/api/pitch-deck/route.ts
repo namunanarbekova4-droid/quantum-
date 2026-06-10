@@ -46,47 +46,35 @@ export async function POST(req: Request) {
 
   const langInstruction = `\n\nIMPORTANT: Respond entirely in ${LANG_MAP[locale] ?? "English"}.`;
 
-  const prompt = `You are the world's best pitch deck writer. Write a complete 12-slide pitch deck in the FOUNDER'S EXACT VOICE. Use their words and phrases. Never sound corporate or generic. Every slide title must be a punchy statement, not just a category label.
+  const prompt = `You are a pitch deck writer. Create a 12-slide pitch deck for this startup.
 
-Startup Name: ${startupName}
-
-Founder's answers:
-Q1 (Startup & one-sentence description): ${answers[0] || "(no answer)"}
-Q2 (Problem it solves): ${answers[1] || "(no answer)"}
-Q3 (Personal discovery of problem): ${answers[2] || "(no answer)"}
-Q4 (Solution & how it works): ${answers[3] || "(no answer)"}
-Q5 (Exact target customer): ${answers[4] || "(no answer)"}
+Startup: ${startupName}
+Q1 (What it is): ${answers[0] || "(no answer)"}
+Q2 (Problem): ${answers[1] || "(no answer)"}
+Q3 (Personal story): ${answers[2] || "(no answer)"}
+Q4 (Solution): ${answers[3] || "(no answer)"}
+Q5 (Customer): ${answers[4] || "(no answer)"}
 Q6 (Business model): ${answers[5] || "(no answer)"}
-Q7 (Competitors & advantage): ${answers[6] || "(no answer)"}
-Q8 (Traction so far): ${answers[7] || "(no answer)"}
-Q9 (Team & why you): ${answers[8] || "(no answer)"}
-Q10 (Raise amount & use): ${answers[9] || "(no answer)"}
+Q7 (Competition): ${answers[6] || "(no answer)"}
+Q8 (Traction): ${answers[7] || "(no answer)"}
+Q9 (Team): ${answers[8] || "(no answer)"}
+Q10 (Raise): ${answers[9] || "(no answer)"}
 
-Return ONLY this exact JSON structure:
+Rules: punchy slide titles (not generic labels), founder's voice, concise speaker notes (1-2 sentences each), 3-min script natural and conversational.
+
+Return ONLY JSON:
 {
   "slides": [
-    {
-      "slide_number": 1,
-      "slide_type": "cover",
-      "title": "punchy statement title",
-      "subtitle": "one line subtitle",
-      "main_content": "main content for this slide",
-      "speaker_notes": "what to say out loud for this slide (2-3 sentences)",
-      "key_stat": "bold number/stat or null"
-    }
+    {"slide_number":1,"slide_type":"cover","title":"punchy title","subtitle":"one line","main_content":"content","speaker_notes":"1-2 sentences","key_stat":null}
   ],
-  "three_minute_script": "full 3-minute speaking script in natural founder voice",
-  "elevator_pitch": "30-second elevator pitch",
-  "opening_hook": "powerful opening line to grab attention",
-  "closing_statement": "memorable closing statement",
-  "investor_questions": [
-    { "question": "tough investor question", "answer": "strong suggested answer" }
-  ]
+  "three_minute_script": "full 3-minute script",
+  "elevator_pitch": "30-second pitch",
+  "opening_hook": "opening line",
+  "closing_statement": "closing line",
+  "investor_questions": [{"question":"question","answer":"answer"}]
 }
 
-Generate all 12 slides in order: cover, problem, personal_story, solution, market, product, traction, business_model, competition, team, financials, ask.
-Make titles punchy like "We Found the Problem No One Wanted to Solve" not just "Problem".
-Generate 5 investor_questions with strong answers.${langInstruction}`;
+Slides in order: cover, problem, personal_story, solution, market, product, traction, business_model, competition, team, financials, ask. Generate 5 investor_questions.${langInstruction}`;
 
   try {
     const result = await generateJSON<PitchDeckResult>(prompt);
