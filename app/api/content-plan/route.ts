@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+export const maxDuration = 60;
+
 const LANG_MAP: Record<string, string> = {
   en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh",
 };
