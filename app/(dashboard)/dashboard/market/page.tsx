@@ -85,7 +85,7 @@ function ArticleImage({ src, alt, height, category }: {
         className="w-full flex-shrink-0 flex items-center justify-center relative overflow-hidden"
         style={{ height }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#111111] to-[#161410]" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #06040F, #0F0A1F, #1A1040)" }} />
         <div className="absolute inset-0 opacity-[0.04]"
           style={{ backgroundImage: "radial-gradient(circle at 2px 2px, #C9A84C 1px, transparent 0)", backgroundSize: "28px 28px" }} />
         <div className="relative flex flex-col items-center gap-2 opacity-30">
@@ -140,12 +140,12 @@ function NewsCard({ article, featured = false }: { article: Article; featured?: 
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative bg-[#111111] border border-[#1a1a1a] rounded-lg overflow-hidden flex flex-col cursor-pointer transition-all duration-200"
-      style={{ willChange: "transform" }}
+      className="group relative rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all duration-200"
+      style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040", willChange: "transform" }}
       whileHover={{
         y: -4,
-        borderColor: "rgba(201,168,76,0.5)",
-        boxShadow: "0 0 20px rgba(201,168,76,0.12)",
+        borderColor: "rgba(201,168,76,0.4)",
+        boxShadow: "0 0 24px rgba(201,168,76,0.1)",
       }}
     >
       {/* Image */}
@@ -161,9 +161,9 @@ function NewsCard({ article, featured = false }: { article: Article; featured?: 
       <div className={cn("flex flex-col flex-1 p-6", !featured && "p-5")}>
         {/* Source + time */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-xs text-[#555] font-medium">{article.source.name}</span>
+          <span className="text-xs text-[#8B7CF8] font-medium">{article.source.name}</span>
           <span className="text-[#333] text-xs">•</span>
-          <span className="text-xs text-[#444]">{timeAgo(article.publishedAt)}</span>
+          <span className="text-xs text-[#555]">{timeAgo(article.publishedAt)}</span>
         </div>
 
         {/* Headline */}
@@ -176,14 +176,14 @@ function NewsCard({ article, featured = false }: { article: Article; featured?: 
 
         {/* Description */}
         {article.description && (
-          <p className="text-xs text-[#666] leading-relaxed line-clamp-2 flex-1 mb-4">
+          <p className="text-xs text-[#888] leading-relaxed line-clamp-2 flex-1 mb-4">
             {article.description}
           </p>
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#1a1a1a]">
-          <span className="text-xs text-[#444]">{readTime(article.content)}</span>
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#1A1040]">
+          <span className="text-xs text-[#555]">{readTime(article.content)}</span>
           {article.url && article.url !== "#" && (
             <a
               href={article.url}
@@ -206,13 +206,13 @@ function NewsCard({ article, featured = false }: { article: Article; featured?: 
 
 function NewsSkeleton({ featured = false }: { featured?: boolean }) {
   return (
-    <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg overflow-hidden animate-pulse">
-      <div className={cn("w-full bg-[#1a1a1a]", featured ? "h-[280px]" : "h-[180px]")} />
+    <div className="rounded-xl overflow-hidden animate-pulse" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
+      <div className={cn("w-full bg-[#1A1040]", featured ? "h-[280px]" : "h-[180px]")} />
       <div className="p-5 space-y-3">
-        <div className="h-3 bg-[#1a1a1a] rounded w-1/3" />
-        <div className="h-4 bg-[#1a1a1a] rounded w-full" />
-        <div className="h-4 bg-[#1a1a1a] rounded w-5/6" />
-        <div className="h-3 bg-[#1a1a1a] rounded w-2/3" />
+        <div className="h-3 bg-[#1A1040] rounded w-1/3" />
+        <div className="h-4 bg-[#1A1040] rounded w-full" />
+        <div className="h-4 bg-[#1A1040] rounded w-5/6" />
+        <div className="h-3 bg-[#1A1040] rounded w-2/3" />
       </div>
     </div>
   );
@@ -258,22 +258,31 @@ export default function FounderFeedPage() {
   const [featured, ...rest] = articles.slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-[#080808] p-4 sm:p-6 max-w-7xl mx-auto">
+    <div className="min-h-screen relative" style={{ background: "#06040F" }}>
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <style>{`@keyframes af{0%{transform:translate(0,0)}25%{transform:translate(30px,-30px)}50%{transform:translate(-20px,20px)}100%{transform:translate(0,0)}}`}</style>
+        <div style={{ position: "absolute", top: -100, right: -100, width: 600, height: 600, background: "radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%)", borderRadius: "50%", animation: "af 16s ease-in-out infinite" }} />
+        <div style={{ position: "absolute", bottom: -100, left: -100, width: 400, height: 400, background: "radial-gradient(circle, rgba(201,168,76,0.1), transparent 70%)", borderRadius: "50%", animation: "af 22s ease-in-out infinite reverse" }} />
+      </div>
+      <div className="relative z-10 p-4 sm:p-6 max-w-7xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <Rocket className="w-6 h-6 text-[#C9A84C]" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.2)" }}>
+                <Rocket className="w-5 h-5 text-[#C9A84C]" />
+              </div>
               <h1 className="text-2xl font-bold text-white">Founder Feed</h1>
             </div>
-            <p className="text-[#888888] text-sm">Articles, insights and opportunities for builders like you.</p>
+            <p className="text-[#8B7CF8] text-sm">Articles, insights and opportunities for builders like you.</p>
           </div>
           <button
             onClick={() => { setRefreshing(true); load(); }}
             disabled={refreshing || loading}
-            className="flex items-center gap-2 px-3 py-2 border border-[#1a1a1a] text-[#888888] hover:text-white hover:border-[#C9A84C]/30 rounded-lg text-xs transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)", color: "#A855F7" }}
           >
             <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} /> {t.market.refresh}
           </button>
@@ -284,7 +293,7 @@ export default function FounderFeedPage() {
 
           {/* News feed */}
           <div className="space-y-6">
-            <h2 className="text-xs font-semibold text-[#888888] uppercase tracking-widest">For Founders</h2>
+            <h2 className="text-xs font-semibold text-[#8B7CF8] uppercase tracking-widest">For Founders</h2>
 
             {loading ? (
               <div className="space-y-6">
@@ -295,8 +304,8 @@ export default function FounderFeedPage() {
               </div>
             ) : articles.length === 0 ? (
               /* empty state */
-              <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-16 text-center space-y-3">
-                <Globe className="w-10 h-10 text-[#2a2a2a] mx-auto" />
+              <div className="rounded-xl p-16 text-center space-y-3" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
+                <Globe className="w-10 h-10 text-[#1A1040] mx-auto" />
                 <p className="text-white font-semibold">No market news available</p>
                 <p className="text-[#555] text-sm">Business intelligence updates will appear here.</p>
                 <button
@@ -327,10 +336,10 @@ export default function FounderFeedPage() {
 
           {/* Sidebar: ticker + indicators */}
           <div className="space-y-5">
-            <h2 className="text-xs font-semibold text-[#888888] uppercase tracking-widest">{t.market.liveMarkets}</h2>
+            <h2 className="text-xs font-semibold text-[#8B7CF8] uppercase tracking-widest">{t.market.liveMarkets}</h2>
 
             {!ticker ? (
-              <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-6 text-center text-[#888888] text-sm">
+              <div className="rounded-xl p-6 text-center text-sm" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040", color: "#8B7CF8" }}>
                 {t.market.noMarketKey}
               </div>
             ) : (
@@ -342,8 +351,8 @@ export default function FounderFeedPage() {
                     ticker.indices.nasdaq && { label: "NASDAQ (QQQ)", ...ticker.indices.nasdaq },
                     ticker.indices.gold && { label: "Gold (GLD)", ...ticker.indices.gold },
                   ].filter(Boolean).map((idx) => idx && (
-                    <div key={idx.label} className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-3 flex justify-between items-center">
-                      <span className="text-xs text-[#888888]">{idx.label}</span>
+                    <div key={idx.label} className="rounded-xl p-3 flex justify-between items-center" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
+                      <span className="text-xs text-[#8B7CF8]">{idx.label}</span>
                       <div className="text-right">
                         <p className="text-white font-bold text-sm">${idx.price?.toFixed(2) ?? "—"}</p>
                         {idx.changePercent !== undefined && <ChangeTag value={idx.changePercent} />}
@@ -355,10 +364,10 @@ export default function FounderFeedPage() {
                 {/* Crypto */}
                 {ticker.crypto.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider">{t.market.crypto}</p>
+                    <p className="text-xs font-semibold text-[#8B7CF8] uppercase tracking-wider">{t.market.crypto}</p>
                     {ticker.crypto.map((c) => (
-                      <div key={c.symbol} className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-3 flex justify-between items-center">
-                        <span className="text-xs text-[#888888] uppercase">{c.symbol} — {c.name}</span>
+                      <div key={c.symbol} className="rounded-xl p-3 flex justify-between items-center" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
+                        <span className="text-xs text-[#8B7CF8] uppercase">{c.symbol} — {c.name}</span>
                         <div className="text-right">
                           <p className="text-white font-bold text-sm">${c.current_price?.toLocaleString() ?? "—"}</p>
                           <ChangeTag value={c.price_change_percentage_24h} />
@@ -370,7 +379,7 @@ export default function FounderFeedPage() {
 
                 {/* Top gainers */}
                 {ticker.movers.gainers.length > 0 && (
-                  <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-3 space-y-2">
+                  <div className="rounded-xl p-3 space-y-2" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
                     <p className="text-xs font-semibold text-green-400 uppercase tracking-wider">{t.market.topGainers}</p>
                     {ticker.movers.gainers.slice(0, 4).map((g) => (
                       <div key={g.ticker} className="flex justify-between text-xs">
@@ -385,11 +394,11 @@ export default function FounderFeedPage() {
 
             {/* Economic indicators */}
             {indicators.length > 0 && (
-              <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg p-4 space-y-3">
-                <p className="text-xs font-semibold text-[#888888] uppercase tracking-wider">{t.market.economicIndicators}</p>
+              <div className="rounded-xl p-4 space-y-3" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
+                <p className="text-xs font-semibold text-[#8B7CF8] uppercase tracking-wider">{t.market.economicIndicators}</p>
                 {indicators.map((ind, i) => (
                   <div key={i} className="flex justify-between items-center">
-                    <span className="text-xs text-[#888888]">{ind.indicator}</span>
+                    <span className="text-xs text-[#8B7CF8]">{ind.indicator}</span>
                     <span className="text-xs font-semibold text-white">
                       {ind.value !== null ? `${ind.value.toFixed(2)}%` : "N/A"} <span className="text-[#444]">({ind.year})</span>
                     </span>
@@ -400,6 +409,7 @@ export default function FounderFeedPage() {
           </div>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 }
