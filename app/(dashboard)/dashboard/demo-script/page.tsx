@@ -137,7 +137,7 @@ export default function DemoScriptPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form */}
         <div className="space-y-4">
-          <FormField label={fds.productDescription} placeholder="What does your product do?" value={form.productDescription} onChange={setField("productDescription")} multiline />
+          <FormField label={fds.productDescription} placeholder={fds.phProductDescription} value={form.productDescription} onChange={setField("productDescription")} multiline />
 
           {/* Demo length tabs */}
           <div>
@@ -159,10 +159,10 @@ export default function DemoScriptPage() {
             </div>
           </div>
 
-          <FormField label={fds.mainFeatures} placeholder="List the key features you want to demo" value={form.mainFeatures} onChange={setField("mainFeatures")} multiline />
-          <FormField label={fds.targetAudience} placeholder="Who are you demoing to?" value={form.targetAudience} onChange={setField("targetAudience")} />
-          <FormField label={fds.wowMoment} placeholder="What's the single moment that makes people say 'whoa'?" value={form.wowMoment} onChange={setField("wowMoment")} />
-          <FormField label={fds.commonObjections} placeholder="What questions/pushback do you usually get?" value={form.commonObjections} onChange={setField("commonObjections")} multiline />
+          <FormField label={fds.mainFeatures} placeholder={fds.phMainFeatures} value={form.mainFeatures} onChange={setField("mainFeatures")} multiline />
+          <FormField label={fds.targetAudience} placeholder={fds.phTargetAudience} value={form.targetAudience} onChange={setField("targetAudience")} />
+          <FormField label={fds.wowMoment} placeholder={fds.phWowMoment} value={form.wowMoment} onChange={setField("wowMoment")} />
+          <FormField label={fds.commonObjections} placeholder={fds.phCommonObjections} value={form.commonObjections} onChange={setField("commonObjections")} multiline />
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
@@ -188,7 +188,7 @@ export default function DemoScriptPage() {
             {!script && !loading && (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-96 flex flex-col items-center justify-center bg-[#0F0A1F] border border-[#1A1040] rounded-2xl text-center p-8">
                 <Play className="w-12 h-12 text-[#1A1040] mb-4" />
-                <p className="text-white/30 text-sm">Your demo script will appear here</p>
+                <p className="text-white/30 text-sm">{fds.scriptAppearsHere}</p>
                 <div className="mt-4 space-y-1.5 text-left">
                   <p className="text-[#8B7CF8]/50 text-xs"><span className="text-[#7C3AED]">[00:00 - 00:30]</span> Scene timing</p>
                   <p className="text-[#8B7CF8]/50 text-xs"><span className="text-green-400">"Exact words to say"</span></p>
@@ -200,14 +200,14 @@ export default function DemoScriptPage() {
             {loading && (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-96 flex flex-col items-center justify-center bg-[#0F0A1F] border border-[#1A1040] rounded-2xl">
                 <div className="w-12 h-12 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin mb-4" />
-                <p className="text-[#8B7CF8] text-sm">Writing your {demoLength} script...</p>
+                <p className="text-[#8B7CF8] text-sm">{fds.writingScript}</p>
               </motion.div>
             )}
 
             {script && !loading && (
               <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl shadow-[0_0_30px_rgba(124,58,237,0.15)] overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#1A1040]">
-                  <span className="text-white font-semibold text-sm">Demo Script — {demoLength}</span>
+                  <span className="text-white font-semibold text-sm">{fds.demoScriptLabel} — {demoLength}</span>
                   <button
                     onClick={copyScript}
                     className="flex items-center gap-1.5 px-3 py-1.5 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-lg text-[#8B7CF8] hover:text-white transition-colors text-xs"

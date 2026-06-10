@@ -539,7 +539,7 @@ export default function InvestorFinderPage() {
                     >
                       {STAGES_OPTIONS.map((s) => (
                         <option key={s} value={s} className="bg-[#0F0A1F]">
-                          {s}
+                          {ft["stage" + s] ?? s}
                         </option>
                       ))}
                     </select>

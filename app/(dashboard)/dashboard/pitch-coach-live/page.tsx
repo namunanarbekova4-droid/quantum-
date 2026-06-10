@@ -292,11 +292,11 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
   const [requesting, setRequesting] = useState(false);
 
   const AUDIENCES = [
-    { value: "angel", label: "Angel Investor" },
-    { value: "vc", label: "VC Fund" },
-    { value: "competition", label: "Startup Competition" },
-    { value: "accelerator", label: "Accelerator (YC, nFactorial, etc)" },
-    { value: "customer", label: "Potential Customer" },
+    { value: "angel", label: ft.audienceAngel },
+    { value: "vc", label: ft.audienceVC },
+    { value: "competition", label: ft.audienceCompetition },
+    { value: "accelerator", label: ft.audienceAccelerator },
+    { value: "customer", label: ft.audienceCustomer },
   ];
 
   async function handleStart() {

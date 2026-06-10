@@ -259,10 +259,10 @@ function SetupScreen({ onStart, locale, ft }: SetupScreenProps) {
               }
               className="w-full px-4 py-3 rounded-xl bg-[#06040F] border border-[#1A1040] text-white focus:outline-none focus:border-[#7C3AED] transition-colors text-sm appearance-none"
             >
-              <option value="Idea">Idea</option>
-              <option value="MVP">MVP</option>
-              <option value="Early Revenue">Early Revenue</option>
-              <option value="Growing">Growing</option>
+              <option value="Idea">{ft.stageIdea}</option>
+              <option value="MVP">{ft.stageMVP}</option>
+              <option value="Early Revenue">{ft.stageEarlyRevenue}</option>
+              <option value="Growing">{ft.stageGrowing}</option>
             </select>
           </div>
           <div>
