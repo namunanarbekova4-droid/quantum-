@@ -57,40 +57,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "All 10 answers required" }, { status: 400 });
   }
 
-  const langInstruction = `\n\nIMPORTANT: Respond entirely in ${LANG_MAP[locale] ?? "English"}.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const ctx = `Startup: ${startupName}
+What: ${answers[0] || "-"}
+Problem: ${answers[1] || "-"}
+Story: ${answers[2] || "-"}
+Solution: ${answers[3] || "-"}
+Customer: ${answers[4] || "-"}
+Model: ${answers[5] || "-"}
+Competition: ${answers[6] || "-"}
+Traction: ${answers[7] || "-"}
+Team: ${answers[8] || "-"}
+Raise: ${answers[9] || "-"}`;
 
-  const prompt = `You are a pitch deck writer. Create a 12-slide pitch deck for this startup.
+  const slidesPrompt = `Pitch deck writer. Create 12 slides for this startup. Respond in ${lang}.
+${ctx}
+Slide types in order: cover,problem,personal_story,solution,market,product,traction,business_model,competition,team,financials,ask.
+Rules: punchy titles, founder voice, speaker_notes max 1 sentence, main_content max 2 sentences, key_stat only where it fits (else null).
+Return JSON: {"slides":[{"slide_number":1,"slide_type":"cover","title":"","subtitle":"","main_content":"","speaker_notes":"","key_stat":null}]}`;
 
-Startup: ${startupName}
-Q1 (What it is): ${answers[0] || "(no answer)"}
-Q2 (Problem): ${answers[1] || "(no answer)"}
-Q3 (Personal story): ${answers[2] || "(no answer)"}
-Q4 (Solution): ${answers[3] || "(no answer)"}
-Q5 (Customer): ${answers[4] || "(no answer)"}
-Q6 (Business model): ${answers[5] || "(no answer)"}
-Q7 (Competition): ${answers[6] || "(no answer)"}
-Q8 (Traction): ${answers[7] || "(no answer)"}
-Q9 (Team): ${answers[8] || "(no answer)"}
-Q10 (Raise): ${answers[9] || "(no answer)"}
-
-Rules: punchy slide titles (not generic labels), founder's voice, concise speaker notes (1-2 sentences each), 3-min script natural and conversational.
-
-Return ONLY JSON:
-{
-  "slides": [
-    {"slide_number":1,"slide_type":"cover","title":"punchy title","subtitle":"one line","main_content":"content","speaker_notes":"1-2 sentences","key_stat":null}
-  ],
-  "three_minute_script": "full 3-minute script",
-  "elevator_pitch": "30-second pitch",
-  "opening_hook": "opening line",
-  "closing_statement": "closing line",
-  "investor_questions": [{"question":"question","answer":"answer"}]
-}
-
-Slides in order: cover, problem, personal_story, solution, market, product, traction, business_model, competition, team, financials, ask. Generate 5 investor_questions.${langInstruction}`;
+  const scriptsPrompt = `Pitch coach. Write pitch scripts for this startup. Respond in ${lang}.
+${ctx}
+Return JSON: {"three_minute_script":"","elevator_pitch":"","opening_hook":"","closing_statement":"","investor_questions":[{"question":"","answer":""}]}
+Keep three_minute_script under 400 words. Generate 3 investor_questions.`;
 
   try {
-    const result = await generateJSON<PitchDeckResult>(prompt);
+    const [slidesData, scriptsData] = await Promise.all([
+      generateJSON<{ slides: PitchSlide[] }>(slidesPrompt),
+      generateJSON<Omit<PitchDeckResult, "slides">>(scriptsPrompt),
+    ]);
+    const result: PitchDeckResult = { slides: slidesData.slides, ...scriptsData };
 
     await prisma.pitchDeck.create({
       data: {
