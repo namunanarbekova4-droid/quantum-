@@ -76,7 +76,7 @@ Based on the entire conversation, produce a final verdict as a JSON object with 
 Respond ONLY with valid JSON. No markdown, no explanation, no code fences.${langInstruction}`;
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "");
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();

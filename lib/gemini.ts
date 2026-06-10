@@ -6,7 +6,7 @@ function getApiKey(): string {
   return key;
 }
 
-function getModel(modelName = "gemini-1.5-flash") {
+function getModel(modelName = "gemini-2.0-flash") {
   const genAI = new GoogleGenerativeAI(getApiKey());
   return genAI.getGenerativeModel({ model: modelName });
 }

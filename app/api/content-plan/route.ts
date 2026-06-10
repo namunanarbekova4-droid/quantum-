@@ -106,7 +106,7 @@ Generate exactly 30 posts in the posts array. Distribute them across days 1-30. 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro",
+      model: "gemini-2.0-flash",
       generationConfig: { temperature: 0.85, maxOutputTokens: 8192 },
     });
 
