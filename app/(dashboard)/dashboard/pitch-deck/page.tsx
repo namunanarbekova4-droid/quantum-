@@ -3,8 +3,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Layers, ChevronRight, ChevronLeft, Copy, Check, RotateCcw, Loader2,
-  Download, History, X, FileText, Mic, HelpCircle, Play, Pause,
+  Download, History, X, FileText, Mic, HelpCircle,
   ChevronDown, ChevronUp, Maximize2, Minimize2, Palette,
+  Zap, AlertTriangle, Eye, TrendingUp, Star, Sparkles, Wand2,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 import { ThemeSelector } from "@/features/pitch-deck/components/ThemeSelector";
@@ -109,6 +110,43 @@ interface PitchSlide {
   main_content: string;
   speaker_notes: string;
   key_stat: string | null;
+  emotional_purpose?: string;
+  visual_hint?: string;
+}
+
+interface DeckScore {
+  overall: number;
+  storytelling: number;
+  clarity: number;
+  investor_confidence: number;
+  market_conviction: number;
+  memorability: number;
+  verdict: string;
+}
+
+interface RedFlag {
+  severity: "HIGH" | "MEDIUM" | "LOW";
+  issue: string;
+  slide: string;
+  fix: string;
+}
+
+interface WowMoment {
+  headline: string;
+  subtext: string;
+  stat: string;
+}
+
+interface InvestorPreviewItem {
+  after_slide: number;
+  thought: string;
+}
+
+interface DeckIntelligence {
+  deck_score: DeckScore;
+  red_flags: RedFlag[];
+  wow_moment: WowMoment;
+  investor_preview: InvestorPreviewItem[];
 }
 
 interface PitchDeckResult {
@@ -118,6 +156,7 @@ interface PitchDeckResult {
   opening_hook: string;
   closing_statement: string;
   investor_questions: { question: string; answer: string }[];
+  intelligence?: DeckIntelligence;
 }
 
 interface SavedDeck {
@@ -171,13 +210,177 @@ function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
   );
 }
 
+// ─── Deck Score Panel ─────────────────────────────────────────────────────────
+
+function DeckScorePanel({ score }: { score: DeckScore }) {
+  const [open, setOpen] = useState(false);
+  const r = 44;
+  const circ = 2 * Math.PI * r;
+  const dash = (score.overall / 100) * circ;
+  const categories = [
+    { label: "Storytelling", value: score.storytelling },
+    { label: "Clarity", value: score.clarity },
+    { label: "Investor Confidence", value: score.investor_confidence },
+    { label: "Market Conviction", value: score.market_conviction },
+    { label: "Memorability", value: score.memorability },
+  ];
+  const color = score.overall >= 80 ? "#22c55e" : score.overall >= 60 ? "#C9A84C" : "#ef4444";
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: "#0F0A1F", border: "1px solid #1A1040" }}>
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+        <div className="flex items-center gap-3">
+          <Star className="w-4 h-4" style={{ color: "#C9A84C" }} />
+          <span className="font-bold text-white text-sm">Deck Score</span>
+          <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: color + "22", color, border: `1px solid ${color}44` }}>{score.overall}/100</span>
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-[#555]" /> : <ChevronDown className="w-4 h-4 text-[#555]" />}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="px-5 pb-5 space-y-5">
+              {/* Circular gauge */}
+              <div className="flex items-center gap-6">
+                <div className="relative flex-shrink-0">
+                  <svg width={100} height={100} className="-rotate-90">
+                    <circle cx={50} cy={50} r={r} fill="none" stroke="#1A1040" strokeWidth={8} />
+                    <motion.circle cx={50} cy={50} r={r} fill="none" stroke={color} strokeWidth={8}
+                      strokeLinecap="round" strokeDasharray={circ}
+                      initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: circ - dash }}
+                      transition={{ duration: 1.2, ease: "easeOut" }} />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-2xl font-black text-white">{score.overall}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-[#555] mb-1">Brutally Honest Verdict</p>
+                  <p className="text-sm italic leading-relaxed" style={{ color: "#C9A84C" }}>&ldquo;{score.verdict}&rdquo;</p>
+                </div>
+              </div>
+              {/* Category bars */}
+              <div className="space-y-2.5">
+                {categories.map((cat) => {
+                  const c = cat.value >= 80 ? "#22c55e" : cat.value >= 60 ? "#C9A84C" : "#ef4444";
+                  return (
+                    <div key={cat.label} className="flex items-center gap-3">
+                      <span className="text-xs text-[#8B7CF8] w-36 flex-shrink-0">{cat.label}</span>
+                      <div className="flex-1 h-1.5 rounded-full" style={{ background: "#1A1040" }}>
+                        <motion.div className="h-full rounded-full" style={{ background: c }}
+                          initial={{ width: 0 }} animate={{ width: `${cat.value}%` }}
+                          transition={{ duration: 0.8, ease: "easeOut" }} />
+                      </div>
+                      <span className="text-xs font-bold w-8 text-right" style={{ color: c }}>{cat.value}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Red Flags Panel ──────────────────────────────────────────────────────────
+
+function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
+  const [open, setOpen] = useState(false);
+  const highCount = flags.filter(f => f.severity === "HIGH").length;
+
+  const severityStyle = {
+    HIGH: { bg: "rgba(239,68,68,0.15)", color: "#ef4444", border: "rgba(239,68,68,0.3)" },
+    MEDIUM: { bg: "rgba(251,191,36,0.15)", color: "#fbbf24", border: "rgba(251,191,36,0.3)" },
+    LOW: { bg: "rgba(59,130,246,0.15)", color: "#3b82f6", border: "rgba(59,130,246,0.3)" },
+  };
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: "#0F0A1F", border: "1px solid #1A1040" }}>
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+        <div className="flex items-center gap-3">
+          <AlertTriangle className="w-4 h-4 text-amber-400" />
+          <span className="font-bold text-white text-sm">Investor Red Flags</span>
+          {highCount > 0
+            ? <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-red-500/20 text-red-400 border border-red-500/30">{highCount} HIGH</span>
+            : <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-500/20 text-green-400 border border-green-500/30">Clean</span>
+          }
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-[#555]" /> : <ChevronDown className="w-4 h-4 text-[#555]" />}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="px-5 pb-5 space-y-3">
+              {flags.length === 0 ? (
+                <p className="text-sm text-green-400 flex items-center gap-2"><Check className="w-4 h-4" /> No critical issues detected</p>
+              ) : flags.map((flag, i) => {
+                const s = severityStyle[flag.severity];
+                return (
+                  <div key={i} className="rounded-xl p-4 space-y-2" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-black px-2 py-0.5 rounded" style={{ background: s.border, color: s.color }}>{flag.severity}</span>
+                      <span className="text-xs text-[#8B7CF8]">→ {flag.slide.replace(/_/g, " ")}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-white">{flag.issue}</p>
+                    <p className="text-xs leading-relaxed" style={{ color: "#8B7CF8" }}>Fix: {flag.fix}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── WOW Moment card ─────────────────────────────────────────────────────────
+
+function WowMomentCard({ wow }: { wow: WowMoment }) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #0A0A1A 0%, #13132A 50%, #0A0A1A 100%)", border: "1px solid rgba(201,168,76,0.3)" }}>
+      {/* Glow orbs */}
+      <div className="absolute top-0 right-0 w-64 h-64 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%)" }} />
+      <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)" }} />
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Zap className="w-4 h-4 text-[#C9A84C]" />
+          <span className="text-xs font-bold uppercase tracking-widest text-[#C9A84C]">Your Most Memorable Moment</span>
+        </div>
+        <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-3">{wow.headline}</h3>
+        <p className="text-base text-[#8B7CF8] mb-4 italic">{wow.subtext}</p>
+        {wow.stat && (
+          <div className="inline-block px-4 py-2 rounded-lg font-black text-xl" style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.4)", color: "#C9A84C" }}>
+            {wow.stat}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 // ─── Slide viewer (Gamma AI style) ───────────────────────────────────────────
 
-function SlideViewer({ result, deckName, deckTheme }: { result: PitchDeckResult; deckName: string; deckTheme: DeckTheme }) {
+function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSlideUpdate }: {
+  result: PitchDeckResult;
+  deckName: string;
+  deckTheme: DeckTheme;
+  startupContext: string;
+  locale: string;
+  onSlideUpdate: (index: number, slide: PitchSlide) => void;
+}) {
   const [current, setCurrent] = useState(0);
   const [showNotes, setShowNotes] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [tab, setTab] = useState<"slides" | "scripts" | "qa">("slides");
+  const [showImproveMenu, setShowImproveMenu] = useState(false);
+  const [improving, setImproving] = useState(false);
+  const [improveSuccess, setImproveSuccess] = useState(false);
+  const [investorMode, setInvestorMode] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const slides = result.slides;
   const slide = slides[current];
@@ -190,6 +393,28 @@ function SlideViewer({ result, deckName, deckTheme }: { result: PitchDeckResult;
     textColor: deckTheme.textSecondary.startsWith("rgba") ? deckTheme.textPrimary : deckTheme.textSecondary,
     badge: perTypeTheme.badge,
   };
+
+  const investorThought = result.intelligence?.investor_preview.find(p => p.after_slide === current + 1);
+
+  async function improveSlide(improvement: "persuasive" | "visual" | "concise" | "investor-friendly") {
+    setShowImproveMenu(false);
+    setImproving(true);
+    try {
+      const res = await fetch("/api/pitch-deck/improve-slide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slideData: slide, improvement, startupContext, locale }),
+      });
+      const data = await res.json();
+      if (res.ok && data.slide) {
+        onSlideUpdate(current, data.slide as PitchSlide);
+        setImproveSuccess(true);
+        setTimeout(() => setImproveSuccess(false), 2500);
+      }
+    } finally {
+      setImproving(false);
+    }
+  }
 
   const prev = () => setCurrent((c) => Math.max(0, c - 1));
   const next = () => setCurrent((c) => Math.min(slides.length - 1, c + 1));
@@ -260,14 +485,20 @@ function SlideViewer({ result, deckName, deckTheme }: { result: PitchDeckResult;
                   </div>
                 </div>
 
+                {/* Radial glow overlay for depth */}
+                <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 80% 10%, ${theme.accent}18 0%, transparent 60%)` }} />
+
                 {/* Center content */}
-                <div className="flex-1 flex flex-col justify-center py-4">
+                <div className="flex-1 flex flex-col justify-center py-4 relative z-10">
                   {slide.key_stat && (
-                    <div className="text-5xl md:text-7xl font-black mb-3 leading-none" style={{ color: theme.accent }}>
-                      {slide.key_stat}
-                    </div>
+                    <>
+                      <div className="text-5xl md:text-8xl font-black mb-2 leading-none" style={{ color: theme.accent }}>
+                        {slide.key_stat}
+                      </div>
+                      <div className="w-12 h-0.5 mb-4 rounded-full" style={{ background: theme.accent + "60" }} />
+                    </>
                   )}
-                  <h2 className="text-2xl md:text-4xl font-extrabold leading-tight mb-3" style={{ color: theme.titleColor }}>
+                  <h2 className="text-2xl md:text-4xl font-extrabold leading-tight mb-3" style={{ color: theme.titleColor, letterSpacing: "-0.02em" }}>
                     {slide.title}
                   </h2>
                   {slide.subtitle && (
@@ -275,13 +506,22 @@ function SlideViewer({ result, deckName, deckTheme }: { result: PitchDeckResult;
                       {slide.subtitle}
                     </p>
                   )}
-                  <p className="text-sm md:text-base leading-relaxed max-w-3xl" style={{ color: theme.textColor, opacity: 0.85 }}>
-                    {slide.main_content}
-                  </p>
+                  <div className="flex items-start gap-3 max-w-3xl">
+                    <div className="w-0.5 flex-shrink-0 rounded-full mt-1" style={{ height: 40, background: theme.accent + "50" }} />
+                    <p className="text-sm md:text-base leading-relaxed" style={{ color: theme.textColor, opacity: 0.85 }}>
+                      {slide.main_content}
+                    </p>
+                  </div>
+                  {/* Emotional purpose — subtle creative director note */}
+                  {!fullscreen && slide.emotional_purpose && (
+                    <p className="mt-3 text-[10px] italic" style={{ color: theme.textColor + "50" }}>
+                      {slide.emotional_purpose}
+                    </p>
+                  )}
                 </div>
 
                 {/* Bottom: startup name watermark */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between relative z-10">
                   <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: theme.textColor + "44" }}>
                     {deckName}
                   </span>
@@ -353,6 +593,76 @@ function SlideViewer({ result, deckName, deckTheme }: { result: PitchDeckResult;
             )}
           </AnimatePresence>
 
+          {/* Improve this slide */}
+          {!fullscreen && (
+            <div className="mt-3 flex items-center gap-3 relative">
+              <div className="relative">
+                <button
+                  onClick={() => setShowImproveMenu(m => !m)}
+                  disabled={improving}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
+                  style={{ background: improving || improveSuccess ? "rgba(201,168,76,0.2)" : "rgba(124,58,237,0.1)", border: `1px solid ${improveSuccess ? "rgba(201,168,76,0.5)" : "rgba(124,58,237,0.25)"}`, color: improveSuccess ? "#C9A84C" : "#8B7CF8" }}
+                >
+                  {improving ? <Loader2 className="w-3 h-3 animate-spin" /> : improveSuccess ? <Sparkles className="w-3 h-3" /> : <Wand2 className="w-3 h-3" />}
+                  {improving ? "Improving…" : improveSuccess ? "Improved!" : "Improve This Slide"}
+                  {!improving && !improveSuccess && <ChevronDown className="w-3 h-3" />}
+                </button>
+                <AnimatePresence>
+                  {showImproveMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 mt-1 z-30 rounded-xl overflow-hidden shadow-2xl"
+                      style={{ background: "#0D0A20", border: "1px solid #1A1040", minWidth: 180 }}
+                    >
+                      {([
+                        { key: "persuasive", label: "More Persuasive", icon: "💬" },
+                        { key: "visual", label: "More Visual", icon: "🎨" },
+                        { key: "concise", label: "More Concise", icon: "✂️" },
+                        { key: "investor-friendly", label: "Investor-Friendly", icon: "💰" },
+                      ] as const).map((opt) => (
+                        <button
+                          key={opt.key}
+                          onClick={() => improveSlide(opt.key)}
+                          className="w-full text-left px-4 py-2.5 text-sm text-white hover:bg-white/10 transition-colors flex items-center gap-2"
+                        >
+                          <span>{opt.icon}</span> {opt.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              {investorMode && investorThought && (
+                <motion.div
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-2 text-xs italic px-3 py-1.5 rounded-lg"
+                  style={{ background: "rgba(139,124,248,0.1)", border: "1px solid rgba(139,124,248,0.2)", color: "#8B7CF8" }}
+                >
+                  <Eye className="w-3 h-3 flex-shrink-0" />
+                  &ldquo;{investorThought.thought}&rdquo;
+                </motion.div>
+              )}
+            </div>
+          )}
+
+          {/* Investor view toggle */}
+          {!fullscreen && result.intelligence?.investor_preview && (
+            <div className="mt-2">
+              <button
+                onClick={() => setInvestorMode(m => !m)}
+                className="flex items-center gap-1.5 text-xs transition-colors"
+                style={{ color: investorMode ? "#C9A84C" : "#555" }}
+              >
+                <Eye className="w-3 h-3" />
+                {investorMode ? "Investor view ON" : "👁 See through investor eyes"}
+              </button>
+            </div>
+          )}
+
           {/* Thumbnail strip */}
           {!fullscreen && (
             <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -366,14 +676,17 @@ function SlideViewer({ result, deckName, deckTheme }: { result: PitchDeckResult;
                     onClick={() => setCurrent(i)}
                     className="flex-shrink-0 rounded-lg overflow-hidden transition-all"
                     style={{
-                      width: 100, height: 56,
+                      width: 100, height: 68,
                       outline: i === current ? `2px solid ${th.accent}` : "2px solid transparent",
                       outlineOffset: 2,
                       background: thumbBg,
                     }}
                   >
                     <div className="w-full h-full flex flex-col justify-between p-1.5" style={{ background: thumbBg }}>
-                      <span className="text-[7px] font-bold" style={{ color: th.accent }}>{s.slide_type.replace(/_/g, " ")}</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[7px] font-bold" style={{ color: th.accent }}>{s.slide_type.replace(/_/g, " ")}</span>
+                        <span className="text-[7px]" style={{ color: thumbTitle + "66" }}>{i + 1}</span>
+                      </div>
                       <span className="text-[8px] font-semibold leading-tight line-clamp-2" style={{ color: thumbTitle }}>{s.title}</span>
                     </div>
                   </button>
@@ -826,7 +1139,36 @@ export default function PitchDeckPage() {
           </div>
         </div>
 
-        <SlideViewer result={result} deckName={deckName} deckTheme={DECK_THEMES[selectedTheme]} />
+        <SlideViewer
+          result={result}
+          deckName={deckName}
+          deckTheme={DECK_THEMES[selectedTheme]}
+          startupContext={answers[0] || ""}
+          locale={locale}
+          onSlideUpdate={(index, updated) => {
+            setResult(prev => {
+              if (!prev) return prev;
+              const slides = [...prev.slides];
+              slides[index] = updated;
+              return { ...prev, slides };
+            });
+          }}
+        />
+
+        {/* WOW Moment */}
+        {result.intelligence?.wow_moment && (
+          <div className="mt-6">
+            <WowMomentCard wow={result.intelligence.wow_moment} />
+          </div>
+        )}
+
+        {/* Intelligence panels */}
+        {result.intelligence && (
+          <div className="mt-4 space-y-3">
+            <DeckScorePanel score={result.intelligence.deck_score} />
+            <RedFlagsPanel flags={result.intelligence.red_flags} />
+          </div>
+        )}
 
         {/* Sticky bottom bar */}
         <div className="fixed bottom-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between gap-3" style={{ background: "rgba(6,4,15,0.95)", borderTop: "1px solid #1A1040", backdropFilter: "blur(10px)" }}>
