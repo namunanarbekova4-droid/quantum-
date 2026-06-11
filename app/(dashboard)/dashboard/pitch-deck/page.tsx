@@ -4,9 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Layers, ChevronRight, ChevronLeft, Copy, Check, RotateCcw, Loader2,
   Download, History, X, FileText, Mic, HelpCircle, Play, Pause,
-  ChevronDown, ChevronUp, Maximize2, Minimize2,
+  ChevronDown, ChevronUp, Maximize2, Minimize2, Palette,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { ThemeSelector } from "@/features/pitch-deck/components/ThemeSelector";
+import { DECK_THEMES } from "@/features/pitch-deck/lib/theme-system";
+import type { ThemeId, DeckTheme } from "@/features/pitch-deck/lib/theme-system";
+import { generatePPTX } from "@/features/pitch-deck/lib/pptx-generator";
 
 // ─── Slide themes ─────────────────────────────────────────────────────────────
 
@@ -169,7 +173,7 @@ function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
 
 // ─── Slide viewer (Gamma AI style) ───────────────────────────────────────────
 
-function SlideViewer({ result, deckName }: { result: PitchDeckResult; deckName: string }) {
+function SlideViewer({ result, deckName, deckTheme }: { result: PitchDeckResult; deckName: string; deckTheme: DeckTheme }) {
   const [current, setCurrent] = useState(0);
   const [showNotes, setShowNotes] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -177,7 +181,15 @@ function SlideViewer({ result, deckName }: { result: PitchDeckResult; deckName: 
   const containerRef = useRef<HTMLDivElement>(null);
   const slides = result.slides;
   const slide = slides[current];
-  const theme = getTheme(slide.slide_type);
+  const perTypeTheme = getTheme(slide.slide_type);
+  // Use deck theme for background, per-type accent for colors
+  const theme = {
+    bg: deckTheme.gradient,
+    titleColor: deckTheme.textPrimary,
+    accent: perTypeTheme.accent,
+    textColor: deckTheme.textSecondary.startsWith("rgba") ? deckTheme.textPrimary : deckTheme.textSecondary,
+    badge: perTypeTheme.badge,
+  };
 
   const prev = () => setCurrent((c) => Math.max(0, c - 1));
   const next = () => setCurrent((c) => Math.min(slides.length - 1, c + 1));
@@ -346,6 +358,8 @@ function SlideViewer({ result, deckName }: { result: PitchDeckResult; deckName: 
             <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {slides.map((s, i) => {
                 const th = getTheme(s.slide_type);
+                const thumbBg = deckTheme.gradient;
+                const thumbTitle = deckTheme.textPrimary;
                 return (
                   <button
                     key={i}
@@ -355,12 +369,12 @@ function SlideViewer({ result, deckName }: { result: PitchDeckResult; deckName: 
                       width: 100, height: 56,
                       outline: i === current ? `2px solid ${th.accent}` : "2px solid transparent",
                       outlineOffset: 2,
-                      background: th.bg,
+                      background: thumbBg,
                     }}
                   >
-                    <div className="w-full h-full flex flex-col justify-between p-1.5" style={{ background: th.bg }}>
+                    <div className="w-full h-full flex flex-col justify-between p-1.5" style={{ background: thumbBg }}>
                       <span className="text-[7px] font-bold" style={{ color: th.accent }}>{s.slide_type.replace(/_/g, " ")}</span>
-                      <span className="text-[8px] font-semibold leading-tight line-clamp-2" style={{ color: th.titleColor }}>{s.title}</span>
+                      <span className="text-[8px] font-semibold leading-tight line-clamp-2" style={{ color: thumbTitle }}>{s.title}</span>
                     </div>
                   </button>
                 );
@@ -529,6 +543,9 @@ export default function PitchDeckPage() {
   const [result, setResult] = useState<PitchDeckResult | null>(null);
   const [deckName, setDeckName] = useState("My Startup");
   const [error, setError] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState<ThemeId>("dark-premium");
+  const [showThemeModal, setShowThemeModal] = useState(false);
+  const [pptxLoading, setPptxLoading] = useState(false);
 
   useEffect(() => {
     if (step !== 2) return;
@@ -601,6 +618,18 @@ export default function PitchDeckPage() {
     setError("");
   };
 
+  const handleDownloadPPTX = async () => {
+    if (!result) return;
+    setPptxLoading(true);
+    try {
+      await generatePPTX(result, deckName, DECK_THEMES[selectedTheme]);
+    } catch (e) {
+      console.error("PPTX generation failed:", e);
+    } finally {
+      setPptxLoading(false);
+    }
+  };
+
   // ── STEP 0: Intro ──────────────────────────────────────────────────────────
 
   if (step === 0) {
@@ -622,6 +651,15 @@ export default function PitchDeckPage() {
                 </span>
               ))}
             </div>
+
+            {/* Theme selector on intro */}
+            <div className="mb-6">
+              <p className="text-xs text-[#8B7CF8] mb-3 font-semibold uppercase tracking-widest">Choose a theme</p>
+              <div className="flex justify-center">
+                <ThemeSelector selected={selectedTheme} onChange={setSelectedTheme} />
+              </div>
+            </div>
+
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => { setStep(1); setCurrentAnswer(""); }}
@@ -780,7 +818,7 @@ export default function PitchDeckPage() {
           </div>
         </div>
 
-        <SlideViewer result={result} deckName={deckName} />
+        <SlideViewer result={result} deckName={deckName} deckTheme={DECK_THEMES[selectedTheme]} />
 
         {/* Sticky bottom bar */}
         <div className="fixed bottom-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between gap-3" style={{ background: "rgba(6,4,15,0.95)", borderTop: "1px solid #1A1040", backdropFilter: "blur(10px)" }}>
