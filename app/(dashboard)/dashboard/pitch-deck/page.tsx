@@ -811,6 +811,14 @@ export default function PitchDeckPage() {
             <p className="text-sm text-[#8B7CF8]">12 slides ready to present</p>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowThemeModal(true)}
+              className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-all"
+              style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)", color: "#A855F7" }}
+            >
+              <Palette className="w-4 h-4" />
+              Theme
+            </button>
             <HistoryDrawer onLoad={(deck, name) => { setResult(deck); setDeckName(name); }} />
             <button onClick={reset} className="flex items-center gap-2 text-sm text-[#555] hover:text-white transition-colors px-3 py-2">
               <RotateCcw className="w-4 h-4" /> New
@@ -823,19 +831,62 @@ export default function PitchDeckPage() {
         {/* Sticky bottom bar */}
         <div className="fixed bottom-0 left-0 right-0 z-20 px-4 py-3 flex items-center justify-between gap-3" style={{ background: "rgba(6,4,15,0.95)", borderTop: "1px solid #1A1040", backdropFilter: "blur(10px)" }}>
           <CopyBtn text={result.three_minute_script} label={ft.copyScript} />
-          <button
-            onClick={() => downloadPDF(result, deckName)}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
-            style={{ background: "#C9A84C", color: "#06040F" }}
-          >
-            <Download className="w-4 h-4" />
-            {ft.downloadPDF}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => downloadPDF(result, deckName)}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+              style={{ background: "#C9A84C", color: "#06040F" }}
+            >
+              <Download className="w-4 h-4" />
+              {ft.downloadPDF}
+            </button>
+            <button
+              onClick={handleDownloadPPTX}
+              disabled={pptxLoading}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-60"
+              style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6" }}
+            >
+              {pptxLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              PPTX
+            </button>
+          </div>
           <button onClick={reset} className="flex items-center gap-1.5 text-sm text-[#555] hover:text-[#8B7CF8] transition-colors">
             <RotateCcw className="w-3.5 h-3.5" /> {ft.startOver}
           </button>
         </div>
       </div>
+
+      {/* Theme modal */}
+      <AnimatePresence>
+        {showThemeModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+              onClick={() => setShowThemeModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 rounded-2xl p-6"
+              style={{ background: "#0D0A20", border: "1px solid #1A1040", minWidth: 340 }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-white">Choose Theme</h3>
+                <button onClick={() => setShowThemeModal(false)} className="text-[#555] hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <ThemeSelector selected={selectedTheme} onChange={(id) => { setSelectedTheme(id); setShowThemeModal(false); }} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
