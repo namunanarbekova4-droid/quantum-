@@ -801,14 +801,15 @@ function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
   decisionText: string;
   recommendation?: string;
 }) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [opinion, setOpinion] = useState<SecondOpinion | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const verdictConfig = {
-    RECONSIDER: { label: "Reconsider", color: "text-red-400", bg: "bg-red-400/10 border-red-400/20" },
-    PROCEED_WITH_CAUTION: { label: "Proceed with Caution", color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
-    SOLID_DECISION: { label: "Solid Decision", color: "text-green-400", bg: "bg-green-400/10 border-green-400/20" },
+    RECONSIDER: { label: t.decision.verdictReconsider, color: "text-red-400", bg: "bg-red-400/10 border-red-400/20" },
+    PROCEED_WITH_CAUTION: { label: t.decision.verdictCaution, color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
+    SOLID_DECISION: { label: t.decision.verdictSolid, color: "text-green-400", bg: "bg-green-400/10 border-green-400/20" },
   };
 
   async function getSecondOpinion() {
@@ -834,13 +835,13 @@ function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
     <Card className="p-5 sm:p-6">
       <div className="flex items-center gap-2 mb-4">
         <Scale className="w-4 h-4 text-gold flex-shrink-0" />
-        <h2 className="text-sm font-semibold text-white">Second Opinion</h2>
+        <h2 className="text-sm font-semibold text-white">{t.decision.secondOpinion}</h2>
       </div>
 
       {!opinion && !loading && (
         <div className="text-center py-4 space-y-3">
           <p className="text-xs text-text-secondary leading-relaxed">
-            Get a devil&apos;s advocate perspective. AI challenges your decision from every angle to expose hidden risks.
+            {t.decision.secondOpinionDesc}
           </p>
           {error && (
             <p className="text-xs text-red-400 flex items-center justify-center gap-1.5">
@@ -852,7 +853,7 @@ function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
             className="w-full py-3 rounded-lg bg-[#C9A84C]/10 hover:bg-[#C9A84C]/20 border border-[#C9A84C]/20 hover:border-[#C9A84C]/40 text-[#C9A84C] text-sm font-semibold transition-all flex items-center justify-center gap-2"
           >
             <Eye className="w-4 h-4" />
-            Get Second Opinion
+            {t.decision.getSecondOpinion}
           </button>
         </div>
       )}
@@ -860,7 +861,7 @@ function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
       {loading && (
         <div className="flex items-center justify-center py-8 gap-3 text-text-secondary">
           <Loader2 className="w-4 h-4 animate-spin text-gold" />
-          <span className="text-sm">Challenging your decision...</span>
+          <span className="text-sm">{t.decision.challengingDecision}</span>
         </div>
       )}
 
@@ -872,10 +873,10 @@ function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
           </div>
 
           {[
-            { label: "Weaknesses", items: opinion.weaknesses, color: "text-red-400" },
-            { label: "Hidden Risks", items: opinion.hiddenRisks, color: "text-orange-400" },
-            { label: "Strongest Counterarguments", items: opinion.strongestCounterarguments, color: "text-amber-400" },
-            { label: "Alternative Approaches", items: opinion.alternativeApproaches, color: "text-blue-400" },
+            { label: t.decision.weaknesses, items: opinion.weaknesses, color: "text-red-400" },
+            { label: t.decision.hiddenRisks, items: opinion.hiddenRisks, color: "text-orange-400" },
+            { label: t.decision.counterArguments, items: opinion.strongestCounterarguments, color: "text-amber-400" },
+            { label: t.decision.alternativeApproaches, items: opinion.alternativeApproaches, color: "text-blue-400" },
           ].map((section) => (
             <div key={section.label} className="space-y-2">
               <p className={cn("text-xs font-semibold uppercase tracking-wider", section.color)}>{section.label}</p>
@@ -893,7 +894,7 @@ function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
             onClick={() => { setOpinion(null); setError(null); }}
             className="text-xs text-text-secondary hover:text-white flex items-center gap-1.5 transition-colors"
           >
-            <RefreshCw className="w-3 h-3" /> Get another second opinion
+            <RefreshCw className="w-3 h-3" /> {t.decision.getAnotherOpinion}
           </button>
         </motion.div>
       )}
@@ -906,12 +907,13 @@ function SecondOpinionSection({ decisionId, decisionText, recommendation }: {
 function ActionPlanSection({ actionPlan }: {
   actionPlan: { immediate?: string[]; thisWeek?: string[]; thisMonth?: string[] };
 }) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"immediate" | "thisWeek" | "thisMonth">("immediate");
 
   const tabs: { key: "immediate" | "thisWeek" | "thisMonth"; label: string; color: string }[] = [
-    { key: "immediate", label: "Immediate (48h)", color: "text-red-400" },
-    { key: "thisWeek",  label: "This Week",       color: "text-amber-400" },
-    { key: "thisMonth", label: "This Month",      color: "text-green-400" },
+    { key: "immediate", label: t.decision.actionImmediate, color: "text-red-400" },
+    { key: "thisWeek",  label: t.decision.actionThisWeek,  color: "text-amber-400" },
+    { key: "thisMonth", label: t.decision.actionThisMonth, color: "text-green-400" },
   ];
 
   const activeItems = actionPlan[activeTab] ?? [];
@@ -920,7 +922,7 @@ function ActionPlanSection({ actionPlan }: {
     <Card className="p-5 sm:p-6 border-gold/20">
       <div className="flex items-center gap-2 mb-5">
         <Target className="w-4 h-4 text-gold flex-shrink-0" />
-        <h2 className="text-sm font-semibold text-white">Action Plan</h2>
+        <h2 className="text-sm font-semibold text-white">{t.decision.actionPlan}</h2>
       </div>
       {/* Tabs */}
       <div className="flex gap-1 mb-5 bg-[#0d0d0d] rounded-lg p-1">
@@ -950,7 +952,7 @@ function ActionPlanSection({ actionPlan }: {
           className="space-y-3"
         >
           {activeItems.length === 0 ? (
-            <li className="text-sm text-text-secondary text-center py-2">No actions defined for this phase.</li>
+            <li className="text-sm text-text-secondary text-center py-2">{t.decision.noActionsPhase}</li>
           ) : activeItems.map((s, i) => (
             <li key={i} className="flex items-start gap-3 text-sm text-white">
               <span className="text-gold font-mono text-xs mt-1 flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
@@ -1124,29 +1126,29 @@ export default function DecisionPage() {
                   <verdictCfg.Icon className={`w-7 h-7 sm:w-8 sm:h-8 ${verdictCfg.color}`} />
                 </div>
                 <div>
-                  <p className="text-xs text-[#555] uppercase tracking-widest mb-1">Quantum Verdict</p>
+                  <p className="text-xs text-[#555] uppercase tracking-widest mb-1">{t.decision.quantumVerdict}</p>
                   <p className={`text-3xl sm:text-4xl font-black tracking-tight ${verdictCfg.color}`}>{verdictCfg.label}</p>
                 </div>
               </div>
               {/* Score strip */}
               <div className="flex gap-6 sm:gap-8">
                 <div className="text-center">
-                  <p className="text-xs text-[#555] uppercase tracking-wider mb-1">Risk</p>
+                  <p className="text-xs text-[#555] uppercase tracking-wider mb-1">{t.decision.risk}</p>
                   <p className="font-mono text-2xl font-bold" style={{ color: decision.riskScore !== null ? getRiskColor(decision.riskScore) : "#888" }}>
                     {decision.riskScore ?? "—"}
                   </p>
-                  <p className="text-[10px] text-[#444]">/ 100</p>
+                  <p className="text-[10px] text-[#444]">{t.decision.outOf100}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-[#555] uppercase tracking-wider mb-1">Confidence</p>
+                  <p className="text-xs text-[#555] uppercase tracking-wider mb-1">{t.decision.confidence}</p>
                   <p className="font-mono text-2xl font-bold text-[#C9A84C]">{confidence?.score ?? "—"}</p>
-                  <p className="text-[10px] text-[#444]">/ 100</p>
+                  <p className="text-[10px] text-[#444]">{t.decision.outOf100}</p>
                 </div>
                 {benchmark?.successRate !== undefined && (
                   <div className="text-center">
                     <p className="text-xs text-[#555] uppercase tracking-wider mb-1">Success rate</p>
                     <p className="font-mono text-2xl font-bold text-white">{benchmark.successRate}%</p>
-                    <p className="text-[10px] text-[#444]">comparable</p>
+                    <p className="text-[10px] text-[#444]">{t.decision.comparable}</p>
                   </div>
                 )}
               </div>
@@ -1194,7 +1196,7 @@ export default function DecisionPage() {
               <div className="bg-green-400/5 border border-green-400/20 rounded-xl p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingUp className="w-4 h-4 text-green-400 flex-shrink-0" />
-                  <h2 className="text-xs font-semibold text-green-400 uppercase tracking-wider">Strongest Case FOR</h2>
+                  <h2 className="text-xs font-semibold text-green-400 uppercase tracking-wider">{t.decision.strongestCaseFor}</h2>
                 </div>
                 <p className="text-sm text-white leading-relaxed">{report.strongestCaseFor}</p>
               </div>
@@ -1203,7 +1205,7 @@ export default function DecisionPage() {
               <div className="bg-red-400/5 border border-red-400/20 rounded-xl p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" />
-                  <h2 className="text-xs font-semibold text-red-400 uppercase tracking-wider">Strongest Case AGAINST</h2>
+                  <h2 className="text-xs font-semibold text-red-400 uppercase tracking-wider">{t.decision.strongestCaseAgainst}</h2>
                 </div>
                 <p className="text-sm text-white leading-relaxed">{report.strongestCaseAgainst}</p>
               </div>
@@ -1337,8 +1339,8 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6 border-orange-400/20">
               <div className="flex items-center gap-2 mb-4">
                 <Radar className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Hidden Risks</h2>
-                <span className="ml-auto text-xs text-orange-400/70 bg-orange-400/10 border border-orange-400/20 rounded px-2 py-0.5">Blind spots</span>
+                <h2 className="text-sm font-semibold text-white">{t.decision.hiddenRisks}</h2>
+                <span className="ml-auto text-xs text-orange-400/70 bg-orange-400/10 border border-orange-400/20 rounded px-2 py-0.5">{t.decision.blindSpots}</span>
               </div>
               <ul className="space-y-2.5">
                 {report.hiddenRisks.map((r, i) => (
@@ -1380,18 +1382,18 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-5">
                 <Map className="w-4 h-4 text-[#C9A84C] flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">Decision Map</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.decisionMap}</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {report.decisionMap.ifProceed && (
                   <div className="bg-green-400/5 border border-green-400/20 rounded-lg p-4">
-                    <p className="text-xs font-semibold text-green-400 uppercase tracking-wider mb-2">If you PROCEED</p>
+                    <p className="text-xs font-semibold text-green-400 uppercase tracking-wider mb-2">{t.decision.ifProceed}</p>
                     <p className="text-sm text-text-secondary leading-relaxed">{report.decisionMap.ifProceed}</p>
                   </div>
                 )}
                 {report.decisionMap.ifNotProceed && (
                   <div className="bg-red-400/5 border border-red-400/20 rounded-lg p-4">
-                    <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2">If you DON&apos;T proceed</p>
+                    <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2">{t.decision.ifNotProceed}</p>
                     <p className="text-sm text-text-secondary leading-relaxed">{report.decisionMap.ifNotProceed}</p>
                   </div>
                 )}
@@ -1406,7 +1408,7 @@ export default function DecisionPage() {
             <Card className="p-5 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Activity className="w-4 h-4 text-[#C9A84C] flex-shrink-0" />
-                <h2 className="text-sm font-semibold text-white">What To Monitor</h2>
+                <h2 className="text-sm font-semibold text-white">{t.decision.whatToMonitor}</h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {report.whatToMonitor.map((m, i) => (

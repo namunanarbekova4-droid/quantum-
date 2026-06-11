@@ -280,7 +280,7 @@ function CoachTipCard({ tip }: { tip: CoachTipData }) {
 
 function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
   const { t } = useLanguage();
-  const ft = t.features.pitchCoachLive as Record<string, string>;
+  const ft = t.features.pitchCoachLive as unknown as Record<string, string>;
   const [form, setForm] = useState<SetupData>({
     startupName: "",
     startupDescription: "",
@@ -427,6 +427,8 @@ interface RecordingProps {
 }
 
 function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
+  const { t: tl } = useLanguage();
+  const ft = tl.features.pitchCoachLive as unknown as Record<string, string>;
   const [transcript, setTranscript] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -830,30 +832,30 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
         {/* RIGHT: live metrics + tips */}
         <div className="lg:w-[45%] p-4 space-y-4 overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#1A1040]">
           <p className="text-[#8B7CF8] text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-            <BarChart2 className="w-3.5 h-3.5" /> Live Coaching
+            <BarChart2 className="w-3.5 h-3.5" /> {ft.liveCoaching}
           </p>
 
           <div className="grid grid-cols-2 gap-2">
             <MetricCard
-              title="Pace"
+              title={ft.pace}
               value={wpm > 0 ? `${wpm} WPM` : "—"}
               sub={`Status: ${paceVerdict}`}
               color={paceColor}
             />
             <MetricCard
-              title="Filler Words"
+              title={ft.fillerWordsMetric}
               value={String(totalF)}
-              sub={totalF > 0 ? `um(${fillers.um}) uh(${fillers.uh}) like(${fillers.like})` : "Keep it up!"}
+              sub={totalF > 0 ? `um(${fillers.um}) uh(${fillers.uh}) like(${fillers.like})` : ft.keepItUp}
               color={totalF > 8 ? "text-red-400" : totalF > 3 ? "text-yellow-400" : "text-green-400"}
             />
             <MetricCard
-              title="Energy"
+              title={ft.energy}
               value={energy}
-              sub="Based on pace"
+              sub={ft.basedOnPace}
               color={energyColor}
             />
             <div className="bg-[#06040F] border border-[#1A1040] rounded-xl p-3">
-              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider mb-1">Time Check</p>
+              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider mb-1">{ft.timeCheck}</p>
               <div className="h-1.5 bg-[#1A1040] rounded-full overflow-hidden mb-1.5">
                 <motion.div
                   className="h-full rounded-full bg-[#C9A84C]"
@@ -867,7 +869,7 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
             </div>
           </div>
 
-          <p className="text-white/30 text-[10px]">Ideal pace: 130–150 WPM · Ideal fillers: &lt;5 total</p>
+          <p className="text-white/30 text-[10px]">{ft.idealPace}</p>
 
           <div className="space-y-2 min-h-[80px]">
             <AnimatePresence>
@@ -883,7 +885,9 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
 // ─── Analyzing screen ─────────────────────────────────────────────────────────
 
 function AnalyzingScreen() {
-  const steps = ["Transcribing pitch...", "Detecting filler words...", "Analyzing structure...", "Scoring delivery...", "Generating brutal feedback..."];
+  const { t: tl } = useLanguage();
+  const ft = tl.features.pitchCoachLive as unknown as Record<string, unknown>;
+  const steps = (ft.analyzingSteps as string[]) ?? ["Transcribing pitch...", "Detecting filler words...", "Analyzing structure...", "Scoring delivery...", "Generating brutal feedback..."];
   const [done, setDone] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setDone(p => Math.min(p + 1, steps.length)), 1100);
@@ -893,8 +897,8 @@ function AnalyzingScreen() {
     <div className="min-h-screen flex items-center justify-center p-6 bg-[#06040F]">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center max-w-sm">
         <div className="w-16 h-16 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin mx-auto mb-6" />
-        <h2 className="text-2xl font-bold text-white mb-2">Analyzing Your Pitch</h2>
-        <p className="text-[#8B7CF8] text-sm mb-8">The harshest pitch coach in Silicon Valley is reviewing your pitch...</p>
+        <h2 className="text-2xl font-bold text-white mb-2">{ft.analyzingTitle as string}</h2>
+        <p className="text-[#8B7CF8] text-sm mb-8">{ft.analyzingSubtitle as string}</p>
         <div className="space-y-2 text-left">
           {steps.map((s, i) => (
             <div key={i} className={`flex items-center gap-3 text-sm transition-all ${i < done ? "text-green-400" : "text-white/25"}`}>
@@ -918,7 +922,7 @@ function ResultsScreen({
   analysis: Analysis; setup: SetupData; sessionId: string; onRetry: () => void;
 }) {
   const { t: tl } = useLanguage();
-  const ft = tl.features.pitchCoachLive as Record<string, string>;
+  const ft = tl.features.pitchCoachLive as unknown as Record<string, string>;
   const [copied, setCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistorySession[]>([]);
@@ -997,7 +1001,7 @@ function ResultsScreen({
 
           {/* SECTION 2: Critical problems — ALWAYS FIRST */}
           {analysis.critical_problems?.length > 0 && (
-            <Section title="What Needs Work" icon={<AlertTriangle className="w-4 h-4 text-red-400" />} color="text-red-400">
+            <Section title={ft.whatNeedsWork} icon={<AlertTriangle className="w-4 h-4 text-red-400" />} color="text-red-400">
               <div className="space-y-4">
                 {analysis.critical_problems.map((p, i) => (
                   <div key={i} className="p-4 rounded-xl border border-red-500/30 bg-red-500/5 space-y-2">
@@ -1023,7 +1027,7 @@ function ResultsScreen({
 
           {/* SECTION 3: What worked */}
           {analysis.what_worked?.length > 0 && (
-            <Section title="What Landed Well" icon={<Star className="w-4 h-4 text-green-400" />} color="text-green-400">
+            <Section title={ft.whatLandedWell} icon={<Star className="w-4 h-4 text-green-400" />} color="text-green-400">
               <div className="space-y-3">
                 {analysis.what_worked.map((w, i) => (
                   <div key={i} className="p-4 rounded-xl border border-green-500/20 bg-green-500/5">
@@ -1037,7 +1041,7 @@ function ResultsScreen({
 
           {/* SECTION 4: Missing completely */}
           {analysis.missing_completely?.length > 0 && (
-            <Section title="What You Never Said" icon={<XCircle className="w-4 h-4 text-orange-400" />} color="text-orange-400">
+            <Section title={ft.whatNeverSaid} icon={<XCircle className="w-4 h-4 text-orange-400" />} color="text-orange-400">
               <div className="flex flex-wrap gap-2">
                 {analysis.missing_completely.map((item, i) => (
                   <span key={i} className="px-3 py-1.5 rounded-lg border border-orange-500/30 bg-orange-500/10 text-orange-300 text-sm">
@@ -1075,7 +1079,7 @@ function ResultsScreen({
 
           {/* SECTION 6: Pacing */}
           {analysis.pacing && (
-            <Section title="Pacing Analysis" icon={<TrendingUp className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
+            <Section title={ft.pacingAnalysis} icon={<TrendingUp className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
               <div className="flex items-center gap-6 mb-4">
                 <div>
                   <p className={`text-5xl font-black ${analysis.pacing.verdict === "PERFECT" ? "text-green-400" : "text-yellow-400"}`}>
@@ -1110,7 +1114,7 @@ function ResultsScreen({
 
           {/* SECTION 7: Investor reaction */}
           {analysis.investor_reaction && (
-            <Section title="Investor Reaction" icon={<Zap className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
+            <Section title={ft.investorReaction} icon={<Zap className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
               <div className="p-4 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED]/5">
                 <p className="text-white/80 text-sm leading-relaxed italic">&quot;{analysis.investor_reaction}&quot;</p>
               </div>
@@ -1119,7 +1123,7 @@ function ResultsScreen({
 
           {/* SECTION 8: Killer rewrite */}
           {analysis.the_killer_rewrite && (
-            <Section title="How This 30 Seconds Should Sound" icon={<Flame className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
+            <Section title={ft.howShouldSound} icon={<Flame className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
               <div className="p-4 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/5">
                 <p className="text-[#C9A84C] text-xs font-bold uppercase tracking-wider mb-2">Quantum&apos;s rewrite:</p>
                 <p className="text-white text-sm leading-relaxed">{analysis.the_killer_rewrite}</p>
@@ -1129,7 +1133,7 @@ function ResultsScreen({
 
           {/* SECTION 9: Before next pitch */}
           {analysis.before_next_pitch?.length > 0 && (
-            <Section title="Before Your Next Pitch" icon={<Award className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
+            <Section title={ft.beforeNextPitch} icon={<Award className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
               <ol className="space-y-3">
                 {analysis.before_next_pitch.slice(0, 3).map((item, i) => (
                   <li key={i} className="flex gap-3">
@@ -1241,7 +1245,7 @@ function ResultsScreen({
 
 export default function PitchCoachLivePage() {
   const { t, locale } = useLanguage();
-  const ft = t.features.pitchCoachLive as Record<string, string>;
+  const ft = t.features.pitchCoachLive as unknown as Record<string, string>;
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
