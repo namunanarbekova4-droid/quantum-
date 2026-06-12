@@ -4,8 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { classifyError } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 
 const LANG_MAP: Record<string, string> = {
   en: "English",
@@ -36,9 +35,6 @@ export async function POST(req: Request) {
   if (!transcript?.trim()) {
     return NextResponse.json({ error: "transcript required" }, { status: 400 });
   }
-
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
-  if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
 
   const lang = LANG_MAP[locale] ?? "English";
   const isVideo = mode === "video";
@@ -142,18 +138,7 @@ Return ONLY valid JSON with this exact structure (no markdown, no code fences):
 }`;
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-    });
-
-    const result = await model.generateContent(prompt);
-    let raw = result.response.text().trim();
-    raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON in response");
-    const feedback = JSON.parse(match[0]);
+    const feedback = await generateJSON<Record<string, unknown>>(prompt);
 
     // Save session
     const saved = await prisma.pitchMirrorSession.create({
