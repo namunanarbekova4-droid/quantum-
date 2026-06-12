@@ -123,11 +123,21 @@ export async function POST(req: Request) {
     // Use arraybuffer — works in both Node.js and serverless/edge
     const arrayBuffer = await pres.write({ outputType: "arraybuffer" }) as ArrayBuffer;
 
-    const fileName = `${startupName.toLowerCase().replace(/\s+/g, "-")}-pitch-deck.pptx`;
+    // Sanitize filename: strip non-ASCII chars so Content-Disposition header doesn't crash
+    const safeName = startupName
+      .toLowerCase()
+      .replace(/[^\x00-\x7F]/g, "")   // remove non-ASCII (Cyrillic, emoji, etc.)
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "") || "pitch-deck";
+    const fileName = `${safeName}-pitch-deck.pptx`;
+    // Use RFC 5987 encoding so original name appears in supporting browsers
+    const encodedName = encodeURIComponent(`${startupName} Pitch Deck.pptx`);
     return new NextResponse(arrayBuffer, {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "Content-Disposition": `attachment; filename="${fileName}"`,
+        "Content-Disposition": `attachment; filename="${fileName}"; filename*=UTF-8''${encodedName}`,
         "Content-Length": String(arrayBuffer.byteLength),
       },
     });
