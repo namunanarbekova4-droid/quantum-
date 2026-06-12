@@ -13,10 +13,10 @@ interface TopBarProps {
 }
 
 const dropdownAnim = {
-  initial: { opacity: 0, y: -6, scale: 0.97 },
-  animate: { opacity: 1, y: 0,   scale: 1    },
-  exit:    { opacity: 0, y: -4,  scale: 0.98 },
-  transition: { duration: 0.18, ease: [0.16, 1, 0.3, 1] },
+  initial:    { opacity: 0, y: -6, scale: 0.97 },
+  animate:    { opacity: 1, y: 0,  scale: 1    },
+  exit:       { opacity: 0, y: -4, scale: 0.98 },
+  transition: { duration: 0.18, type: "tween" as const, ease: "easeOut" },
 };
 
 export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps) {
