@@ -92,11 +92,11 @@ export default function PricingIntelligencePage() {
         {/* Form */}
         <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-6 shadow-[0_0_30px_rgba(124,58,237,0.15)] mb-6 space-y-4">
           {[
-            { field: "product", label: fpi.product, placeholder: "What do you build? Who does it help? What problem does it solve?", rows: 2 },
-            { field: "targetCustomer", label: fpi.customer, placeholder: "e.g. SaaS teams of 10-50, SMBs spending $1k/mo on ads, B2B logistics companies...", rows: 2 },
-            { field: "competitors", label: fpi.competitors, placeholder: "e.g. Competitor A: $49/mo, Competitor B: $99/mo (enterprise), Competitor C: Free + $29/mo pro...", rows: 3 },
-            { field: "costs", label: fpi.costs, placeholder: "e.g. Cloud hosting $500/mo, 2 engineers, AI API costs ~$0.02 per request...", rows: 2 },
-            { field: "coreValue", label: fpi.value, placeholder: "What transformation do you deliver? e.g. 'saves 10hrs/week', 'increases conversion 30%', 'eliminates $50k/yr waste'...", rows: 2 },
+            { field: "product", label: fpi.product, placeholder: fpi.placeholderProduct || "What do you build? Who does it help?", rows: 2 },
+            { field: "targetCustomer", label: fpi.customer, placeholder: fpi.placeholderCustomer || "e.g. SaaS teams of 10-50...", rows: 2 },
+            { field: "competitors", label: fpi.competitors, placeholder: fpi.placeholderCompetitors || "e.g. Competitor A: $49/mo...", rows: 3 },
+            { field: "costs", label: fpi.costs, placeholder: fpi.placeholderCosts || "e.g. Cloud hosting $500/mo...", rows: 2 },
+            { field: "coreValue", label: fpi.value, placeholder: fpi.placeholderValue || "e.g. 'saves 10hrs/week'...", rows: 2 },
           ].map(({ field, label, placeholder, rows }) => (
             <div key={field}>
               <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{label}</label>
@@ -113,17 +113,21 @@ export default function PricingIntelligencePage() {
           <div>
             <label className="block text-xs font-medium text-[#8B7CF8] mb-1.5 uppercase tracking-wider">{fpi.stage}</label>
             <div className="flex gap-2 flex-wrap">
-              {["pre-revenue", "early revenue", "scaling"].map(s => (
+              {([
+                { value: "pre-revenue", label: fpi.stagePreRevenue || "Pre-Revenue" },
+                { value: "early revenue", label: fpi.stageEarlyRevenue || "Early Revenue" },
+                { value: "scaling", label: fpi.stageScaling || "Scaling" },
+              ]).map(s => (
                 <button
-                  key={s}
-                  onClick={() => set("stage", s)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                    form.stage === s
+                  key={s.value}
+                  onClick={() => set("stage", s.value)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    form.stage === s.value
                       ? "bg-[#7C3AED] text-white border border-[#7C3AED]"
                       : "bg-[#06040F] text-[#8B7CF8] border border-[#1A1040] hover:border-[#7C3AED]"
                   }`}
                 >
-                  {s}
+                  {s.label}
                 </button>
               ))}
             </div>
