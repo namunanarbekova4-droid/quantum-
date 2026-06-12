@@ -37,26 +37,194 @@ function getTheme(slide_type: string) {
 
 // ─── PDF export ───────────────────────────────────────────────────────────────
 
+function renderSlideHtml(slide: PitchSlide, th: typeof DEFAULT_THEME, startupName: string, total: number): string {
+  const header = `
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+    <span style="font-size:10px;padding:3px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:2px;font-weight:800;background:${th.accent}22;color:${th.accent};border:1px solid ${th.accent}44;">${slide.slide_type.replace(/_/g, " ")}</span>
+    <span style="font-size:11px;color:${th.textColor};opacity:0.5;">${slide.slide_number} / ${total}</span>
+  </div>`;
+  const notes = slide.speaker_notes ? `
+  <div style="margin-top:24px;padding:14px 18px;border-radius:8px;background:${th.accent}12;border:1px solid ${th.accent}30;">
+    <span style="font-size:9px;font-weight:800;letter-spacing:2px;color:${th.accent};text-transform:uppercase;display:block;margin-bottom:4px;">Speaker Notes</span>
+    <span style="font-size:13px;color:${th.textColor};opacity:0.75;">${slide.speaker_notes}</span>
+  </div>` : "";
+
+  switch (slide.slide_type) {
+    case "cover": return `
+<div class="page" style="background:${th.bg};color:${th.textColor};text-align:center;align-items:center;">
+  ${header}
+  ${slide.key_stat ? `<div style="display:inline-block;padding:4px 16px;border-radius:20px;font-size:13px;font-weight:800;margin-bottom:24px;background:${th.accent}22;color:${th.accent};border:1px solid ${th.accent}44;">${slide.key_stat}</div>` : ""}
+  <h1 style="font-size:72px;font-weight:900;color:${th.titleColor};letter-spacing:-0.03em;line-height:1;margin-bottom:16px;">${startupName}</h1>
+  <div style="width:60px;height:3px;background:${th.accent};border-radius:2px;margin:0 auto 20px;"></div>
+  <p style="font-size:22px;font-weight:600;color:${th.accent};margin-bottom:10px;">${slide.title}</p>
+  ${slide.subtitle ? `<p style="font-size:16px;font-style:italic;color:${th.textColor};opacity:0.7;">${slide.subtitle}</p>` : ""}
+  <p style="font-size:14px;color:${th.textColor};opacity:0.6;max-width:480px;margin-top:16px;line-height:1.7;">${slide.main_content}</p>
+  ${notes}
+</div>`;
+
+    case "problem": return `
+<div class="page" style="background:${th.bg};color:${th.textColor};">
+  ${header}
+  <div style="display:flex;gap:40px;align-items:flex-start;flex:1;">
+    <div style="flex:1;">
+      ${slide.key_stat ? `<div style="font-size:64px;font-weight:900;color:${th.accent};line-height:1;margin-bottom:12px;">${slide.key_stat}</div>` : ""}
+      <h1 style="font-size:42px;font-weight:900;color:${th.titleColor};letter-spacing:-0.02em;line-height:1.1;margin-bottom:12px;">${slide.title}</h1>
+      ${slide.subtitle ? `<p style="font-size:16px;font-style:italic;color:${th.accent};margin-bottom:12px;">${slide.subtitle}</p>` : ""}
+    </div>
+    <div style="flex:1;">
+      <div style="padding:20px;border-radius:12px;background:${th.accent}14;border:1px solid ${th.accent}30;margin-bottom:16px;">
+        <span style="font-size:10px;font-weight:800;letter-spacing:2px;color:${th.accent};text-transform:uppercase;display:block;margin-bottom:8px;">Pain Point</span>
+        <p style="font-size:14px;color:${th.textColor};opacity:0.9;line-height:1.7;">${slide.main_content}</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        ${["Critical","Widespread","Costly"].map(l=>`<div style="flex:1;text-align:center;padding:8px;border-radius:8px;background:${th.accent}18;border:1px solid ${th.accent}30;font-size:10px;font-weight:800;color:${th.accent};text-transform:uppercase;letter-spacing:1px;">${l}</div>`).join("")}
+      </div>
+    </div>
+  </div>
+  ${notes}
+</div>`;
+
+    case "personal_story": return `
+<div class="page" style="background:${th.bg};color:${th.textColor};position:relative;overflow:hidden;">
+  ${header}
+  <div style="position:absolute;top:-20px;left:-20px;font-size:240px;font-weight:900;color:${th.accent};opacity:0.1;line-height:1;pointer-events:none;">"</div>
+  <div style="position:relative;z-index:1;">
+    ${slide.key_stat ? `<span style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:800;background:${th.accent}22;color:${th.accent};border:1px solid ${th.accent}44;margin-bottom:20px;">${slide.key_stat}</span>` : ""}
+    <h1 style="font-size:40px;font-weight:900;color:${th.titleColor};letter-spacing:-0.02em;line-height:1.15;font-style:italic;margin-bottom:16px;">"${slide.title}"</h1>
+    ${slide.subtitle ? `<p style="font-size:16px;color:${th.accent};margin-bottom:14px;">${slide.subtitle}</p>` : ""}
+    <p style="font-size:15px;color:${th.textColor};opacity:0.82;line-height:1.8;max-width:600px;">${slide.main_content}</p>
+  </div>
+  ${notes}
+</div>`;
+
+    case "solution": return `
+<div class="page" style="background:${th.bg};color:${th.textColor};">
+  ${header}
+  <div style="display:flex;gap:40px;align-items:center;flex:1;">
+    <div style="flex:1;">
+      <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:${th.accent};text-transform:uppercase;margin-bottom:16px;">The Solution</div>
+      <h1 style="font-size:40px;font-weight:900;color:${th.titleColor};letter-spacing:-0.02em;line-height:1.1;margin-bottom:12px;">${slide.title}</h1>
+      ${slide.subtitle ? `<p style="font-size:16px;font-style:italic;color:${th.accent};margin-bottom:16px;">${slide.subtitle}</p>` : ""}
+      ${slide.key_stat ? `<div style="display:inline-flex;align-items:center;padding:8px 20px;border-radius:12px;background:${th.accent}20;border:1px solid ${th.accent}40;color:${th.accent};font-size:24px;font-weight:900;">${slide.key_stat}</div>` : ""}
+    </div>
+    <div style="flex:1;border-radius:16px;border:2px solid ${th.accent}40;background:${th.accent}08;overflow:hidden;">
+      <div style="padding:8px 12px;background:${th.accent}15;border-bottom:1px solid ${th.accent}30;display:flex;gap:6px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#ff5f56;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:#27c93f;"></div>
+      </div>
+      <div style="padding:20px;">
+        <p style="font-size:13px;color:${th.textColor};opacity:0.88;line-height:1.7;">${slide.main_content}</p>
+      </div>
+    </div>
+  </div>
+  ${notes}
+</div>`;
+
+    case "market": return `
+<div class="page" style="background:${th.bg};color:${th.textColor};text-align:center;align-items:center;">
+  ${header}
+  ${slide.key_stat ? `<div style="font-size:96px;font-weight:900;color:${th.accent};line-height:1;margin-bottom:12px;">${slide.key_stat}</div>` : ""}
+  <h1 style="font-size:38px;font-weight:900;color:${th.titleColor};letter-spacing:-0.02em;margin-bottom:10px;max-width:600px;">${slide.title}</h1>
+  ${slide.subtitle ? `<p style="font-size:16px;font-style:italic;color:${th.accent};margin-bottom:14px;">${slide.subtitle}</p>` : ""}
+  <p style="font-size:14px;color:${th.textColor};opacity:0.75;max-width:500px;line-height:1.7;">${slide.main_content}</p>
+  ${notes}
+</div>`;
+
+    case "traction": return `
+<div class="page" style="background:${th.bg};color:${th.textColor};">
+  ${header}
+  <div style="display:flex;gap:40px;align-items:center;flex:1;">
+    <div style="flex:1;">
+      ${slide.key_stat ? `<div style="font-size:88px;font-weight:900;color:${th.accent};line-height:1;margin-bottom:8px;">${slide.key_stat}</div>` : ""}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <svg width="28" height="18" viewBox="0 0 28 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polyline points="0,16 8,8 14,12 24,2" stroke="${th.accent}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="21,2 24,2 24,5" stroke="${th.accent}" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span style="font-size:14px;font-weight:700;color:${th.accent};">Growing</span>
+      </div>
+      <h1 style="font-size:34px;font-weight:900;color:${th.titleColor};margin-bottom:10px;">${slide.title}</h1>
+      ${slide.subtitle ? `<p style="font-size:14px;font-style:italic;color:${th.accent};margin-bottom:10px;">${slide.subtitle}</p>` : ""}
+      <p style="font-size:13px;color:${th.textColor};opacity:0.82;line-height:1.7;max-width:360px;">${slide.main_content}</p>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:120px;">
+      ${[0.35,0.52,0.44,0.68,0.58,0.75,0.90,1.0].map((h,i)=>`<div style="width:20px;height:${Math.round(h*120)}px;border-radius:4px 4px 0 0;background:${i===7?th.accent:`${th.accent}${Math.round(i*18+30).toString(16).padStart(2,'0')}`};"></div>`).join("")}
+    </div>
+  </div>
+  ${notes}
+</div>`;
+
+    case "competition": return `
+<div class="page" style="background:${th.bg};color:${th.textColor};">
+  ${header}
+  <div style="display:flex;gap:40px;align-items:center;flex:1;">
+    <div style="flex:1;">
+      <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:${th.accent};text-transform:uppercase;margin-bottom:16px;">Competitive Landscape</div>
+      ${slide.key_stat ? `<div style="font-size:56px;font-weight:900;color:${th.accent};line-height:1;margin-bottom:10px;">${slide.key_stat}</div>` : ""}
+      <h1 style="font-size:36px;font-weight:900;color:${th.titleColor};margin-bottom:10px;">${slide.title}</h1>
+      ${slide.subtitle ? `<p style="font-size:14px;font-style:italic;color:${th.accent};margin-bottom:10px;">${slide.subtitle}</p>` : ""}
+      <p style="font-size:13px;color:${th.textColor};opacity:0.82;line-height:1.7;max-width:360px;">${slide.main_content}</p>
+    </div>
+    <div style="flex-shrink:0;">
+      <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <line x1="100" y1="10" x2="100" y2="190" stroke="${th.accent}" stroke-width="1.5" opacity="0.5"/>
+        <line x1="10" y1="100" x2="190" y2="100" stroke="${th.accent}" stroke-width="1.5" opacity="0.5"/>
+        <text x="105" y="22" fill="${th.accent}" font-size="9" font-weight="700" opacity="0.8">INNOVATIVE</text>
+        <text x="12" y="22" fill="${th.accent}" font-size="8" opacity="0.6">LEGACY</text>
+        <text x="8" y="96" fill="${th.accent}" font-size="8" opacity="0.7">NICHE</text>
+        <text x="122" y="96" fill="${th.accent}" font-size="8" opacity="0.7">SCALE</text>
+        <circle cx="40" cy="75" r="7" fill="${th.textColor}" opacity="0.3"/>
+        <circle cx="60" cy="110" r="6" fill="${th.textColor}" opacity="0.3"/>
+        <circle cx="70" cy="55" r="5" fill="${th.textColor}" opacity="0.3"/>
+        <circle cx="42" cy="135" r="7" fill="${th.textColor}" opacity="0.3"/>
+        <circle cx="148" cy="35" r="11" fill="${th.accent}" opacity="0.9"/>
+        <text x="138" y="24" fill="${th.accent}" font-size="9" font-weight="900">US</text>
+      </svg>
+    </div>
+  </div>
+  ${notes}
+</div>`;
+
+    case "ask": return `
+<div class="page" style="background:${th.bg};color:${th.textColor};text-align:center;align-items:center;">
+  ${header}
+  <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:${th.accent};text-transform:uppercase;margin-bottom:16px;">The Ask</div>
+  ${slide.key_stat ? `<div style="font-size:96px;font-weight:900;color:${th.titleColor};line-height:1;margin-bottom:12px;">${slide.key_stat}</div>` : ""}
+  <h1 style="font-size:38px;font-weight:900;color:${th.accent};letter-spacing:-0.02em;margin-bottom:10px;max-width:600px;">${slide.title}</h1>
+  ${slide.subtitle ? `<p style="font-size:16px;font-style:italic;color:${th.textColor};opacity:0.85;margin-bottom:16px;">${slide.subtitle}</p>` : ""}
+  <div style="display:flex;width:400px;height:10px;border-radius:6px;overflow:hidden;margin-bottom:12px;">
+    <div style="width:40%;background:${th.accent};"></div>
+    <div style="width:25%;background:${th.accent};opacity:0.65;"></div>
+    <div style="width:20%;background:${th.accent};opacity:0.45;"></div>
+    <div style="width:15%;background:${th.accent};opacity:0.25;"></div>
+  </div>
+  <div style="display:flex;gap:24px;font-size:11px;color:${th.textColor};opacity:0.6;margin-bottom:16px;">
+    <span>Product 40%</span><span>Team 25%</span><span>Growth 20%</span><span>Ops 15%</span>
+  </div>
+  <p style="font-size:14px;color:${th.textColor};opacity:0.8;max-width:500px;line-height:1.7;">${slide.main_content}</p>
+  ${notes}
+</div>`;
+
+    default: return `
+<div class="page" style="background:${th.bg};color:${th.textColor};">
+  ${header}
+  ${slide.key_stat ? `<div style="font-size:72px;font-weight:900;color:${th.accent};line-height:1;margin-bottom:12px;">${slide.key_stat}</div>` : ""}
+  <h1 style="font-size:42px;font-weight:900;color:${th.titleColor};letter-spacing:-0.02em;line-height:1.1;margin-bottom:12px;">${slide.title}</h1>
+  ${slide.subtitle ? `<p style="font-size:18px;font-style:italic;color:${th.accent};margin-bottom:16px;opacity:0.85;">${slide.subtitle}</p>` : ""}
+  <div style="display:flex;align-items:flex-start;gap:14px;max-width:680px;">
+    <div style="width:3px;flex-shrink:0;border-radius:2px;height:44px;background:${th.accent};opacity:0.5;margin-top:3px;"></div>
+    <p style="font-size:16px;color:${th.textColor};opacity:0.88;line-height:1.8;">${slide.main_content}</p>
+  </div>
+  ${notes}
+</div>`;
+  }
+}
+
 function downloadPDF(result: PitchDeckResult, startupName: string) {
   const slidesHtml = result.slides.map((slide) => {
     const th = getTheme(slide.slide_type);
-    const isHero = ["cover","market","ask"].includes(slide.slide_type);
-    const isSplit = ["problem","solution","competition","traction","financials"].includes(slide.slide_type);
-    return `
-<div class="page" style="background:${th.bg};color:${th.textColor};">
-  <div class="slide-header">
-    <span class="badge" style="background:${th.accent}22;color:${th.accent};border:1px solid ${th.accent}44;">${slide.slide_type.replace(/_/g, " ")}</span>
-    <span class="slide-num" style="color:${th.textColor}88;">Slide ${slide.slide_number} / ${result.slides.length}</span>
-  </div>
-  <div class="${isHero ? "hero-layout" : isSplit ? "split-layout" : "default-layout"}">
-    ${slide.key_stat ? `<div class="key-stat" style="color:${th.accent};">${slide.key_stat}</div>` : ""}
-    <h1 style="color:${isHero ? th.titleColor : th.titleColor};">${slide.slide_type === "cover" ? startupName : slide.title}</h1>
-    ${slide.slide_type === "cover" ? `<p class="tagline" style="color:${th.accent};">${slide.title}</p>` : ""}
-    ${slide.subtitle ? `<p class="subtitle" style="color:${th.accent};">${slide.subtitle}</p>` : ""}
-    <p class="content" style="color:${th.textColor};">${slide.main_content}</p>
-    ${slide.speaker_notes ? `<div class="notes" style="border-color:${th.accent}44;background:${th.accent}11;"><span class="notes-label" style="color:${th.accent};">SPEAKER NOTES</span><br/><span style="color:${th.textColor}cc;">${slide.speaker_notes}</span></div>` : ""}
-  </div>
-</div>`;
+    return renderSlideHtml(slide, th, startupName, result.slides.length);
   }).join("");
 
   const html = `<!DOCTYPE html>
@@ -67,21 +235,8 @@ function downloadPDF(result: PitchDeckResult, startupName: string) {
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Helvetica Neue',Arial,sans-serif;}
-  .page{width:100%;min-height:100vh;padding:52px 64px;display:flex;flex-direction:column;justify-content:center;page-break-after:always;}
+  .page{width:100%;min-height:100vh;padding:48px 60px;display:flex;flex-direction:column;justify-content:center;page-break-after:always;overflow:hidden;}
   .page:last-of-type{page-break-after:avoid;}
-  .slide-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
-  .badge{font-size:11px;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;}
-  .slide-num{font-size:12px;letter-spacing:1px;}
-  .hero-layout{text-align:center;display:flex;flex-direction:column;align-items:center;}
-  .split-layout{display:flex;flex-direction:column;}
-  .default-layout{display:flex;flex-direction:column;}
-  .key-stat{font-size:64px;font-weight:900;line-height:1;margin-bottom:16px;}
-  h1{font-size:42px;font-weight:900;line-height:1.1;margin-bottom:10px;letter-spacing:-0.02em;}
-  .tagline{font-size:22px;font-weight:600;margin-bottom:8px;opacity:0.85;}
-  .subtitle{font-size:18px;font-style:italic;margin-bottom:20px;opacity:0.85;}
-  .content{font-size:16px;line-height:1.8;opacity:0.88;}
-  .notes{margin-top:24px;padding:16px 20px;border-radius:8px;border:1px solid;}
-  .notes-label{font-size:10px;font-weight:700;letter-spacing:2px;display:block;margin-bottom:6px;}
   .extra{padding:48px 64px;border-top:1px solid #333;}
   .extra h2{font-size:20px;font-weight:700;color:#7C3AED;margin-bottom:12px;}
   .extra p{font-size:14px;color:#444;line-height:1.8;white-space:pre-wrap;}
@@ -1185,6 +1340,7 @@ export default function PitchDeckPage() {
   const [selectedTheme, setSelectedTheme] = useState<ThemeId>("dark-premium");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [pptxLoading, setPptxLoading] = useState(false);
+  const [pptxError, setPptxError] = useState("");
 
   useEffect(() => {
     if (step !== 2) return;
@@ -1260,10 +1416,13 @@ export default function PitchDeckPage() {
   const handleDownloadPPTX = async () => {
     if (!result) return;
     setPptxLoading(true);
+    setPptxError("");
     try {
       await generatePPTX(result, deckName, DECK_THEMES[selectedTheme]);
     } catch (e) {
-      console.error("PPTX generation failed:", e);
+      const msg = e instanceof Error ? e.message : "Download failed";
+      setPptxError(msg);
+      setTimeout(() => setPptxError(""), 5000);
     } finally {
       setPptxLoading(false);
     }
@@ -1508,15 +1667,22 @@ export default function PitchDeckPage() {
               <Download className="w-4 h-4" />
               {ft.downloadPDF}
             </button>
-            <button
-              onClick={handleDownloadPPTX}
-              disabled={pptxLoading}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-60"
-              style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", color: "#3B82F6" }}
-            >
-              {pptxLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              PPTX
-            </button>
+            <div className="relative">
+              <button
+                onClick={handleDownloadPPTX}
+                disabled={pptxLoading}
+                className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-60"
+                style={{ background: pptxError ? "rgba(239,68,68,0.15)" : "rgba(59,130,246,0.15)", border: `1px solid ${pptxError ? "rgba(239,68,68,0.4)" : "rgba(59,130,246,0.3)"}`, color: pptxError ? "#ef4444" : "#3B82F6" }}
+              >
+                {pptxLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                {pptxError ? "Failed" : "PPTX"}
+              </button>
+              {pptxError && (
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs text-red-300 pointer-events-none" style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)" }}>
+                  {pptxError}
+                </div>
+              )}
+            </div>
           </div>
           <button onClick={reset} className="flex items-center gap-1.5 text-sm text-[#555] hover:text-[#8B7CF8] transition-colors">
             <RotateCcw className="w-3.5 h-3.5" /> {ft.startOver}
