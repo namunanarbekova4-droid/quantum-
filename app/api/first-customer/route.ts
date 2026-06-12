@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
   const prompt = `You are a world-class customer research expert and growth hacker who has helped hundreds of early-stage startups find their first paying customers.
 
-Based on this startup description, identify 10 realistic ideal customer profiles who genuinely need this product RIGHT NOW — not eventually, RIGHT NOW.
+Based on this startup description, identify 6 realistic ideal customer profiles who genuinely need this product RIGHT NOW — not eventually, RIGHT NOW.
 
 STARTUP INFO:
 Product: ${productDescription}
@@ -80,7 +80,11 @@ IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON (no markdown, no 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
-      generationConfig: { temperature: 0.85, maxOutputTokens: 4096 },
+      generationConfig: {
+        temperature: 0.85,
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json",
+      },
     });
 
     const result = await model.generateContent(prompt);
