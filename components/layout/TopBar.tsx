@@ -12,12 +12,10 @@ interface TopBarProps {
   userRole?: "FOUNDER" | "INVESTOR" | "EXECUTIVE";
 }
 
-const dropdownAnim = {
-  initial:    { opacity: 0, y: -6, scale: 0.97 },
-  animate:    { opacity: 1, y: 0,  scale: 1    },
-  exit:       { opacity: 0, y: -4, scale: 0.98 },
-  transition: { duration: 0.18, type: "tween" as const, ease: "easeOut" },
-};
+const DD_INIT = { opacity: 0, y: -6, scale: 0.97 };
+const DD_ANIM = { opacity: 1, y: 0,  scale: 1    };
+const DD_EXIT = { opacity: 0, y: -4, scale: 0.98 };
+const DD_TRANS = { duration: 0.18 };
 
 export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps) {
   const [notifOpen, setNotifOpen] = useState(false);
@@ -60,7 +58,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
             {langOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={closeAll} />
-                <motion.div {...dropdownAnim} className="absolute right-0 top-full mt-1.5 w-44 bg-[#0F0A1F] border border-[#1A1040] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-20 overflow-hidden py-1">
+                <motion.div initial={DD_INIT} animate={DD_ANIM} exit={DD_EXIT} transition={DD_TRANS} className="absolute right-0 top-full mt-1.5 w-44 bg-[#0F0A1F] border border-[#1A1040] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-20 overflow-hidden py-1">
                   {(Object.keys(localeLabels) as Locale[]).map((loc) => {
                     const info = localeLabels[loc];
                     return (
@@ -100,7 +98,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
             {notifOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setNotifOpen(false)} />
-                <motion.div {...dropdownAnim} className="absolute right-0 top-full mt-1.5 w-80 bg-[#0F0A1F] border border-[#1A1040] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-20">
+                <motion.div initial={DD_INIT} animate={DD_ANIM} exit={DD_EXIT} transition={DD_TRANS} className="absolute right-0 top-full mt-1.5 w-80 bg-[#0F0A1F] border border-[#1A1040] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-20">
                   <div className="px-4 py-3 border-b border-[#1A1040] flex items-center justify-between">
                     <span className="text-sm font-semibold text-white">{t.topbar.notifications}</span>
                     <span className="text-xs text-[#8B7CF8]/50">0 new</span>
@@ -141,7 +139,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
             {userOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setUserOpen(false)} />
-                <motion.div {...dropdownAnim} className="absolute right-0 top-full mt-1.5 w-48 bg-[#0F0A1F] border border-[#1A1040] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-20 overflow-hidden py-1">
+                <motion.div initial={DD_INIT} animate={DD_ANIM} exit={DD_EXIT} transition={DD_TRANS} className="absolute right-0 top-full mt-1.5 w-48 bg-[#0F0A1F] border border-[#1A1040] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-20 overflow-hidden py-1">
                   <a href="/dashboard/settings" className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#8B7CF8] hover:text-white hover:bg-[#1A1040] transition-colors">
                     <Settings className="w-4 h-4" /> {t.topbar.settings}
                   </a>
