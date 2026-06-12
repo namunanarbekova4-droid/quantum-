@@ -40,17 +40,22 @@ function getTheme(slide_type: string) {
 function downloadPDF(result: PitchDeckResult, startupName: string) {
   const slidesHtml = result.slides.map((slide) => {
     const th = getTheme(slide.slide_type);
+    const isHero = ["cover","market","ask"].includes(slide.slide_type);
+    const isSplit = ["problem","solution","competition","traction","financials"].includes(slide.slide_type);
     return `
 <div class="page" style="background:${th.bg};color:${th.textColor};">
   <div class="slide-header">
     <span class="badge" style="background:${th.accent}22;color:${th.accent};border:1px solid ${th.accent}44;">${slide.slide_type.replace(/_/g, " ")}</span>
     <span class="slide-num" style="color:${th.textColor}88;">Slide ${slide.slide_number} / ${result.slides.length}</span>
   </div>
-  ${slide.key_stat ? `<div class="key-stat" style="color:${th.accent};">${slide.key_stat}</div>` : ""}
-  <h1 style="color:${th.titleColor};">${slide.title}</h1>
-  ${slide.subtitle ? `<p class="subtitle" style="color:${th.accent};">${slide.subtitle}</p>` : ""}
-  <p class="content" style="color:${th.textColor};">${slide.main_content}</p>
-  ${slide.speaker_notes ? `<div class="notes" style="border-color:${th.accent}44;background:${th.accent}11;"><span class="notes-label" style="color:${th.accent};">SPEAKER NOTES</span><br/><span style="color:${th.textColor}cc;">${slide.speaker_notes}</span></div>` : ""}
+  <div class="${isHero ? "hero-layout" : isSplit ? "split-layout" : "default-layout"}">
+    ${slide.key_stat ? `<div class="key-stat" style="color:${th.accent};">${slide.key_stat}</div>` : ""}
+    <h1 style="color:${isHero ? th.titleColor : th.titleColor};">${slide.slide_type === "cover" ? startupName : slide.title}</h1>
+    ${slide.slide_type === "cover" ? `<p class="tagline" style="color:${th.accent};">${slide.title}</p>` : ""}
+    ${slide.subtitle ? `<p class="subtitle" style="color:${th.accent};">${slide.subtitle}</p>` : ""}
+    <p class="content" style="color:${th.textColor};">${slide.main_content}</p>
+    ${slide.speaker_notes ? `<div class="notes" style="border-color:${th.accent}44;background:${th.accent}11;"><span class="notes-label" style="color:${th.accent};">SPEAKER NOTES</span><br/><span style="color:${th.textColor}cc;">${slide.speaker_notes}</span></div>` : ""}
+  </div>
 </div>`;
   }).join("");
 
@@ -67,11 +72,15 @@ function downloadPDF(result: PitchDeckResult, startupName: string) {
   .slide-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
   .badge{font-size:11px;padding:4px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;}
   .slide-num{font-size:12px;letter-spacing:1px;}
-  .key-stat{font-size:56px;font-weight:900;line-height:1;margin-bottom:16px;}
-  h1{font-size:38px;font-weight:800;line-height:1.15;margin-bottom:10px;}
-  .subtitle{font-size:18px;font-style:italic;margin-bottom:24px;opacity:0.85;}
-  .content{font-size:16px;line-height:1.8;opacity:0.9;}
-  .notes{margin-top:28px;padding:16px 20px;border-radius:8px;border:1px solid;}
+  .hero-layout{text-align:center;display:flex;flex-direction:column;align-items:center;}
+  .split-layout{display:flex;flex-direction:column;}
+  .default-layout{display:flex;flex-direction:column;}
+  .key-stat{font-size:64px;font-weight:900;line-height:1;margin-bottom:16px;}
+  h1{font-size:42px;font-weight:900;line-height:1.1;margin-bottom:10px;letter-spacing:-0.02em;}
+  .tagline{font-size:22px;font-weight:600;margin-bottom:8px;opacity:0.85;}
+  .subtitle{font-size:18px;font-style:italic;margin-bottom:20px;opacity:0.85;}
+  .content{font-size:16px;line-height:1.8;opacity:0.88;}
+  .notes{margin-top:24px;padding:16px 20px;border-radius:8px;border:1px solid;}
   .notes-label{font-size:10px;font-weight:700;letter-spacing:2px;display:block;margin-bottom:6px;}
   .extra{padding:48px 64px;border-top:1px solid #333;}
   .extra h2{font-size:20px;font-weight:700;color:#7C3AED;margin-bottom:12px;}
@@ -363,6 +372,352 @@ function WowMomentCard({ wow }: { wow: WowMoment }) {
   );
 }
 
+// ─── Per-slide-type unique layouts ───────────────────────────────────────────
+
+interface SlideTheme { bg: string; titleColor: string; accent: string; textColor: string; badge: string }
+
+function renderSlideContent(slide: PitchSlide, theme: SlideTheme, deckName: string, fullscreen: boolean) {
+  const T = theme;
+  const fs = fullscreen;
+
+  switch (slide.slide_type) {
+
+    case "cover": return (
+      <div className="flex-1 flex flex-col items-center justify-center relative py-4 z-10 text-center">
+        {/* Decorative rings */}
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+          <div className="rounded-full absolute" style={{ width: "70%", height: "70%", border: `1px solid ${T.accent}18` }} />
+          <div className="rounded-full absolute" style={{ width: "50%", height: "50%", border: `1px solid ${T.accent}14` }} />
+        </div>
+        {slide.key_stat && (
+          <div className="inline-block px-4 py-1 rounded-full text-xs font-bold mb-4 tracking-widest" style={{ background: T.accent + "22", color: T.accent, border: `1px solid ${T.accent}44` }}>
+            {slide.key_stat}
+          </div>
+        )}
+        <h1 className={`font-black leading-none mb-3 ${fs ? "text-6xl md:text-9xl" : "text-5xl md:text-7xl"}`} style={{ color: T.titleColor, letterSpacing: "-0.03em" }}>
+          {deckName}
+        </h1>
+        <div className="w-16 h-0.5 rounded-full mx-auto mb-4" style={{ background: T.accent }} />
+        <p className={`font-semibold max-w-lg ${fs ? "text-xl" : "text-base"}`} style={{ color: T.accent }}>{slide.title}</p>
+        {slide.subtitle && <p className={`mt-2 max-w-md ${fs ? "text-base" : "text-sm"} italic`} style={{ color: T.textColor, opacity: 0.7 }}>{slide.subtitle}</p>}
+        <p className={`mt-4 max-w-sm ${fs ? "text-sm" : "text-xs"} leading-relaxed`} style={{ color: T.textColor, opacity: 0.6 }}>{slide.main_content}</p>
+      </div>
+    );
+
+    case "problem": return (
+      <div className="flex-1 flex gap-6 items-center py-4 z-10 relative">
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.accent }}>The Problem</div>
+          {slide.key_stat && (
+            <div className={`font-black leading-none mb-2 ${fs ? "text-7xl" : "text-5xl"}`} style={{ color: T.accent }}>{slide.key_stat}</div>
+          )}
+          <h2 className={`font-extrabold leading-tight mb-3 ${fs ? "text-4xl" : "text-2xl md:text-3xl"}`} style={{ color: T.titleColor, letterSpacing: "-0.02em" }}>
+            {slide.title}
+          </h2>
+          {slide.subtitle && <p className={`italic mb-3 ${fs ? "text-lg" : "text-sm"}`} style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+        </div>
+        <div className="flex-shrink-0 w-2/5 flex flex-col gap-3">
+          {/* Pain point card */}
+          <div className="rounded-xl p-4" style={{ background: T.accent + "12", border: `1px solid ${T.accent}30`, backdropFilter: "blur(8px)" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0" style={{ background: T.accent + "30", color: T.accent }}>!</div>
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: T.accent }}>Pain Point</span>
+            </div>
+            <p className={`leading-relaxed ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.9 }}>{slide.main_content}</p>
+          </div>
+          {/* Severity indicator */}
+          <div className="flex items-center gap-3">
+            {["Critical", "Widespread", "Costly"].map((l) => (
+              <div key={l} className="flex-1 text-center py-1.5 rounded-lg" style={{ background: T.accent + "18", border: `1px solid ${T.accent}30` }}>
+                <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color: T.accent }}>{l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
+    case "personal_story": return (
+      <div className="flex-1 flex flex-col justify-center py-4 z-10 relative">
+        {/* Large decorative quote */}
+        <div className="absolute top-0 left-0 font-black leading-none pointer-events-none select-none" style={{ fontSize: fs ? 180 : 120, color: T.accent + "18", lineHeight: 1 }}>&ldquo;</div>
+        <div className="relative z-10">
+          {slide.key_stat && (
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-3" style={{ background: T.accent + "22", color: T.accent, border: `1px solid ${T.accent}44` }}>
+              {slide.key_stat}
+            </span>
+          )}
+          <h2 className={`font-extrabold leading-tight mb-4 max-w-2xl ${fs ? "text-4xl" : "text-2xl md:text-3xl"}`} style={{ color: T.titleColor, letterSpacing: "-0.02em", fontStyle: "italic" }}>
+            &ldquo;{slide.title}&rdquo;
+          </h2>
+          {slide.subtitle && <p className={`mb-3 ${fs ? "text-lg" : "text-sm"}`} style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+          <p className={`leading-relaxed max-w-xl ${fs ? "text-base" : "text-sm"}`} style={{ color: T.textColor, opacity: 0.8 }}>{slide.main_content}</p>
+        </div>
+      </div>
+    );
+
+    case "solution": return (
+      <div className="flex-1 flex gap-5 items-center py-4 z-10 relative">
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: T.accent }}>
+            <div className="w-4 h-0.5 rounded-full" style={{ background: T.accent }} /> The Solution
+          </div>
+          <h2 className={`font-extrabold leading-tight mb-3 ${fs ? "text-4xl" : "text-2xl md:text-3xl"}`} style={{ color: T.titleColor, letterSpacing: "-0.02em" }}>
+            {slide.title}
+          </h2>
+          {slide.subtitle && <p className={`italic mb-4 ${fs ? "text-lg" : "text-sm"}`} style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+          {slide.key_stat && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl w-fit" style={{ background: T.accent + "20", border: `1px solid ${T.accent}40`, color: T.accent }}>
+              <span className={`font-black ${fs ? "text-2xl" : "text-xl"}`}>{slide.key_stat}</span>
+            </div>
+          )}
+        </div>
+        {/* Product frame */}
+        <div className="flex-shrink-0 w-2/5 rounded-2xl overflow-hidden" style={{ border: `2px solid ${T.accent}40`, background: T.accent + "08" }}>
+          <div className="flex items-center gap-1.5 px-3 py-2 border-b" style={{ background: T.accent + "15", borderColor: T.accent + "30" }}>
+            {["#ff5f56","#ffbd2e","#27c93f"].map(c => <div key={c} className="w-2 h-2 rounded-full" style={{ background: c }} />)}
+          </div>
+          <div className="p-4">
+            <p className={`leading-relaxed ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.85 }}>{slide.main_content}</p>
+          </div>
+        </div>
+      </div>
+    );
+
+    case "market": return (
+      <div className="flex-1 flex flex-col items-center justify-center py-4 z-10 relative text-center">
+        {/* Concentric circles decoration */}
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+          <div className="rounded-full" style={{ width: "80%", height: "80%", border: `1px solid ${T.accent}10` }} />
+          <div className="rounded-full absolute" style={{ width: "55%", height: "55%", border: `1px solid ${T.accent}16` }} />
+          <div className="rounded-full absolute" style={{ width: "32%", height: "32%", border: `2px solid ${T.accent}22` }} />
+        </div>
+        {slide.key_stat && (
+          <div className={`font-black leading-none mb-2 ${fs ? "text-8xl" : "text-6xl md:text-7xl"}`} style={{ color: T.accent }}>
+            {slide.key_stat}
+          </div>
+        )}
+        <h2 className={`font-extrabold mb-2 max-w-lg ${fs ? "text-3xl" : "text-xl md:text-2xl"}`} style={{ color: T.titleColor, letterSpacing: "-0.02em" }}>
+          {slide.title}
+        </h2>
+        {slide.subtitle && <p className={`italic mb-3 ${fs ? "text-base" : "text-sm"}`} style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+        <p className={`max-w-md leading-relaxed ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.75 }}>{slide.main_content}</p>
+      </div>
+    );
+
+    case "product": return (
+      <div className="flex-1 flex flex-col justify-center py-4 z-10 relative">
+        {slide.key_stat && (
+          <div className="flex items-center gap-3 mb-4">
+            <span className={`font-black leading-none ${fs ? "text-6xl" : "text-4xl md:text-5xl"}`} style={{ color: T.accent }}>{slide.key_stat}</span>
+            <div className="h-8 w-0.5 rounded-full" style={{ background: T.accent + "40" }} />
+            <span className={`font-bold ${fs ? "text-lg" : "text-sm"}`} style={{ color: T.textColor, opacity: 0.6 }}>Key Metric</span>
+          </div>
+        )}
+        <h2 className={`font-extrabold leading-tight mb-3 ${fs ? "text-4xl" : "text-2xl md:text-3xl"}`} style={{ color: T.titleColor, letterSpacing: "-0.02em" }}>
+          {slide.title}
+        </h2>
+        {slide.subtitle && <p className={`italic mb-4 ${fs ? "text-lg" : "text-sm"}`} style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+        <div className="rounded-xl p-4 max-w-xl" style={{ background: T.accent + "0c", border: `1px solid ${T.accent}28` }}>
+          <p className={`leading-relaxed ${fs ? "text-base" : "text-sm"}`} style={{ color: T.textColor, opacity: 0.85 }}>{slide.main_content}</p>
+        </div>
+        {slide.visual_hint && !fullscreen && (
+          <p className="mt-2 text-[10px] italic" style={{ color: T.accent + "60" }}>Visual: {slide.visual_hint}</p>
+        )}
+      </div>
+    );
+
+    case "traction": return (
+      <div className="flex-1 flex gap-6 items-center py-4 z-10 relative">
+        <div className="flex flex-col justify-center">
+          {/* Hero metric */}
+          {slide.key_stat && (
+            <div className={`font-black leading-none ${fs ? "text-8xl" : "text-6xl md:text-7xl"}`} style={{ color: T.accent }}>
+              {slide.key_stat}
+            </div>
+          )}
+          {/* Trend arrow */}
+          <div className="flex items-center gap-2 mt-2 mb-4">
+            <svg width="24" height="16" viewBox="0 0 24 16" fill="none">
+              <polyline points="0,14 8,6 14,10 24,2" stroke={T.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <polyline points="20,2 24,2 24,6" stroke={T.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className={`font-bold ${fs ? "text-base" : "text-xs"}`} style={{ color: T.accent }}>Growing</span>
+          </div>
+          <h2 className={`font-extrabold leading-tight mb-2 ${fs ? "text-3xl" : "text-xl md:text-2xl"}`} style={{ color: T.titleColor }}>
+            {slide.title}
+          </h2>
+          {slide.subtitle && <p className="text-sm italic mb-2" style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+          <p className={`leading-relaxed max-w-sm ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.8 }}>{slide.main_content}</p>
+        </div>
+        {/* Decorative bar chart */}
+        <div className="flex-shrink-0 flex items-end gap-2 h-24 pr-4">
+          {[0.35, 0.52, 0.44, 0.68, 0.58, 0.75, 0.90, 1.0].map((h, i) => (
+            <div key={i} className="w-5 rounded-t" style={{ height: `${h * 100}%`, background: i === 7 ? T.accent : T.accent + (Math.round(i * 18 + 20).toString(16).padStart(2, "0")) }} />
+          ))}
+        </div>
+      </div>
+    );
+
+    case "business_model": return (
+      <div className="flex-1 flex flex-col justify-center py-4 z-10 relative">
+        <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.accent }}>Revenue Model</div>
+        {slide.key_stat && (
+          <div className={`font-black mb-2 ${fs ? "text-6xl" : "text-4xl md:text-5xl"}`} style={{ color: T.accent }}>{slide.key_stat}</div>
+        )}
+        <h2 className={`font-extrabold leading-tight mb-3 ${fs ? "text-4xl" : "text-2xl md:text-3xl"}`} style={{ color: T.titleColor }}>
+          {slide.title}
+        </h2>
+        {slide.subtitle && <p className={`italic mb-4 ${fs ? "text-lg" : "text-sm"}`} style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+        {/* Revenue flow cards */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {["Acquire", "Activate", "Monetize"].map((stage, i) => (
+            <div key={stage} className="flex items-center gap-3">
+              <div className="rounded-xl px-4 py-3 flex flex-col" style={{ background: T.accent + "18", border: `1px solid ${T.accent}30` }}>
+                <span className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{ color: T.accent }}>{stage}</span>
+                <span className={fs ? "text-sm" : "text-xs"} style={{ color: T.textColor, opacity: 0.85 }}>Step {i + 1}</span>
+              </div>
+              {i < 2 && <div className="w-5 h-0.5 rounded-full" style={{ background: T.accent + "50" }} />}
+            </div>
+          ))}
+        </div>
+        <p className={`mt-4 leading-relaxed max-w-xl ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.8 }}>{slide.main_content}</p>
+      </div>
+    );
+
+    case "competition": return (
+      <div className="flex-1 flex gap-6 items-center py-4 z-10 relative">
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.accent }}>Competitive Landscape</div>
+          {slide.key_stat && <div className={`font-black mb-2 ${fs ? "text-5xl" : "text-3xl"}`} style={{ color: T.accent }}>{slide.key_stat}</div>}
+          <h2 className={`font-extrabold leading-tight mb-3 ${fs ? "text-3xl" : "text-xl md:text-2xl"}`} style={{ color: T.titleColor }}>
+            {slide.title}
+          </h2>
+          {slide.subtitle && <p className="text-sm italic mb-3" style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+          <p className={`leading-relaxed max-w-sm ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.8 }}>{slide.main_content}</p>
+        </div>
+        {/* 2x2 quadrant */}
+        <div className="flex-shrink-0 w-40 h-40 relative">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <line x1="80" y1="4" x2="80" y2="156" stroke={T.accent + "40"} strokeWidth="1.5"/>
+            <line x1="4" y1="80" x2="156" y2="80" stroke={T.accent + "40"} strokeWidth="1.5"/>
+            <text x="83" y="16" fill={T.accent + "80"} fontSize="8" fontWeight="700">INNOVATIVE</text>
+            <text x="10" y="16" fill={T.accent + "60"} fontSize="7">LEGACY</text>
+            <text x="6" y="76" fill={T.accent + "70"} fontSize="7">NICHE</text>
+            <text x="100" y="76" fill={T.accent + "70"} fontSize="7">SCALE</text>
+            {/* Competitor dots */}
+            {[[30,60],[45,90],[55,40],[35,110]].map(([x,y],i)=>(
+              <circle key={i} cx={x} cy={y} r="5" fill={T.textColor + "30"} stroke={T.textColor + "50"} strokeWidth="1"/>
+            ))}
+            {/* Us — winner quadrant */}
+            <circle cx="118" cy="28" r="8" fill={T.accent} opacity="0.9"/>
+            <text x="108" y="18" fill={T.accent} fontSize="7" fontWeight="800">US</text>
+          </svg>
+        </div>
+      </div>
+    );
+
+    case "team": return (
+      <div className="flex-1 flex flex-col justify-center py-4 z-10 relative">
+        <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.accent }}>The Team</div>
+        <h2 className={`font-extrabold leading-tight mb-3 ${fs ? "text-4xl" : "text-2xl md:text-3xl"}`} style={{ color: T.titleColor }}>
+          {slide.title}
+        </h2>
+        {slide.subtitle && <p className={`italic mb-4 ${fs ? "text-lg" : "text-sm"}`} style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+        <div className="flex gap-4 mb-4 flex-wrap">
+          {["Founder", "Technical", "Business"].map((role, i) => (
+            <div key={role} className="flex flex-col items-center gap-2">
+              <div className="rounded-full flex items-center justify-center font-black" style={{ width: fs ? 56 : 44, height: fs ? 56 : 44, background: T.accent + (["30","20","18"][i]), border: `2px solid ${T.accent}50`, color: T.accent, fontSize: fs ? 18 : 14 }}>
+                {["F","T","B"][i]}
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: T.textColor, opacity: 0.7 }}>{role}</span>
+            </div>
+          ))}
+        </div>
+        <p className={`leading-relaxed max-w-xl ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.8 }}>{slide.main_content}</p>
+        {slide.key_stat && <div className="mt-3 text-sm font-bold" style={{ color: T.accent }}>{slide.key_stat}</div>}
+      </div>
+    );
+
+    case "financials": return (
+      <div className="flex-1 flex gap-6 items-center py-4 z-10 relative">
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.accent }}>Financial Outlook</div>
+          {slide.key_stat && (
+            <div className={`font-black leading-none mb-3 ${fs ? "text-7xl" : "text-5xl md:text-6xl"}`} style={{ color: T.accent }}>
+              {slide.key_stat}
+            </div>
+          )}
+          <h2 className={`font-extrabold leading-tight mb-3 ${fs ? "text-3xl" : "text-xl md:text-2xl"}`} style={{ color: T.titleColor }}>
+            {slide.title}
+          </h2>
+          {slide.subtitle && <p className="text-sm italic mb-3" style={{ color: T.accent, opacity: 0.85 }}>{slide.subtitle}</p>}
+          <p className={`leading-relaxed max-w-sm ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.8 }}>{slide.main_content}</p>
+        </div>
+        {/* Gauge decoration */}
+        <div className="flex-shrink-0">
+          <svg width={fs ? 120 : 90} height={fs ? 120 : 90} viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke={T.accent + "18"} strokeWidth="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke={T.accent} strokeWidth="10" strokeLinecap="round"
+              strokeDasharray={`${314 * 0.72} 314`} strokeDashoffset={314 * 0.25} transform="rotate(-90 60 60)"/>
+            <text x="60" y="65" textAnchor="middle" fill={T.titleColor} fontSize="18" fontWeight="900">72%</text>
+            <text x="60" y="80" textAnchor="middle" fill={T.accent + "80"} fontSize="9">margin</text>
+          </svg>
+        </div>
+      </div>
+    );
+
+    case "ask": return (
+      <div className="flex-1 flex flex-col items-center justify-center py-4 z-10 relative text-center">
+        <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.accent }}>The Ask</div>
+        {slide.key_stat && (
+          <div className={`font-black leading-none mb-2 ${fs ? "text-8xl" : "text-6xl md:text-7xl"}`} style={{ color: T.titleColor }}>
+            {slide.key_stat}
+          </div>
+        )}
+        <h2 className={`font-extrabold leading-tight mb-2 max-w-lg ${fs ? "text-4xl" : "text-2xl md:text-3xl"}`} style={{ color: T.accent, letterSpacing: "-0.02em" }}>
+          {slide.title}
+        </h2>
+        {slide.subtitle && <p className={`italic mb-4 ${fs ? "text-lg" : "text-sm"}`} style={{ color: T.textColor, opacity: 0.85 }}>{slide.subtitle}</p>}
+        {/* Use-of-funds decorative bar */}
+        <div className="flex w-full max-w-xs h-2 rounded-full overflow-hidden mb-4">
+          {[["40%", T.accent], ["25%", T.accent + "aa"], ["20%", T.accent + "77"], ["15%", T.accent + "44"]].map(([w, c]) => (
+            <div key={w} className="h-full" style={{ width: w, background: c }} />
+          ))}
+        </div>
+        <div className="flex gap-4 text-[10px] mb-4">
+          {["Product 40%", "Team 25%", "Growth 20%", "Ops 15%"].map(l => (
+            <span key={l} style={{ color: T.textColor, opacity: 0.6 }}>{l}</span>
+          ))}
+        </div>
+        <p className={`leading-relaxed max-w-md ${fs ? "text-sm" : "text-xs"}`} style={{ color: T.textColor, opacity: 0.8 }}>{slide.main_content}</p>
+      </div>
+    );
+
+    default: return (
+      <div className="flex-1 flex flex-col justify-center py-4 relative z-10">
+        {slide.key_stat && (
+          <>
+            <div className={`font-black mb-2 leading-none ${fs ? "text-8xl" : "text-5xl md:text-7xl"}`} style={{ color: T.accent }}>{slide.key_stat}</div>
+            <div className="w-12 h-0.5 mb-4 rounded-full" style={{ background: T.accent + "60" }} />
+          </>
+        )}
+        <h2 className={`font-extrabold leading-tight mb-3 ${fs ? "text-4xl" : "text-2xl md:text-4xl"}`} style={{ color: T.titleColor, letterSpacing: "-0.02em" }}>
+          {slide.title}
+        </h2>
+        {slide.subtitle && <p className={`italic mb-4 ${fs ? "text-lg" : "text-base"}`} style={{ color: T.accent, opacity: 0.9 }}>{slide.subtitle}</p>}
+        <div className="flex items-start gap-3 max-w-3xl">
+          <div className="w-0.5 flex-shrink-0 rounded-full mt-1" style={{ height: 40, background: T.accent + "50" }} />
+          <p className={`leading-relaxed ${fs ? "text-base" : "text-sm md:text-base"}`} style={{ color: T.textColor, opacity: 0.85 }}>{slide.main_content}</p>
+        </div>
+        {!fs && slide.emotional_purpose && (
+          <p className="mt-3 text-[10px] italic" style={{ color: T.textColor + "50" }}>{slide.emotional_purpose}</p>
+        )}
+      </div>
+    );
+  }
+}
+
 // ─── Slide viewer (Gamma AI style) ───────────────────────────────────────────
 
 function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSlideUpdate }: {
@@ -488,37 +843,8 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
                 {/* Radial glow overlay for depth */}
                 <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 80% 10%, ${theme.accent}18 0%, transparent 60%)` }} />
 
-                {/* Center content */}
-                <div className="flex-1 flex flex-col justify-center py-4 relative z-10">
-                  {slide.key_stat && (
-                    <>
-                      <div className="text-5xl md:text-8xl font-black mb-2 leading-none" style={{ color: theme.accent }}>
-                        {slide.key_stat}
-                      </div>
-                      <div className="w-12 h-0.5 mb-4 rounded-full" style={{ background: theme.accent + "60" }} />
-                    </>
-                  )}
-                  <h2 className="text-2xl md:text-4xl font-extrabold leading-tight mb-3" style={{ color: theme.titleColor, letterSpacing: "-0.02em" }}>
-                    {slide.title}
-                  </h2>
-                  {slide.subtitle && (
-                    <p className="text-base md:text-lg italic mb-4" style={{ color: theme.accent, opacity: 0.9 }}>
-                      {slide.subtitle}
-                    </p>
-                  )}
-                  <div className="flex items-start gap-3 max-w-3xl">
-                    <div className="w-0.5 flex-shrink-0 rounded-full mt-1" style={{ height: 40, background: theme.accent + "50" }} />
-                    <p className="text-sm md:text-base leading-relaxed" style={{ color: theme.textColor, opacity: 0.85 }}>
-                      {slide.main_content}
-                    </p>
-                  </div>
-                  {/* Emotional purpose — subtle creative director note */}
-                  {!fullscreen && slide.emotional_purpose && (
-                    <p className="mt-3 text-[10px] italic" style={{ color: theme.textColor + "50" }}>
-                      {slide.emotional_purpose}
-                    </p>
-                  )}
-                </div>
+                {/* Per-type slide content */}
+                {renderSlideContent(slide, theme, deckName, fullscreen)}
 
                 {/* Bottom: startup name watermark */}
                 <div className="flex items-center justify-between relative z-10">
