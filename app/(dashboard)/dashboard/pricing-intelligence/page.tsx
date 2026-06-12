@@ -41,6 +41,7 @@ export default function PricingIntelligencePage() {
   const fpi = t.features.pricingIntelligence;
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PricingResult | null>(null);
+  const [error, setError] = useState("");
   const [form, setForm] = useState({
     product: "",
     targetCustomer: "",
@@ -54,6 +55,7 @@ export default function PricingIntelligencePage() {
 
   async function analyze() {
     setLoading(true);
+    setError("");
     try {
       const res = await fetch("/api/pricing-intelligence", {
         method: "POST",
@@ -61,7 +63,10 @@ export default function PricingIntelligencePage() {
         body: JSON.stringify({ ...form, locale }),
       });
       const data = await res.json();
-      setResult(data);
+      if (!res.ok) throw new Error(data.error || "Analysis failed");
+      setResult(data as PricingResult);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -132,6 +137,12 @@ export default function PricingIntelligencePage() {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             {loading ? fpi.analyzing : fpi.analyze}
           </button>
+          {error && (
+            <div className="flex items-start gap-2 p-3 rounded-lg text-sm text-red-300" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
+              {error}
+            </div>
+          )}
         </div>
 
         {/* Results */}
