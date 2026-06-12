@@ -4,12 +4,29 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { classifyError } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 
 const LANG_MAP: Record<string, string> = {
   en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh",
 };
+
+interface CustomerProfile {
+  name: string;
+  title: string;
+  company_type: string;
+  location: string;
+  why_they_need: string;
+  pain_level: "HIGH" | "MEDIUM";
+  where_to_find: string[];
+  best_approach: string;
+  match_score: number;
+}
+
+interface FirstCustomerResult {
+  profiles: CustomerProfile[];
+  communities: { platform: string; name: string; members: string; why: string }[];
+  acquisition_plan: { today: string; this_week: string; this_month: string };
+}
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -21,14 +38,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Product description and problem are required" }, { status: 400 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
-  if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
-
   const lang = LANG_MAP[locale] ?? "English";
 
-  const prompt = `You are a world-class customer research expert and growth hacker who has helped hundreds of early-stage startups find their first paying customers.
+  const prompt = `You are a world-class customer research expert who has helped hundreds of early-stage startups find their first paying customers.
 
-Based on this startup description, identify 6 realistic ideal customer profiles who genuinely need this product RIGHT NOW — not eventually, RIGHT NOW.
+Based on this startup description, identify 6 realistic ideal customer profiles who genuinely need this product RIGHT NOW.
 
 STARTUP INFO:
 Product: ${productDescription}
@@ -38,26 +52,24 @@ Industry: ${industry}
 
 Requirements:
 - Each profile must feel like a real, specific person with a real painful problem
-- "where_to_find" must include specific subreddits, LinkedIn search queries, Slack community names, or Twitter hashtags — NOT generic advice
+- "where_to_find" must include specific subreddits, LinkedIn search queries, Slack communities, or Twitter hashtags
 - "best_approach" must be a specific opening angle, NOT generic advice
-- "why_they_need" must reference the EXACT problem from the founder's description
 - match_score between 72 and 96
 - pain_level is either "HIGH" or "MEDIUM"
 - Include exactly 5 communities and a 3-step acquisition plan
 
-IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON (no markdown, no code fences):
-
+Respond entirely in ${lang}. Return JSON:
 {
   "profiles": [
     {
       "name": "realistic full name",
       "title": "specific job title",
-      "company_type": "specific type and size (e.g. B2B SaaS startup, 10-50 employees)",
+      "company_type": "specific type and size",
       "location": "city, country",
-      "why_they_need": "This person struggles with [exact pain point from the description] and has been looking for [specific solution type] for [timeframe]",
+      "why_they_need": "specific pain point explanation",
       "pain_level": "HIGH",
-      "where_to_find": ["LinkedIn - search for '[role]' at '[company type]'", "Reddit r/[specific_subreddit]", "Slack: [community name]"],
-      "best_approach": "Lead with [specific angle] — mention [specific pain point] and ask [specific question]",
+      "where_to_find": ["LinkedIn search query", "Reddit r/subreddit", "Slack community"],
+      "best_approach": "specific opening angle and question",
       "match_score": 89
     }
   ],
@@ -66,33 +78,18 @@ IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON (no markdown, no 
       "platform": "Reddit",
       "name": "r/specific_subreddit",
       "members": "450K members",
-      "why": "specific reason your ideal customer is active here and what they discuss"
+      "why": "specific reason your ideal customer is active here"
     }
   ],
   "acquisition_plan": {
-    "today": "Go to [specific platform], search for [specific query], message 5 people with: [specific opening message template]",
-    "this_week": "Post in [specific community] with this angle: [specific content strategy]. Target [specific persona] with [specific hook]",
-    "this_month": "Build relationships in [specific community] by [specific action]. Goal: [specific measurable outcome]"
+    "today": "specific actionable step with platform and message template",
+    "this_week": "specific community and content strategy",
+    "this_month": "specific relationship-building action and measurable goal"
   }
 }`;
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        temperature: 0.85,
-        maxOutputTokens: 8192,
-        responseMimeType: "application/json",
-      },
-    });
-
-    const result = await model.generateContent(prompt);
-    let raw = result.response.text().trim()
-      .replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON in response");
-    const data = JSON.parse(match[0]);
+    const data = await generateJSON<FirstCustomerResult>(prompt);
 
     const saved = await prisma.customerSearch.create({
       data: {
@@ -101,7 +98,7 @@ IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON (no markdown, no 
         idealCustomer: idealCustomer || "",
         problem,
         industry,
-        results: data,
+        results: data as object,
       },
     });
 
