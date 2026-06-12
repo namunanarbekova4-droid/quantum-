@@ -152,7 +152,7 @@ Return ONLY valid JSON with this exact structure (no markdown, no code fences):
         mode: mode ?? "audio",
         transcript: transcript ?? "",
         overallScore: Number(feedback.overall_score) || 0,
-        feedback,
+        feedback: feedback as object,
       },
     });
 
