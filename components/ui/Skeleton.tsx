@@ -2,13 +2,14 @@ import { cn } from "@/lib/utils";
 
 interface SkeletonProps {
   className?: string;
+  style?: React.CSSProperties;
   variant?: "default" | "gold";
   lines?: number;
 }
 
-export function Skeleton({ className, variant = "default" }: SkeletonProps) {
+export function Skeleton({ className, style, variant = "default" }: SkeletonProps) {
   return (
-    <div className={cn(variant === "gold" ? "skeleton-gold" : "skeleton", className)} />
+    <div className={cn(variant === "gold" ? "skeleton-gold" : "skeleton", className)} style={style} />
   );
 }
 
