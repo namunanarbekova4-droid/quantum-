@@ -377,6 +377,8 @@ function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
 // ─── Deck Score Panel ─────────────────────────────────────────────────────────
 
 function DeckScorePanel({ score }: { score: DeckScore }) {
+  const { t: tl } = useLanguage();
+  const fts = tl.features.pitchDeck as Record<string, string>;
   const [open, setOpen] = useState(false);
   const r = 44;
   const circ = 2 * Math.PI * r;
@@ -395,7 +397,7 @@ function DeckScorePanel({ score }: { score: DeckScore }) {
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
         <div className="flex items-center gap-3">
           <Star className="w-4 h-4" style={{ color: "#C9A84C" }} />
-          <span className="font-bold text-white text-sm">Deck Score</span>
+          <span className="font-bold text-white text-sm">{fts.deckScore || "Deck Score"}</span>
           <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: color + "22", color, border: `1px solid ${color}44` }}>{score.overall}/100</span>
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-[#555]" /> : <ChevronDown className="w-4 h-4 text-[#555]" />}
@@ -419,7 +421,7 @@ function DeckScorePanel({ score }: { score: DeckScore }) {
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-[#555] mb-1">Brutally Honest Verdict</p>
+                  <p className="text-[10px] uppercase tracking-widest text-[#555] mb-1">{fts.brutallHonest || "Brutally Honest Verdict"}</p>
                   <p className="text-sm italic leading-relaxed" style={{ color: "#C9A84C" }}>&ldquo;{score.verdict}&rdquo;</p>
                 </div>
               </div>
@@ -451,6 +453,8 @@ function DeckScorePanel({ score }: { score: DeckScore }) {
 // ─── Red Flags Panel ──────────────────────────────────────────────────────────
 
 function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
+  const { t: tl } = useLanguage();
+  const fts = tl.features.pitchDeck as Record<string, string>;
   const [open, setOpen] = useState(false);
   const highCount = flags.filter(f => f.severity === "HIGH").length;
 
@@ -465,10 +469,10 @@ function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
         <div className="flex items-center gap-3">
           <AlertTriangle className="w-4 h-4 text-amber-400" />
-          <span className="font-bold text-white text-sm">Investor Red Flags</span>
+          <span className="font-bold text-white text-sm">{fts.investorRedFlags || "Investor Red Flags"}</span>
           {highCount > 0
-            ? <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-red-500/20 text-red-400 border border-red-500/30">{highCount} HIGH</span>
-            : <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-500/20 text-green-400 border border-green-500/30">Clean</span>
+            ? <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-red-500/20 text-red-400 border border-red-500/30">{highCount} {fts.highSeverity || "HIGH"}</span>
+            : <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-green-500/20 text-green-400 border border-green-500/30">{fts.clean || "Clean"}</span>
           }
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-[#555]" /> : <ChevronDown className="w-4 h-4 text-[#555]" />}
@@ -478,7 +482,7 @@ function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
             <div className="px-5 pb-5 space-y-3">
               {flags.length === 0 ? (
-                <p className="text-sm text-green-400 flex items-center gap-2"><Check className="w-4 h-4" /> No critical issues detected</p>
+                <p className="text-sm text-green-400 flex items-center gap-2"><Check className="w-4 h-4" /> {fts.noIssues || "No critical issues detected"}</p>
               ) : flags.map((flag, i) => {
                 const s = severityStyle[flag.severity];
                 return (
@@ -503,6 +507,8 @@ function RedFlagsPanel({ flags }: { flags: RedFlag[] }) {
 // ─── WOW Moment card ─────────────────────────────────────────────────────────
 
 function WowMomentCard({ wow }: { wow: WowMoment }) {
+  const { t: tl } = useLanguage();
+  const fts = tl.features.pitchDeck as Record<string, string>;
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
       className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
@@ -513,7 +519,7 @@ function WowMomentCard({ wow }: { wow: WowMoment }) {
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-4">
           <Zap className="w-4 h-4 text-[#C9A84C]" />
-          <span className="text-xs font-bold uppercase tracking-widest text-[#C9A84C]">Your Most Memorable Moment</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-[#C9A84C]">{fts.wowMoment || "Your Most Memorable Moment"}</span>
         </div>
         <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-3">{wow.headline}</h3>
         <p className="text-base text-[#8B7CF8] mb-4 italic">{wow.subtext}</p>
@@ -883,6 +889,8 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
   locale: string;
   onSlideUpdate: (index: number, slide: PitchSlide) => void;
 }) {
+  const { t: tl } = useLanguage();
+  const fts = tl.features.pitchDeck as Record<string, string>;
   const [current, setCurrent] = useState(0);
   const [showNotes, setShowNotes] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -949,9 +957,9 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
       {!fullscreen && (
         <div className="flex gap-1 mb-4 p-1 rounded-xl" style={{ background: "#0F0A1F", border: "1px solid #1A1040" }}>
           {([
-            { key: "slides", icon: <Layers className="w-3.5 h-3.5" />, label: "Slides" },
-            { key: "scripts", icon: <FileText className="w-3.5 h-3.5" />, label: "Scripts" },
-            { key: "qa", icon: <HelpCircle className="w-3.5 h-3.5" />, label: "Q&A" },
+            { key: "slides", icon: <Layers className="w-3.5 h-3.5" />, label: fts.slides },
+            { key: "scripts", icon: <FileText className="w-3.5 h-3.5" />, label: fts.scripts },
+            { key: "qa", icon: <HelpCircle className="w-3.5 h-3.5" />, label: fts.qa },
           ] as const).map((tb) => (
             <button
               key={tb.key}
@@ -1099,10 +1107,10 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
                       style={{ background: "#0D0A20", border: "1px solid #1A1040", minWidth: 180 }}
                     >
                       {([
-                        { key: "persuasive", label: "More Persuasive", icon: "💬" },
-                        { key: "visual", label: "More Visual", icon: "🎨" },
-                        { key: "concise", label: "More Concise", icon: "✂️" },
-                        { key: "investor-friendly", label: "Investor-Friendly", icon: "💰" },
+                        { key: "persuasive", label: fts.morePitch || "More Persuasive", icon: "💬" },
+                        { key: "visual", label: fts.moreVisual || "More Visual", icon: "🎨" },
+                        { key: "concise", label: fts.moreConcise || "More Concise", icon: "✂️" },
+                        { key: "investor-friendly", label: fts.investorFriendly || "Investor-Friendly", icon: "💰" },
                       ] as const).map((opt) => (
                         <button
                           key={opt.key}
@@ -1139,7 +1147,7 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
                 style={{ color: investorMode ? "#C9A84C" : "#555" }}
               >
                 <Eye className="w-3 h-3" />
-                {investorMode ? "Investor view ON" : "👁 See through investor eyes"}
+                {investorMode ? fts.investorViewOn || "Investor view ON" : `👁 ${fts.investorViewOff || "See through investor eyes"}`}
               </button>
             </div>
           )}
@@ -1182,10 +1190,10 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
       {tab === "scripts" && !fullscreen && (
         <div className="space-y-4">
           {[
-            { label: "Opening Hook", text: result.opening_hook, badge: "Start strong", color: "#f59e0b" },
-            { label: "Elevator Pitch", text: result.elevator_pitch, badge: "30 sec", color: "#0ea5e9" },
-            { label: "3-Minute Script", text: result.three_minute_script, badge: "Full pitch", color: "#a855f7" },
-            { label: "Closing Statement", text: result.closing_statement, badge: "End strong", color: "#22c55e" },
+            { label: fts.openingHook || "Opening Hook", text: result.opening_hook, badge: fts.startStrong || "Start strong", color: "#f59e0b" },
+            { label: fts.elevatorPitch || "Elevator Pitch", text: result.elevator_pitch, badge: fts.sec30 || "30 sec", color: "#0ea5e9" },
+            { label: fts.threeMinScript || "3-Minute Script", text: result.three_minute_script, badge: fts.fullPitch || "Full pitch", color: "#a855f7" },
+            { label: fts.closingStatement || "Closing Statement", text: result.closing_statement, badge: fts.endStrong || "End strong", color: "#22c55e" },
           ].map((s) => (
             <motion.div
               key={s.label}
@@ -1235,6 +1243,8 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
 // ─── History sidebar ──────────────────────────────────────────────────────────
 
 function HistoryDrawer({ onLoad }: { onLoad: (deck: PitchDeckResult, name: string) => void }) {
+  const { t: tl } = useLanguage();
+  const fts = tl.features.pitchDeck as Record<string, string>;
   const [open, setOpen] = useState(false);
   const [decks, setDecks] = useState<SavedDeck[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1267,7 +1277,7 @@ function HistoryDrawer({ onLoad }: { onLoad: (deck: PitchDeckResult, name: strin
         style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)", color: "#A855F7" }}
       >
         <History className="w-4 h-4" />
-        My Decks
+        {fts.myDecks || "My Decks"}
       </button>
 
       <AnimatePresence>
@@ -1290,7 +1300,7 @@ function HistoryDrawer({ onLoad }: { onLoad: (deck: PitchDeckResult, name: strin
               style={{ width: 320, background: "#0D0A20", borderLeft: "1px solid #1A1040" }}
             >
               <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: "#1A1040" }}>
-                <h3 className="font-bold text-white">My Saved Decks</h3>
+                <h3 className="font-bold text-white">{fts.mySavedDecks || "My Saved Decks"}</h3>
                 <button onClick={() => setOpen(false)} className="text-[#555] hover:text-white transition-colors">
                   <X className="w-5 h-5" />
                 </button>
@@ -1299,7 +1309,7 @@ function HistoryDrawer({ onLoad }: { onLoad: (deck: PitchDeckResult, name: strin
                 {loading ? (
                   <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-[#7C3AED]" /></div>
                 ) : decks.length === 0 ? (
-                  <p className="text-sm text-center py-8" style={{ color: "#555" }}>No saved decks yet</p>
+                  <p className="text-sm text-center py-8" style={{ color: "#555" }}>{fts.noSavedDecks || "No saved decks yet"}</p>
                 ) : decks.map((d) => (
                   <button
                     key={d.id}
@@ -1442,7 +1452,7 @@ export default function PitchDeckPage() {
             <h1 className="text-3xl font-bold text-white mb-3">{ft.title}</h1>
             <p className="text-[#8B7CF8] mb-8 leading-relaxed">{ft.subtitle}</p>
             <div className="flex justify-center gap-6 mb-8 text-sm text-[#8B7CF8]">
-              {["12 slides", "Your voice", "5 min setup"].map((f) => (
+              {[ft.feat12slides || "12 slides", ft.featYourVoice || "Your voice", ft.feat5min || "5 min setup"].map((f) => (
                 <span key={f} className="flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#C9A84C] inline-block" />
                   {f}
@@ -1452,7 +1462,7 @@ export default function PitchDeckPage() {
 
             {/* Theme selector on intro */}
             <div className="mb-6">
-              <p className="text-xs text-[#8B7CF8] mb-3 font-semibold uppercase tracking-widest">Choose a theme</p>
+              <p className="text-xs text-[#8B7CF8] mb-3 font-semibold uppercase tracking-widest">{ft.chooseTheme || "Choose a theme"}</p>
               <div className="flex justify-center">
                 <ThemeSelector selected={selectedTheme} onChange={setSelectedTheme} />
               </div>
@@ -1505,7 +1515,7 @@ export default function PitchDeckPage() {
                 <div className="rounded-xl p-6 mb-4" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
                   <p className="text-xs font-semibold text-[#C9A84C] uppercase tracking-widest mb-3">{ft.questionOf} {qIndex + 1}</p>
                   <h2 className="text-xl font-bold text-white leading-snug mb-1">{q.q}</h2>
-                  <p className="text-xs text-[#8B7CF8]/60">Be specific — the more detail you give, the better your deck</p>
+                  <p className="text-xs text-[#8B7CF8]/60">{ft.beSpecific || "Be specific — the more detail you give, the better your deck"}</p>
                 </div>
 
                 {q.type === "text" ? (
@@ -1514,7 +1524,7 @@ export default function PitchDeckPage() {
                     value={currentAnswer}
                     onChange={(e) => setCurrentAnswer(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" && currentAnswer.trim()) goNext(); }}
-                    placeholder="Type your answer..."
+                    placeholder={ft.typeYourAnswer || "Type your answer..."}
                     className="w-full h-12 px-4 rounded-xl text-sm text-white placeholder-[#444] outline-none transition-all"
                     style={{ background: "rgba(15,10,31,0.8)", border: "1px solid #1A1040" }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = "#7C3AED"; }}
@@ -1525,7 +1535,7 @@ export default function PitchDeckPage() {
                     autoFocus
                     value={currentAnswer}
                     onChange={(e) => setCurrentAnswer(e.target.value)}
-                    placeholder="Type your answer... Be specific. The more detail, the better your deck."
+                    placeholder={ft.typeYourAnswer || "Type your answer..."}
                     rows={5}
                     className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-[#444] outline-none resize-none transition-all"
                     style={{ background: "rgba(15,10,31,0.8)", border: "1px solid #1A1040" }}
@@ -1543,7 +1553,7 @@ export default function PitchDeckPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={skip} className="text-xs text-[#555] hover:text-[#8B7CF8] transition-colors">Skip</button>
+                    <button onClick={skip} className="text-xs text-[#555] hover:text-[#8B7CF8] transition-colors">{ft.skip || "Skip"}</button>
                     <button
                       onClick={goNext}
                       disabled={!currentAnswer.trim()}
@@ -1587,7 +1597,7 @@ export default function PitchDeckPage() {
                 {LOADING_MESSAGES[loadingMsg]}
               </motion.p>
             </AnimatePresence>
-            <p className="text-sm text-[#8B7CF8] mt-2">Writing your 12-slide deck in your exact voice...</p>
+            <p className="text-sm text-[#8B7CF8] mt-2">{ft.writingDeck || "Writing your 12-slide deck in your exact voice..."}</p>
           </div>
         </div>
       </div>
@@ -1606,7 +1616,7 @@ export default function PitchDeckPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-white">{deckName}</h1>
-            <p className="text-sm text-[#8B7CF8]">12 slides ready to present</p>
+            <p className="text-sm text-[#8B7CF8]">12 {ft.slidesReady || "slides ready to present"}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -1615,11 +1625,11 @@ export default function PitchDeckPage() {
               style={{ background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)", color: "#A855F7" }}
             >
               <Palette className="w-4 h-4" />
-              Theme
+              {ft.theme || "Theme"}
             </button>
             <HistoryDrawer onLoad={(deck, name) => { setResult(deck); setDeckName(name); }} />
             <button onClick={reset} className="flex items-center gap-2 text-sm text-[#555] hover:text-white transition-colors px-3 py-2">
-              <RotateCcw className="w-4 h-4" /> New
+              <RotateCcw className="w-4 h-4" /> {ft.newDeck || "New"}
             </button>
           </div>
         </div>
