@@ -55,7 +55,7 @@ export default function CompassPage() {
         setStage("response");
       }
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Connection error. Check your internet and try again.");
     } finally {
       setLoading(false);
     }
@@ -168,14 +168,14 @@ export default function CompassPage() {
               <button
                 onClick={handleInitialSubmit}
                 disabled={loading || !initialText.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-[#7C3AED] hover:bg-[#6D28D9] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-[#06040F] font-semibold transition-colors"
               >
                 {loading ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[#06040F]/30 border-t-[#06040F] rounded-full animate-spin" />
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
-                Submit
+                {loading ? fc.thinking : fc.continue}
               </button>
             </div>
           </motion.div>
@@ -270,7 +270,7 @@ export default function CompassPage() {
                 onClick={reset}
                 className="px-6 py-3 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-xl text-[#8B7CF8] hover:text-white transition-colors text-sm"
               >
-                Start a new situation
+                {fc.next ?? "Start over"}
               </button>
             </div>
           </motion.div>

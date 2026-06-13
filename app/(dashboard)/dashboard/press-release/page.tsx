@@ -36,7 +36,7 @@ function FormField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED]/50 rounded-xl p-3.5 text-white placeholder-white/25 outline-none transition-colors text-sm"
+          className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED]/50 rounded-xl p-3.5 min-h-[44px] text-white placeholder-white/25 outline-none transition-colors text-sm"
         />
       )}
     </div>
@@ -96,7 +96,7 @@ export default function PressReleasePage() {
       setResult(data);
       setSelectedHeadline(0);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Press release generation failed. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -150,11 +150,11 @@ export default function PressReleasePage() {
           <button
             onClick={generate}
             disabled={loading || !form.announcement}
-            className="w-full py-4 bg-[#C9A84C] hover:bg-[#B8973B] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-bold text-base transition-colors"
+            className="w-full py-4 bg-[#C9A84C] hover:bg-[#D4B85C] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-[#06040F] font-bold text-base transition-colors"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-[#06040F]/30 border-t-[#06040F] rounded-full animate-spin" />
                 {fpr.generating}
               </span>
             ) : (

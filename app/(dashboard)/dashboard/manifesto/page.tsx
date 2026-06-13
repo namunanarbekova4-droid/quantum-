@@ -69,7 +69,7 @@ export default function ManifestoPage() {
       const data = await res.json();
       setResult(data);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Manifesto generation failed. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -155,7 +155,7 @@ export default function ManifestoPage() {
               <button
                 onClick={handleNext}
                 disabled={!currentInput.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#B8973B] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-white font-medium transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-[#06040F] font-semibold transition-colors"
               >
                 {currentQuestion === QUESTIONS.length - 1 ? fm.generate : fm.nextQuestion}
                 <ChevronRight className="w-4 h-4" />

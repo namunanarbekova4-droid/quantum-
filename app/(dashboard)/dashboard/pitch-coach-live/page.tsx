@@ -938,6 +938,7 @@ function ResultsScreen({
     setHistoryLoading(true);
     try {
       const res = await fetch("/api/pitch-coach-live");
+      if (!res.ok) throw new Error("Failed to load history");
       const data = await res.json();
       setHistory(Array.isArray(data) ? data : []);
     } catch { /* silent */ }

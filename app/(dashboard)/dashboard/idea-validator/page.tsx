@@ -86,7 +86,7 @@ export default function IdeaValidatorPage() {
       const data = await res.json();
       setResult(data);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Analysis failed. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
