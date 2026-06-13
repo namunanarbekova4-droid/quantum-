@@ -86,7 +86,7 @@ export default function IdeaValidatorPage() {
       const data = await res.json();
       setResult(data);
     } catch {
-      setError("Analysis failed. Check your connection and try again.");
+      setError("Analysis didn't land. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ export default function IdeaValidatorPage() {
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) handleNext(); }}
-              placeholder="Answer honestly — the AI will see through vague answers..."
+              placeholder="Answer honestly — vague answers get vague verdicts. This is your idea on the line."
               rows={6}
               autoFocus
               className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED]/50 rounded-xl p-5 text-white placeholder-white/30 resize-none outline-none transition-colors text-base"
@@ -167,7 +167,7 @@ export default function IdeaValidatorPage() {
         {loading && (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-20">
             <div className="w-14 h-14 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin mx-auto mb-6" />
-            <p className="text-[#8B7CF8] text-lg">Analyzing your idea...</p>
+            <p className="text-[#8B7CF8] text-lg">Pressure-testing your idea…</p>
             <p className="text-white/30 text-sm mt-2">This takes about 10 seconds</p>
           </motion.div>
         )}

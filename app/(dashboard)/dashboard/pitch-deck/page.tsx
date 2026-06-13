@@ -369,7 +369,7 @@ function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
   return (
     <button onClick={handle} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all" style={{ background: copied ? "rgba(201,168,76,0.2)" : "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)", color: "#C9A84C" }}>
       {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-      {copied ? "Copied!" : label}
+      {copied ? "Locked in." : label}
     </button>
   );
 }
@@ -1309,7 +1309,10 @@ function HistoryDrawer({ onLoad }: { onLoad: (deck: PitchDeckResult, name: strin
                 {loading ? (
                   <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-[#7C3AED]" /></div>
                 ) : decks.length === 0 ? (
-                  <p className="text-sm text-center py-8" style={{ color: "#555" }}>{fts.noSavedDecks || "No saved decks yet"}</p>
+                  <div className="text-center py-8 space-y-2">
+                    <p className="text-sm font-semibold" style={{ color: "#8B7CF8" }}>Your story deserves a deck worth sharing.</p>
+                    <p className="text-xs" style={{ color: "#555" }}>Generate your first one.</p>
+                  </div>
                 ) : decks.map((d) => (
                   <button
                     key={d.id}
@@ -1374,7 +1377,7 @@ export default function PitchDeckPage() {
       setResult(data);
       setStep(3);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      setError(e instanceof Error ? e.message : "Let's try that again.");
       setStep(1);
     }
   }, [locale]);
@@ -1515,7 +1518,7 @@ export default function PitchDeckPage() {
                 <div className="rounded-xl p-6 mb-4" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
                   <p className="text-xs font-semibold text-[#C9A84C] uppercase tracking-widest mb-3">{ft.questionOf} {qIndex + 1}</p>
                   <h2 className="text-xl font-bold text-white leading-snug mb-1">{q.q}</h2>
-                  <p className="text-xs text-[#8B7CF8]/60">{ft.beSpecific || "Be specific — the more detail you give, the better your deck"}</p>
+                  <p className="text-xs text-[#8B7CF8]/60">{ft.beSpecific || "The more real you are here, the more powerful your deck becomes."}</p>
                 </div>
 
                 {q.type === "text" ? (
@@ -1597,7 +1600,7 @@ export default function PitchDeckPage() {
                 {LOADING_MESSAGES[loadingMsg]}
               </motion.p>
             </AnimatePresence>
-            <p className="text-sm text-[#8B7CF8] mt-2">{ft.writingDeck || "Writing your 12-slide deck in your exact voice..."}</p>
+            <p className="text-sm text-[#8B7CF8] mt-2">{ft.writingDeck || "Writing your 12-slide deck in your exact voice — this takes a moment."}</p>
           </div>
         </div>
       </div>
@@ -1616,7 +1619,7 @@ export default function PitchDeckPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-white">{deckName}</h1>
-            <p className="text-sm text-[#8B7CF8]">12 {ft.slidesReady || "slides ready to present"}</p>
+            <p className="text-sm text-[#8B7CF8]">12 {ft.slidesReady || "slides ready to own the room"}</p>
           </div>
           <div className="flex items-center gap-2">
             <button

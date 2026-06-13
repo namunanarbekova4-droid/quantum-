@@ -1161,7 +1161,7 @@ function ResultsScreen({
               className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-[#7C3AED]/40 text-[#8B7CF8] hover:bg-[#7C3AED]/10 transition-colors text-sm"
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? "Copied!" : "Share My Score"}
+              {copied ? "Locked in." : "Share My Score"}
             </button>
             <button
               onClick={() => { setShowHistory(h => !h); if (!showHistory) loadHistory(); }}
@@ -1296,7 +1296,7 @@ export default function PitchCoachLivePage() {
         if (res.status === 429 || errMsg.toLowerCase().includes("quota") || errMsg.toLowerCase().includes("unavailable")) {
           setApiError("AI analysis temporarily unavailable. Please try again in a few minutes.");
         } else {
-          setApiError("Analysis failed. Please try again.");
+          setApiError("Analysis didn't land. Check your connection and try again.");
         }
         setStep("setup");
         return;

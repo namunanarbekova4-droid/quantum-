@@ -63,10 +63,10 @@ export default function PricingIntelligencePage() {
         body: JSON.stringify({ ...form, locale }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Analysis failed");
+      if (!res.ok) throw new Error(data.error || "Analysis didn't land. Check your connection and try again.");
       setResult(data as PricingResult);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      setError(e instanceof Error ? e.message : "Quantum hit a snag. Try again — we'll get it right.");
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ export default function PricingIntelligencePage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}>
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-[#7C3AED]/20 border border-[#7C3AED]/30 flex items-center justify-center">

@@ -652,8 +652,8 @@ function AnalyzingScreen({ tl }: { tl: Record<string, string> }) {
     <div className="min-h-screen flex items-center justify-center p-6">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center max-w-sm">
         <div className="w-20 h-20 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin mx-auto mb-6" />
-        <h2 className="text-2xl font-bold text-white mb-2">{tl.analyzing}</h2>
-        <p className="text-[#8B7CF8] text-sm mb-8">{tl.analyzingDesc}</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Listening for weak moments…</h2>
+        <p className="text-[#8B7CF8] text-sm mb-8">{tl.analyzingDesc || "Scoring your delivery and finding what landed."}</p>
         <div className="space-y-2">
           {steps.map((s, i) => (
             <div key={i} className={`flex items-center gap-3 text-sm transition-colors ${i < done ? "text-green-400" : "text-[#8B7CF8]/40"}`}>
@@ -897,7 +897,7 @@ function ResultsScreen({
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-[#C9A84C]/40 text-[#C9A84C] hover:bg-[#C9A84C]/10 transition-colors text-sm font-medium"
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            {copied ? tl.copiedLink : tl.shareCard}
+            {copied ? "Locked in." : tl.shareCard}
           </button>
           <button
             onClick={onRetry}
@@ -984,11 +984,11 @@ export default function PitchMirrorPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setApiError(data.error ?? "Analysis failed"); setStep("setup"); return; }
+      if (!res.ok) { setApiError(data.error ?? "Analysis didn't land. Check your connection and try again."); setStep("setup"); return; }
       setFeedback(data.feedback);
       setStep("results");
     } catch {
-      setApiError("Something went wrong. Please try again.");
+      setApiError("Quantum hit a snag. Try again — we'll get it right.");
       setStep("setup");
     }
   }, [setup, locale]);
