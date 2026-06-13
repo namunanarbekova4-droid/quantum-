@@ -1,7 +1,6 @@
 export const maxDuration = 60;
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { classifyError } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -12,6 +11,8 @@ export async function POST(req: NextRequest) {
       startupDescription,
       audienceType,
       targetDuration,
+      pitchGoal,
+      biggestFear,
       language,
     } = await req.json();
 
@@ -19,39 +20,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Transcript too short" }, { status: 400 });
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
-    if (!apiKey) {
-      return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
-    }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-    const prompt = `You are the most brutally honest pitch coach in Silicon Valley. You have heard 10000 pitches.
+    const prompt = `You are a fusion of Paul Graham and the most brutally honest top pitch coach in Silicon Valley. You have heard 10,000 founder pitches and you decide who gets a follow-up meeting in 90 seconds. You are warm but never flattering, surgical but never cruel.
 
 Startup: ${startupName}
 Description: ${startupDescription}
 Pitching to: ${audienceType}
+Founder's goal for this pitch: ${pitchGoal || "Not specified"}
+Founder's biggest fear: ${biggestFear || "Not specified"}
 Target duration: ${targetDuration} minutes
 Transcript: ${transcript}
 
-SCORING — subtract from 100:
+SCORING — start at 100 and subtract:
 No hook in first 30 seconds: -20
 No specific numbers: -15
 Vague solution: -15
 No clear ask: -20
-Too many fillers (um/uh/like): -10
+Too many fillers (um/uh/like/basically): -10
 Wrong pace: -10
 Problem unclear: -20
 Weak closing: -10
 
-Never give above 75 unless exceptional.
-Never say Great job.
-Always find 3+ critical problems.
-Quote exact words from transcript.
-Respond in ${language || "English"}.
+RULES:
+- Never give above 75 unless genuinely exceptional.
+- Never say "Great job."
+- Always find 3+ critical problems.
+- Quote EXACT words from the transcript — never paraphrase quotes.
+- Be brutally specific to THIS startup, never generic boilerplate.
+- Respond in ${language || "English"}.
 
-Return ONLY valid JSON, no markdown, no code fences:
+Return ONLY valid JSON matching this exact shape:
 {
   "overall_score": 0,
   "grade": "A",
@@ -63,7 +60,7 @@ Return ONLY valid JSON, no markdown, no code fences:
       "problem_name": "short name",
       "severity": "HIGH",
       "what_you_said": "exact quote",
-      "why_its_weak": "brutal explanation",
+      "why_its_weak": "brutal explanation rooted in investor psychology",
       "rewritten_version": "better version"
     }
   ],
@@ -80,23 +77,31 @@ Return ONLY valid JSON, no markdown, no code fences:
     "slowest_section": "brief description",
     "fastest_section": "brief description"
   },
-  "investor_reaction": "what investor thinks",
-  "the_killer_rewrite": "rewrite weakest part",
-  "before_next_pitch": ["specific action 1", "specific action 2", "specific action 3"]
-}`;
+  "investor_reaction": "the dominant investor's inner monologue while listening",
+  "the_killer_rewrite": "rewrite the single weakest moment so it lands hard",
+  "before_next_pitch": ["specific action 1", "specific action 2", "specific action 3"],
+  "investor_reactions": {
+    "vc": "a skeptical VC's blunt inner monologue (1-2 sentences)",
+    "angel": "an angel investor's inner monologue, more emotional and founder-focused",
+    "accelerator": "an accelerator partner's inner monologue, focused on coachability and growth",
+    "customer": "a potential customer's inner monologue, focused on whether they'd actually use it"
+  },
+  "pitch_timeline": [
+    { "label": "Strong Hook", "type": "strength", "position": 0.1, "note": "brief note" },
+    { "label": "Weak Transition", "type": "weakness", "position": 0.4, "note": "brief note" }
+  ],
+  "fundability_probability": 0,
+  "practice_drills": [
+    { "name": "drill name", "instruction": "specific actionable instruction tied to this pitch", "duration": "5 min" }
+  ],
+  "emotional_summary": "1 honest sentence about where the founder is emotionally in this pitch — not praise, not shame"
+}
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+For pitch_timeline: use 3-6 entries, position is 0.0-1.0 mapping to where in the pitch it occurs, type is "strength" | "weakness" | "neutral".
+For fundability_probability: 0-100, the realistic chance this exact pitch earns a follow-up meeting.
+For practice_drills: 3 drills, each with a concrete instruction specific to this founder's weaknesses.`;
 
-    const cleaned = text
-      .replace(/```json/gi, "")
-      .replace(/```/g, "")
-      .trim();
-
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON in response");
-
-    const analysis = JSON.parse(match[0]);
+    const analysis = await generateJSON<Record<string, unknown>>(prompt);
     return NextResponse.json(analysis);
   } catch (error: unknown) {
     console.error("analyze-pitch error:", error);

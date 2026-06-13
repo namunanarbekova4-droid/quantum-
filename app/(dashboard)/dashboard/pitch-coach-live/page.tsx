@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/i18n";
 import {
   Mic, MicOff, StopCircle, RotateCcw, Copy, Check,
   AlertTriangle, Flame, Star, Zap, TrendingUp, Award,
-  Clock, BarChart2, ChevronRight, History, Pause, Play,
+  Clock, BarChart2, History, Pause, Play,
   XCircle, CheckCircle,
 } from "lucide-react";
 import {
@@ -22,6 +22,8 @@ interface SetupData {
   startupDescription: string;
   audienceType: string;
   targetDuration: number;
+  pitchGoal: string;
+  biggestFear: string;
 }
 
 interface FillerCounts {
@@ -57,6 +59,14 @@ interface Analysis {
   investor_reaction: string;
   the_killer_rewrite: string;
   before_next_pitch: string[];
+  // New fields
+  investor_reactions?: {
+    vc: string; angel: string; accelerator: string; customer: string;
+  };
+  pitch_timeline?: Array<{ label: string; type: "strength" | "weakness" | "neutral"; position: number; note: string }>;
+  fundability_probability?: number;
+  practice_drills?: Array<{ name: string; instruction: string; duration: string }>;
+  emotional_summary?: string;
 }
 
 interface HistorySession {
@@ -100,7 +110,8 @@ declare global {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-const FILLER_WORDS = ["um", "uh", "like", "so", "you know"];
+const FILLER_WORDS = ["um", "uh", "like", "so", "you know", "basically", "kind of", "sort of"];
+const HEDGE_WORDS = ["maybe", "i think", "probably", "hopefully", "kind of", "sort of", "basically"];
 
 function countFillers(text: string): FillerCounts {
   const lower = text.toLowerCase();
@@ -137,18 +148,57 @@ function gradeColor(g: string) {
 }
 
 function highlightFillers(text: string): React.ReactNode[] {
-  const STRONG = ["revenue", "growth", "market", "customer", "million", "billion", "traction", "raise", "team", "solution", "problem"];
+  const STRONG = ["revenue", "growth", "market", "customer", "million", "billion", "traction", "raise", "team", "solution", "problem", "retention", "users"];
   const tokens = text.split(/(\s+)/);
   return tokens.map((token, i) => {
     const clean = token.toLowerCase().replace(/[^a-z\s]/g, "");
     if (FILLER_WORDS.some(f => clean === f || clean === f.replace(" ", ""))) {
       return <span key={i} className="text-red-400 font-semibold">{token}</span>;
     }
+    if (HEDGE_WORDS.some(h => clean === h || clean === h.replace(" ", ""))) {
+      return <span key={i} className="text-yellow-300 font-semibold">{token}</span>;
+    }
     if (STRONG.some(s => clean.includes(s))) {
       return <span key={i} className="text-[#C9A84C] font-semibold">{token}</span>;
     }
     return <span key={i}>{token}</span>;
   });
+}
+
+// Structure detector keyword map
+const STRUCTURE_SECTIONS: Array<{ key: string; label: string; keywords: string[] }> = [
+  { key: "problem", label: "Problem", keywords: ["problem", "pain", "struggle", "challenge", "frustrated", "broken"] },
+  { key: "solution", label: "Solution", keywords: ["solution", "we built", "our product", "we solve", "helps"] },
+  { key: "market", label: "Market", keywords: ["market", "billion", "million", "customers", "opportunity", "industry"] },
+  { key: "whynow", label: "Why Now", keywords: ["now", "timing", "trend", "ai", "regulation", "shift", "moment"] },
+  { key: "traction", label: "Traction", keywords: ["users", "revenue", "growth", "mrr", "customers", "retention"] },
+  { key: "model", label: "Model", keywords: ["pricing", "subscription", "charge", "revenue model", "saas", "per month"] },
+  { key: "ask", label: "Ask", keywords: ["raise", "looking for", "seeking", "investment", "round", "funding"] },
+];
+
+function detectStructure(text: string): Record<string, boolean> {
+  const lower = text.toLowerCase();
+  const out: Record<string, boolean> = {};
+  for (const s of STRUCTURE_SECTIONS) {
+    out[s.key] = s.keywords.some(k => lower.includes(k));
+  }
+  return out;
+}
+
+// Live confidence: start 60, -10 per 5 fillers, +10 if WPM 110-170, -10 if WPM <80 or >190
+function calcConfidence(fillerCount: number, wpm: number): number {
+  let c = 60;
+  c -= Math.floor(fillerCount / 5) * 10;
+  if (wpm >= 110 && wpm <= 170) c += 10;
+  if (wpm > 0 && (wpm < 80 || wpm > 190)) c -= 10;
+  return Math.max(0, Math.min(100, c));
+}
+
+function confidenceLabel(c: number): { label: string; emoji: string; color: string } {
+  if (c >= 85) return { label: "Investor-Ready", emoji: "🔥", color: "#C9A84C" };
+  if (c >= 65) return { label: "Confident", emoji: "🟢", color: "#22C55E" };
+  if (c >= 45) return { label: "Uncertain", emoji: "🟡", color: "#EAB308" };
+  return { label: "Nervous", emoji: "🔴", color: "#EF4444" };
 }
 
 // ─── Quantum Atom ─────────────────────────────────────────────────────────────
@@ -165,6 +215,27 @@ function QuantumAtom() {
           Q
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Ambient orbs background ───────────────────────────────────────────────────
+
+function AmbientOrbs() {
+  return (
+    <div className="pointer-events-none fixed inset-0 overflow-hidden">
+      <motion.div
+        className="absolute -top-40 -left-40 w-[480px] h-[480px] rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)" }}
+        animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute -bottom-40 -right-40 w-[520px] h-[520px] rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%)" }}
+        animate={{ x: [0, -50, 0], y: [0, -30, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+      />
     </div>
   );
 }
@@ -188,6 +259,7 @@ function CircleGauge({ score, size = 140 }: { score: number; size?: number }) {
           initial={{ strokeDashoffset: circ }}
           animate={{ strokeDashoffset: circ - dash }}
           transition={{ duration: 1.4, ease: "easeOut" }}
+          style={{ filter: `drop-shadow(0 0 8px ${color}66)` }}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
@@ -199,11 +271,11 @@ function CircleGauge({ score, size = 140 }: { score: number; size?: number }) {
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 
-function Section({ title, icon, color, children }: {
-  title: string; icon: React.ReactNode; color: string; children: React.ReactNode;
+function Section({ id, title, icon, color, children }: {
+  id?: string; title: string; icon: React.ReactNode; color: string; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-5 mb-4">
+    <div id={id} className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-5 mb-4 scroll-mt-20">
       <h3 className={`font-bold text-sm mb-4 flex items-center gap-2 ${color}`}>
         {icon} {title}
       </h3>
@@ -226,25 +298,32 @@ function MetricCard({ title, value, sub, color }: {
   );
 }
 
-// ─── Waveform ─────────────────────────────────────────────────────────────────
+// ─── Premium Waveform ──────────────────────────────────────────────────────────
 
 function Waveform({ data }: { data: number[] }) {
-  const bars = data.length > 0 ? data : Array.from({ length: 20 }, () => 8);
+  const bars = data.length > 0 ? data : Array.from({ length: 30 }, () => 8);
   return (
-    <div className="flex items-end gap-[3px] h-16 justify-center">
-      {bars.slice(0, 20).map((v, i) => (
-        <motion.div
-          key={i}
-          className="rounded-full flex-shrink-0"
-          style={{
-            background: i % 3 === 0 ? "#C9A84C" : "#7C3AED",
-            width: "6px",
-            minHeight: "4px",
-          }}
-          animate={{ height: `${Math.max(4, (v / 255) * 56)}px` }}
-          transition={{ duration: 0.08, ease: "linear" }}
-        />
-      ))}
+    <div className="flex items-end gap-[3px] h-20 justify-center">
+      {bars.slice(0, 30).map((v, i) => {
+        const h = Math.max(4, Math.min(80, (v / 255) * 80));
+        const isGold = i % 2 === 0;
+        return (
+          <motion.div
+            key={i}
+            className="rounded-full flex-shrink-0"
+            style={{
+              background: isGold ? "#C9A84C" : "#7C3AED",
+              width: "5px",
+              minHeight: "4px",
+              boxShadow: h > 40
+                ? (isGold ? "0 0 8px rgba(201,168,76,0.4)" : "0 0 8px rgba(124,58,237,0.4)")
+                : "none",
+            }}
+            animate={{ height: `${h}px` }}
+            transition={{ duration: 0.08, ease: "linear" }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -261,22 +340,61 @@ const TIP_STYLES = {
 
 type TipVariant = keyof typeof TIP_STYLES;
 
-interface CoachTipData { id: number; msg: string; variant: TipVariant; }
+const TIP_TITLE: Record<TipVariant, string> = {
+  green: "🎯 Strong",
+  gold: "💡 Missed Opportunity",
+  red: "⚠ Investor Risk",
+  purple: "✨ Persuasion Upgrade",
+  yellow: "⚡ Energy",
+};
+
+interface CoachTipData { id: number; msg: string; variant: TipVariant; at?: string; }
 
 function CoachTipCard({ tip }: { tip: CoachTipData }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 40 }}
-      animate={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0, x: 40, scale: 0.96 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 40 }}
-      className={`p-3 rounded-xl border text-xs leading-relaxed ${TIP_STYLES[tip.variant]}`}
+      className={`p-4 rounded-xl border text-xs leading-relaxed ${TIP_STYLES[tip.variant]}`}
     >
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="font-bold text-[11px] uppercase tracking-wide">{TIP_TITLE[tip.variant]}</span>
+        {tip.at && <span className="text-[10px] opacity-60 font-mono">{tip.at}</span>}
+      </div>
       {tip.msg}
     </motion.div>
   );
 }
 
-// ─── Setup screen ─────────────────────────────────────────────────────────────
+// ─── Analyze cards (setup) ─────────────────────────────────────────────────────
+
+const ANALYZE_ITEMS = [
+  { icon: "🎯", label: "Persuasion" },
+  { icon: "⚡", label: "Energy" },
+  { icon: "🧠", label: "Clarity" },
+  { icon: "💬", label: "Storytelling" },
+  { icon: "🏗", label: "Structure" },
+  { icon: "😬", label: "Filler Words" },
+  { icon: "👀", label: "Body Language" },
+  { icon: "🎤", label: "Confidence" },
+  { icon: "📈", label: "Investor Readiness" },
+];
+
+const AUDIENCE_OPTIONS = [
+  { value: "angel", label: "Angel Investor" },
+  { value: "vc", label: "Venture Capital" },
+  { value: "accelerator", label: "Accelerator" },
+  { value: "demoday", label: "Demo Day" },
+  { value: "customer", label: "Customer" },
+  { value: "competition", label: "Competition" },
+];
+
+const GOAL_OPTIONS = [
+  "Raise Money", "Get a Meeting", "Get Users", "Build Excitement", "Win Competition",
+];
+
+// ─── Setup screen (PREP MODE) ───────────────────────────────────────────────────
 
 function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
   const { t } = useLanguage();
@@ -286,18 +404,12 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
     startupDescription: "",
     audienceType: "angel",
     targetDuration: 3,
+    pitchGoal: "Raise Money",
+    biggestFear: "",
   });
   const [error, setError] = useState("");
   const [permError, setPermError] = useState("");
   const [requesting, setRequesting] = useState(false);
-
-  const AUDIENCES = [
-    { value: "angel", label: ft.audienceAngel },
-    { value: "vc", label: ft.audienceVC },
-    { value: "competition", label: ft.audienceCompetition },
-    { value: "accelerator", label: ft.audienceAccelerator },
-    { value: "customer", label: ft.audienceCustomer },
-  ];
 
   async function handleStart() {
     if (!form.startupName.trim()) { setError("Please enter your startup name."); return; }
@@ -318,17 +430,32 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
   const inputCls = "w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder-white/30 outline-none bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED] transition-colors";
   const labelCls = "block text-xs font-medium text-[#8B7CF8] mb-1.5";
 
+  const Pill = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`py-2.5 px-3 rounded-xl text-sm font-bold transition-all border ${
+        active
+          ? "bg-[#7C3AED] border-[#7C3AED] text-white shadow-[0_0_16px_rgba(124,58,237,0.4)]"
+          : "bg-[#06040F] border-[#1A1040] text-[#8B7CF8] hover:border-[#7C3AED]/50"
+      }`}
+    >
+      {children}
+    </button>
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#06040F]">
+    <div className="relative min-h-screen flex items-center justify-center p-6 bg-[#06040F]">
+      <AmbientOrbs />
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg"
+        className="relative w-full max-w-2xl"
       >
         <div className="text-center mb-8">
           <QuantumAtom />
-          <h1 className="text-3xl font-black text-white mb-2">{ft.title}</h1>
-          <p className="text-[#8B7CF8] text-sm">{ft.subtitle}</p>
+          <h1 className="text-4xl font-black text-white mb-2">Prepare Your Pitch</h1>
+          <p className="text-[#8B7CF8] text-sm">Tell Quantum who you&apos;re facing. Every session is personalized.</p>
         </div>
 
         {!SRAvailable && (
@@ -341,19 +468,39 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
           </div>
         )}
 
-        <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-6 space-y-5 shadow-[0_0_40px_rgba(124,58,237,0.1)]">
-          <div>
-            <label className={labelCls}>{ft.startupName}</label>
-            <input
-              value={form.startupName}
-              onChange={e => setForm({ ...form, startupName: e.target.value })}
-              placeholder="e.g. Quantum"
-              className={inputCls}
-            />
+        <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-6 space-y-6 shadow-[0_0_40px_rgba(124,58,237,0.1)]">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>{ft.startupName || "Startup name"}</label>
+              <input
+                value={form.startupName}
+                onChange={e => setForm({ ...form, startupName: e.target.value })}
+                placeholder="e.g. Quantum"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>{ft.targetDuration || "Target duration"}</label>
+              <div className="flex gap-2">
+                {[1, 3, 5, 10].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => setForm({ ...form, targetDuration: d })}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors border ${
+                      form.targetDuration === d
+                        ? "bg-[#C9A84C] border-[#C9A84C] text-[#06040F]"
+                        : "bg-[#06040F] border-[#1A1040] text-[#8B7CF8] hover:border-[#C9A84C]/40"
+                    }`}
+                  >
+                    {d}m
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div>
-            <label className={labelCls}>{ft.startupDescription}</label>
+            <label className={labelCls}>{ft.startupDescription || "What does your startup do?"}</label>
             <textarea
               value={form.startupDescription}
               onChange={e => setForm({ ...form, startupDescription: e.target.value })}
@@ -364,33 +511,36 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
           </div>
 
           <div>
-            <label className={labelCls}>{ft.audienceType}</label>
-            <select
-              value={form.audienceType}
-              onChange={e => setForm({ ...form, audienceType: e.target.value })}
-              className={inputCls}
-            >
-              {AUDIENCES.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
-            </select>
+            <label className={labelCls}>Who are you pitching to?</label>
+            <div className="grid grid-cols-3 gap-2">
+              {AUDIENCE_OPTIONS.map(a => (
+                <Pill key={a.value} active={form.audienceType === a.value} onClick={() => setForm({ ...form, audienceType: a.value })}>
+                  {a.label}
+                </Pill>
+              ))}
+            </div>
           </div>
 
           <div>
-            <label className={labelCls}>{ft.targetDuration}</label>
-            <div className="flex gap-2">
-              {[1, 3, 5].map(d => (
-                <button
-                  key={d}
-                  onClick={() => setForm({ ...form, targetDuration: d })}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors border ${
-                    form.targetDuration === d
-                      ? "bg-[#C9A84C] border-[#C9A84C] text-[#06040F]"
-                      : "bg-[#06040F] border-[#1A1040] text-[#8B7CF8] hover:border-[#C9A84C]/40"
-                  }`}
-                >
-                  {d} min
-                </button>
+            <label className={labelCls}>What&apos;s your goal?</label>
+            <div className="flex flex-wrap gap-2">
+              {GOAL_OPTIONS.map(g => (
+                <Pill key={g} active={form.pitchGoal === g} onClick={() => setForm({ ...form, pitchGoal: g })}>
+                  {g}
+                </Pill>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Biggest fear (optional)</label>
+            <textarea
+              value={form.biggestFear}
+              onChange={e => setForm({ ...form, biggestFear: e.target.value })}
+              placeholder="What worries you most? (optional) — e.g. sounding unconfident, forgetting key points..."
+              rows={2}
+              className={`${inputCls} resize-none`}
+            />
           </div>
 
           {error && <p className="text-red-400 text-xs">{error}</p>}
@@ -401,17 +551,39 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
             </div>
           )}
 
-          <button
+          <motion.button
             onClick={handleStart}
             disabled={requesting}
-            className="w-full h-12 bg-[#C9A84C] hover:bg-[#D4B85C] disabled:opacity-60 text-[#06040F] font-black rounded-xl flex items-center justify-center gap-2 transition-colors text-sm"
+            whileTap={{ scale: 0.98 }}
+            animate={{ boxShadow: ["0 0 0px rgba(201,168,76,0)", "0 0 24px rgba(201,168,76,0.45)", "0 0 0px rgba(201,168,76,0)"] }}
+            transition={{ duration: 2.4, repeat: Infinity }}
+            className="w-full h-14 bg-[#C9A84C] hover:bg-[#D4B85C] disabled:opacity-60 text-[#06040F] font-black rounded-xl flex items-center justify-center gap-2 transition-colors text-base"
           >
             {requesting ? (
               <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-[#06040F]/40 border-t-[#06040F] rounded-full animate-spin" /> Requesting mic...</span>
             ) : (
-              <><Mic className="w-4 h-4" /> {ft.startSession}</>
+              <><Mic className="w-5 h-5" /> Start Coaching Session →</>
             )}
-          </button>
+          </motion.button>
+        </div>
+
+        {/* What Quantum will analyze */}
+        <div className="mt-8">
+          <p className="text-[#8B7CF8] text-xs font-bold uppercase tracking-wider mb-3 text-center">What Quantum will analyze</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+            {ANALYZE_ITEMS.map((item, i) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.05 }}
+                className="flex items-center gap-2.5 p-3 rounded-xl bg-[#0F0A1F] border border-[#1A1040] hover:border-[#C9A84C]/40 hover:shadow-[0_0_16px_rgba(201,168,76,0.12)] transition-all"
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span className="text-white/80 text-xs font-semibold">{item.label}</span>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </motion.div>
     </div>
@@ -427,12 +599,10 @@ interface RecordingProps {
 }
 
 function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
-  const { t: tl } = useLanguage();
-  const ft = tl.features.pitchCoachLive as unknown as Record<string, string>;
   const [transcript, setTranscript] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [waveformData, setWaveformData] = useState<number[]>(Array(20).fill(8));
+  const [waveformData, setWaveformData] = useState<number[]>(Array(30).fill(8));
   const [fillers, setFillers] = useState<FillerCounts>({ um: 0, uh: 0, like: 0, so: 0, you_know: 0 });
   const [wpm, setWpm] = useState(0);
   const [tips, setTips] = useState<CoachTipData[]>([]);
@@ -451,7 +621,6 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const transcriptScrollRef = useRef<HTMLDivElement>(null);
-  // Refs to avoid stale closures in callbacks
   const pausedRef = useRef(false);
   const isActiveRef = useRef(true);
   const noSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -463,61 +632,51 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
     return cleanup;
   }, []); // eslint-disable-line
 
-  // Keep pausedRef in sync
   useEffect(() => { pausedRef.current = paused; }, [paused]);
 
-  // Auto-scroll transcript
   useEffect(() => {
     if (transcriptScrollRef.current) {
       transcriptScrollRef.current.scrollTop = transcriptScrollRef.current.scrollHeight;
     }
   }, [transcript]);
 
-  // Tip rotation
+  // Premium coaching cards rotation
   useEffect(() => {
     const pool: CoachTipData[] = [
-      { id: 0, msg: "✓ Keep that energy going.", variant: "green" },
-      { id: 0, msg: "⚡ Speed up slightly — you're losing the room.", variant: "yellow" },
-      { id: 0, msg: "⚠️ Too many filler words detected.", variant: "red" },
-      { id: 0, msg: "💡 Add a specific number here. Investors trust data.", variant: "purple" },
-      { id: 0, msg: "🎯 This is your strongest moment. Stay on this point.", variant: "gold" },
-      { id: 0, msg: "⚠️ Get to the ask. Don't wait until the end.", variant: "red" },
-      { id: 0, msg: "💡 Connect this to a real customer story.", variant: "purple" },
-      { id: 0, msg: "✓ Strong conviction in your voice.", variant: "green" },
+      { id: 0, msg: "That conviction in your voice — investors lean in when they hear it. Hold this energy.", variant: "green" },
+      { id: 0, msg: "An investor wanted a number right here. \"Big market\" means nothing without a figure.", variant: "gold" },
+      { id: 0, msg: "Too many hedges — \"I think\", \"maybe\", \"kind of\" make you sound unsure of your own company.", variant: "red" },
+      { id: 0, msg: "Tie this to one real customer's story. Specifics persuade; abstractions evaporate.", variant: "purple" },
+      { id: 0, msg: "You're burying the ask. State exactly what you need in the first 60 seconds.", variant: "red" },
+      { id: 0, msg: "Strongest moment of the pitch. This is the version of you that gets funded.", variant: "green" },
+      { id: 0, msg: "Reframe the problem as a cost. Investors fund painkillers, not vitamins.", variant: "purple" },
+      { id: 0, msg: "Drop a metric here — revenue, growth rate, retention. Data is the room's trust currency.", variant: "gold" },
     ];
     const interval = setInterval(() => {
       const tip = pool[Math.floor(Math.random() * pool.length)];
       tipIdRef.v += 1;
-      const newTip = { ...tip, id: tipIdRef.v };
+      const newTip = { ...tip, id: tipIdRef.v, at: fmtTime(elapsedRef.current) };
       setTips(prev => [...prev.slice(-1), newTip]);
       setTimeout(() => {
         setTips(prev => prev.filter(t => t.id !== newTip.id));
-      }, 8000);
-    }, 20000);
+      }, 9000);
+    }, 18000);
     return () => clearInterval(interval);
   }, []); // eslint-disable-line
 
-  // Show "no speech" warning after 15 seconds of silence
   useEffect(() => {
     noSpeechTimerRef.current = setTimeout(() => {
-      if (transcriptRef.current.trim().length === 0) {
-        setNoSpeechWarning(true);
-      }
+      if (transcriptRef.current.trim().length === 0) setNoSpeechWarning(true);
     }, 15000);
-    return () => {
-      if (noSpeechTimerRef.current) clearTimeout(noSpeechTimerRef.current);
-    };
+    return () => { if (noSpeechTimerRef.current) clearTimeout(noSpeechTimerRef.current); };
   }, []); // eslint-disable-line
 
-  // Dismiss no-speech warning once words appear
   useEffect(() => {
     if (transcript.trim().length > 0) setNoSpeechWarning(false);
   }, [transcript]);
 
   async function startSession() {
     isActiveRef.current = true;
-
-    // Web Audio for waveform
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -526,12 +685,12 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
       audioCtxRef.current = ctx;
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
-      analyser.fftSize = 64;
+      analyser.fftSize = 128;
       source.connect(analyser);
       const dataArr = new Uint8Array(analyser.frequencyBinCount);
       const loop = () => {
         analyser.getByteFrequencyData(dataArr);
-        setWaveformData(Array.from(dataArr).slice(0, 20));
+        setWaveformData(Array.from(dataArr).slice(0, 30));
         rafRef.current = requestAnimationFrame(loop);
       };
       loop();
@@ -539,7 +698,6 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
       // waveform won't animate, recording still works
     }
 
-    // Speech recognition
     if (!browserOk) return;
     const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -550,17 +708,13 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
         rec.continuous = true;
         rec.interimResults = true;
         rec.lang = "en-US";
-        // iOS Safari: maxAlternatives = 1 improves reliability
         (rec as ISpeechRecognition & { maxAlternatives?: number }).maxAlternatives = 1;
 
         rec.onresult = (e: ISpeechRecognitionEvent) => {
           let interim = "";
           for (let i = e.resultIndex; i < e.results.length; i++) {
-            if (e.results[i].isFinal) {
-              finalTextRef.current += e.results[i][0].transcript + " ";
-            } else {
-              interim = e.results[i][0].transcript;
-            }
+            if (e.results[i].isFinal) finalTextRef.current += e.results[i][0].transcript + " ";
+            else interim = e.results[i][0].transcript;
           }
           const full = finalTextRef.current + interim;
           transcriptRef.current = full;
@@ -569,17 +723,13 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
         };
 
         rec.onerror = (e: ISpeechRecognitionErrorEvent) => {
-          if (e.error === "no-speech") return; // Continue — iOS fires this often
-          // Other errors: don't stop recording
+          if (e.error === "no-speech") return;
         };
 
-        // CRITICAL for iOS: restart on end so continuous transcription works
         rec.onend = () => {
           if (isActiveRef.current && !pausedRef.current) {
             setTimeout(() => {
-              if (isActiveRef.current && !pausedRef.current) {
-                startRecognition();
-              }
+              if (isActiveRef.current && !pausedRef.current) startRecognition();
             }, 100);
           }
         };
@@ -591,7 +741,6 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
 
     startRecognition();
 
-    // Timer
     timerRef.current = setInterval(() => {
       elapsedRef.current += 1;
       setElapsed(e => e + 1);
@@ -622,7 +771,6 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
     if (paused) {
       pausedRef.current = false;
       setPaused(false);
-      // Restart recognition
       if (browserOk && !manualMode) {
         const SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
         try {
@@ -667,7 +815,6 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
   function switchToManual() {
     setManualMode(true);
     setNoSpeechWarning(false);
-    // Keep waveform, stop recognition
     recRef.current?.stop();
   }
 
@@ -680,6 +827,10 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
   const timeProgress = Math.min(1, elapsed / Math.max(1, targetSec));
   const timeStatus = elapsed > targetSec * 1.1 ? "Running long" : elapsed < targetSec * 0.5 && elapsed > 20 ? "Too slow" : "On track";
   const canStop = activeTranscript.trim().split(/\s+/).filter(Boolean).length >= 10;
+
+  const confidence = calcConfidence(totalF, wpm);
+  const conf = confidenceLabel(confidence);
+  const structure = detectStructure(activeTranscript);
 
   if (!browserOk && !manualMode) {
     return (
@@ -705,10 +856,10 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
     <div className="min-h-screen bg-[#06040F] flex flex-col">
       {/* Top bar */}
       <div className="flex items-center gap-4 px-4 py-3 border-b border-[#1A1040] bg-[#0F0A1F] flex-shrink-0">
-        <button onClick={onBack} className="text-[#8B7CF8] hover:text-white transition-colors text-sm">
-          ← Back
+        <button onClick={onBack} className="text-[#8B7CF8] hover:text-white transition-colors text-sm flex items-center gap-2">
+          ← <span className="font-semibold text-white/80">{setup.startupName}</span>
         </button>
-        <div className="flex items-center gap-2 flex-1">
+        <div className="flex items-center gap-2 flex-1 justify-center">
           {manualMode ? (
             <span className="text-[#C9A84C] text-xs font-bold tracking-widest">TEXT MODE</span>
           ) : (
@@ -728,7 +879,7 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
         </div>
       </div>
 
-      {/* No-speech warning banner */}
+      {/* No-speech warning */}
       <AnimatePresence>
         {noSpeechWarning && (
           <motion.div
@@ -751,28 +902,44 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
         )}
       </AnimatePresence>
 
-      {/* Main content */}
-      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
-        {/* LEFT: waveform + transcript + controls */}
-        <div className="flex-1 flex flex-col p-4 gap-4 lg:w-[55%]">
-          {/* Waveform (always shown) */}
+      {/* Main content — single centered column */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto p-4 space-y-4">
+
+          {/* Live confidence meter */}
           {!manualMode && (
-            <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4 flex items-center justify-center" style={{ minHeight: 100 }}>
+            <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Live Confidence</span>
+                <span className="text-xs font-bold" style={{ color: conf.color }}>{conf.emoji} {conf.label}</span>
+              </div>
+              <div className="h-2.5 bg-[#1A1040] rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: conf.color, boxShadow: `0 0 12px ${conf.color}66` }}
+                  animate={{ width: `${confidence}%` }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Waveform */}
+          {!manualMode && (
+            <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4 flex items-center justify-center" style={{ minHeight: 110 }}>
               <Waveform data={waveformData} />
             </div>
           )}
 
-          {/* Manual text input OR live transcript */}
+          {/* Manual or live transcript */}
           {manualMode ? (
-            <div className="flex-1 flex flex-col gap-2">
-              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">
-                Paste or type your pitch below
-              </p>
+            <div className="flex flex-col gap-2">
+              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Paste or type your pitch below</p>
               <textarea
                 value={manualText}
                 onChange={e => setManualText(e.target.value)}
                 placeholder="Type or paste your pitch here..."
-                className="flex-1 w-full px-4 py-3 rounded-2xl bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED] text-white text-sm leading-relaxed outline-none resize-none transition-colors placeholder-white/25"
+                className="w-full px-4 py-3 rounded-2xl bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED] text-white text-sm leading-relaxed outline-none resize-none transition-colors placeholder-white/25"
                 style={{ minHeight: 240 }}
               />
               <p className="text-white/30 text-xs">{manualText.trim().split(/\s+/).filter(Boolean).length} words</p>
@@ -780,33 +947,84 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
           ) : (
             <div
               ref={transcriptScrollRef}
-              className="flex-1 bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4 overflow-y-auto"
-              style={{ minHeight: 160, maxHeight: "calc(100vh - 340px)" }}
+              className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4 overflow-y-auto"
+              style={{ minHeight: 160, maxHeight: "40vh" }}
             >
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Live Transcript</p>
-                <button
-                  onClick={switchToManual}
-                  className="text-[10px] text-white/30 hover:text-[#8B7CF8] transition-colors underline"
-                >
+                <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Smart Transcript</p>
+                <button onClick={switchToManual} className="text-[10px] text-white/30 hover:text-[#8B7CF8] transition-colors underline">
                   Switch to text input
                 </button>
               </div>
               <div className="text-sm leading-relaxed">
                 {transcript
                   ? highlightFillers(transcript)
-                  : <span className="text-white/25 italic">Start speaking — your words appear here...</span>
-                }
+                  : <span className="text-white/25 italic">Start speaking — your words appear here...</span>}
               </div>
             </div>
           )}
 
+          {/* Pitch structure detector */}
+          <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-3 sticky top-2 z-10">
+            <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider mb-2">Pitch Structure</p>
+            <div className="flex flex-wrap gap-2">
+              {STRUCTURE_SECTIONS.map(s => {
+                const ok = structure[s.key];
+                return (
+                  <span
+                    key={s.key}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${
+                      ok
+                        ? "border-green-500/40 bg-green-500/15 text-green-300"
+                        : "border-red-500/30 bg-red-500/5 text-red-400/70"
+                    }`}
+                  >
+                    {ok ? "✅" : "❌"} {s.label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Live metrics */}
+          <div className="grid grid-cols-3 gap-2">
+            <MetricCard title="Pace" value={wpm > 0 ? `${wpm}` : "—"} sub={paceVerdict} color={paceColor} />
+            <MetricCard
+              title="Fillers"
+              value={String(totalF)}
+              sub={totalF > 0 ? `um ${fillers.um} · uh ${fillers.uh}` : "Clean"}
+              color={totalF > 8 ? "text-red-400" : totalF > 3 ? "text-yellow-400" : "text-green-400"}
+            />
+            <MetricCard title="Energy" value={energy} sub="from pace" color={energyColor} />
+          </div>
+
+          {/* Time check */}
+          <div className="bg-[#06040F] border border-[#1A1040] rounded-xl p-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Time Check</p>
+              <p className={`text-xs font-bold ${elapsed > targetSec * 1.1 ? "text-red-400" : "text-green-400"}`}>{timeStatus}</p>
+            </div>
+            <div className="h-1.5 bg-[#1A1040] rounded-full overflow-hidden">
+              <motion.div className="h-full rounded-full bg-[#C9A84C]" animate={{ width: `${timeProgress * 100}%` }} transition={{ duration: 0.4 }} />
+            </div>
+          </div>
+
+          {/* Coaching cards */}
+          <div className="space-y-2 min-h-[40px]">
+            <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider flex items-center gap-2">
+              <BarChart2 className="w-3.5 h-3.5" /> Live Coaching
+            </p>
+            <AnimatePresence>
+              {tips.map(tip => <CoachTipCard key={tip.id} tip={tip} />)}
+            </AnimatePresence>
+          </div>
+
           {/* Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pt-2 pb-6">
             {!manualMode && (
               <button
                 onClick={togglePause}
-                className="w-12 h-12 rounded-full border border-[#1A1040] bg-[#0F0A1F] flex items-center justify-center text-[#8B7CF8] hover:text-white hover:border-[#7C3AED] transition-colors"
+                className="w-12 h-12 rounded-full border border-[#1A1040] bg-[#0F0A1F] flex items-center justify-center text-[#8B7CF8] hover:text-white hover:border-[#7C3AED] transition-colors flex-shrink-0"
               >
                 {paused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
               </button>
@@ -814,67 +1032,11 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
             <button
               onClick={handleStop}
               disabled={!canStop}
-              className="flex-1 h-12 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white font-black rounded-xl transition-colors text-sm"
+              className="flex-1 h-14 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white font-black rounded-xl transition-colors text-base shadow-[0_0_24px_rgba(239,68,68,0.25)]"
             >
               <StopCircle className="w-5 h-5" />
-              {manualMode ? "Analyze My Pitch →" : "Stop & Analyze"}
+              {manualMode ? "Analyze My Pitch →" : "Stop & Get Feedback →"}
             </button>
-          </div>
-          {!canStop && (
-            <p className="text-white/30 text-xs text-center -mt-2">
-              {manualMode
-                ? "Please enter at least a few sentences."
-                : "Keep speaking — more words needed for analysis."}
-            </p>
-          )}
-        </div>
-
-        {/* RIGHT: live metrics + tips */}
-        <div className="lg:w-[45%] p-4 space-y-4 overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#1A1040]">
-          <p className="text-[#8B7CF8] text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-            <BarChart2 className="w-3.5 h-3.5" /> {ft.liveCoaching}
-          </p>
-
-          <div className="grid grid-cols-2 gap-2">
-            <MetricCard
-              title={ft.pace}
-              value={wpm > 0 ? `${wpm} WPM` : "—"}
-              sub={`Status: ${paceVerdict}`}
-              color={paceColor}
-            />
-            <MetricCard
-              title={ft.fillerWordsMetric}
-              value={String(totalF)}
-              sub={totalF > 0 ? `um(${fillers.um}) uh(${fillers.uh}) like(${fillers.like})` : ft.keepItUp}
-              color={totalF > 8 ? "text-red-400" : totalF > 3 ? "text-yellow-400" : "text-green-400"}
-            />
-            <MetricCard
-              title={ft.energy}
-              value={energy}
-              sub={ft.basedOnPace}
-              color={energyColor}
-            />
-            <div className="bg-[#06040F] border border-[#1A1040] rounded-xl p-3">
-              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider mb-1">{ft.timeCheck}</p>
-              <div className="h-1.5 bg-[#1A1040] rounded-full overflow-hidden mb-1.5">
-                <motion.div
-                  className="h-full rounded-full bg-[#C9A84C]"
-                  animate={{ width: `${timeProgress * 100}%` }}
-                  transition={{ duration: 0.4 }}
-                />
-              </div>
-              <p className={`text-xs font-bold ${elapsed > targetSec * 1.1 ? "text-red-400" : "text-green-400"}`}>
-                {timeStatus}
-              </p>
-            </div>
-          </div>
-
-          <p className="text-white/30 text-[10px]">{ft.idealPace}</p>
-
-          <div className="space-y-2 min-h-[80px]">
-            <AnimatePresence>
-              {tips.map(tip => <CoachTipCard key={tip.id} tip={tip} />)}
-            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -887,18 +1049,19 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
 function AnalyzingScreen() {
   const { t: tl } = useLanguage();
   const ft = tl.features.pitchCoachLive as unknown as Record<string, unknown>;
-  const steps = (ft.analyzingSteps as string[]) ?? ["Transcribing pitch...", "Detecting filler words...", "Analyzing structure...", "Scoring delivery...", "Generating brutal feedback..."];
+  const steps = (ft.analyzingSteps as string[]) ?? ["Transcribing pitch...", "Detecting filler words...", "Analyzing structure...", "Scoring delivery...", "Simulating investor reactions...", "Generating your practice plan..."];
   const [done, setDone] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setDone(p => Math.min(p + 1, steps.length)), 1100);
     return () => clearInterval(t);
   }, []); // eslint-disable-line
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#06040F]">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center max-w-sm">
+    <div className="relative min-h-screen flex items-center justify-center p-6 bg-[#06040F]">
+      <AmbientOrbs />
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative text-center max-w-sm">
         <div className="w-16 h-16 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin mx-auto mb-6" />
-        <h2 className="text-2xl font-bold text-white mb-2">{ft.analyzingTitle as string}</h2>
-        <p className="text-[#8B7CF8] text-sm mb-8">{ft.analyzingSubtitle as string}</p>
+        <h2 className="text-2xl font-bold text-white mb-2">{(ft.analyzingTitle as string) || "Analyzing your pitch"}</h2>
+        <p className="text-[#8B7CF8] text-sm mb-8">{(ft.analyzingSubtitle as string) || "Quantum is being brutally honest so investors don't have to be."}</p>
         <div className="space-y-2 text-left">
           {steps.map((s, i) => (
             <div key={i} className={`flex items-center gap-3 text-sm transition-all ${i < done ? "text-green-400" : "text-white/25"}`}>
@@ -914,6 +1077,17 @@ function AnalyzingScreen() {
   );
 }
 
+// ─── Investor reaction card ─────────────────────────────────────────────────────
+
+function ReactionCard({ emoji, role, text }: { emoji: string; role: string; text: string }) {
+  return (
+    <div className="p-4 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED]/5">
+      <p className="text-sm font-bold text-white mb-1.5 flex items-center gap-2"><span className="text-lg">{emoji}</span> {role}</p>
+      <p className="text-white/70 text-sm leading-relaxed italic">&quot;{text}&quot;</p>
+    </div>
+  );
+}
+
 // ─── Results screen ───────────────────────────────────────────────────────────
 
 function ResultsScreen({
@@ -924,11 +1098,17 @@ function ResultsScreen({
   const { t: tl } = useLanguage();
   const ft = tl.features.pitchCoachLive as unknown as Record<string, string>;
   const [copied, setCopied] = useState(false);
+  const [rewriteCopied, setRewriteCopied] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistorySession[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
   const score = analysis.overall_score;
+
+  const fundability = typeof analysis.fundability_probability === "number"
+    ? Math.round(analysis.fundability_probability)
+    : Math.round(score * 0.85 + (analysis.ready_to_pitch ? 10 : 0));
+  const fundabilityClamped = Math.max(0, Math.min(100, fundability));
 
   const bannerCfg = score > 80
     ? { cls: "border-green-500/50 bg-green-500/10 text-green-300", msg: "Strong pitch. Almost investor-ready." }
@@ -950,16 +1130,47 @@ function ResultsScreen({
   }
 
   function copyShare() {
-    const text = `🎤 Pitch Score: ${score}/100 (${analysis.grade})\n${analysis.bottom_line}\n\nPracticed with Quantum Pitch Coach Live`;
+    const text = `🎤 Investor Readiness: ${score}/100 (${analysis.grade})\n${analysis.bottom_line}\n\nPracticed with Quantum Pitch Coach Live`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function copyRewrite() {
+    navigator.clipboard.writeText(analysis.the_killer_rewrite || "");
+    setRewriteCopied(true);
+    setTimeout(() => setRewriteCopied(false), 2000);
   }
 
   const chartData = history.map(h => ({
     name: new Date(h.createdAt).toLocaleDateString("en", { month: "short", day: "numeric" }),
     score: h.overallScore,
   })).reverse();
+
+  const improving = chartData.length > 1 && chartData[chartData.length - 1].score > chartData[0].score;
+
+  // Build timeline from API field or fallback to what_worked / critical_problems
+  const timeline = (analysis.pitch_timeline && analysis.pitch_timeline.length > 0)
+    ? analysis.pitch_timeline
+    : [
+        ...(analysis.what_worked || []).map((w, i) => ({
+          label: w.moment.slice(0, 24), type: "strength" as const,
+          position: (i + 1) / ((analysis.what_worked?.length || 1) + 1), note: w.why,
+        })),
+        ...(analysis.critical_problems || []).map((p, i) => ({
+          label: p.problem_name, type: "weakness" as const,
+          position: (i + 1) / ((analysis.critical_problems?.length || 1) + 1), note: p.why_its_weak,
+        })),
+      ];
+
+  const reactions = analysis.investor_reactions;
+  const base = analysis.investor_reaction || "";
+  const angelText = reactions?.angel
+    ?? (score > 75 ? "Credible founder. " + base : score < 55 ? "Unclear value. " + base.slice(0, 100) : base);
+
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <div className="min-h-screen bg-[#06040F]">
@@ -970,14 +1181,46 @@ function ResultsScreen({
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex items-start gap-3 p-5 rounded-2xl border mb-8 ${bannerCfg.cls}`}
+            className={`flex items-start gap-3 p-5 rounded-2xl border mb-6 ${bannerCfg.cls}`}
           >
             {score >= 70 ? <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" /> : <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />}
             <p className="font-bold leading-snug">{bannerCfg.msg}</p>
           </motion.div>
 
-          {/* SECTION 1: Verdict */}
+          {/* Pitch moment timeline */}
+          {timeline.length > 0 && (
+            <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-5 mb-4">
+              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider mb-4">Pitch Moment Timeline</p>
+              <div className="relative h-16 overflow-x-auto">
+                <div className="absolute left-0 right-0 top-8 h-[2px] bg-[#1A1040]" />
+                <div className="relative flex justify-between min-w-[420px]">
+                  {timeline.slice(0, 8).map((m, i) => {
+                    const color = m.type === "strength" ? "#22C55E" : m.type === "weakness" ? "#EF4444" : "#EAB308";
+                    const emoji = m.type === "strength" ? "🔥" : m.type === "weakness" ? "⚠" : "•";
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => scrollTo(m.type === "weakness" ? "lose-room" : "what-worked")}
+                        className="flex flex-col items-center group"
+                        style={{ flex: 1 }}
+                        title={m.note}
+                      >
+                        <span className="text-[9px] text-white/50 mb-1 max-w-[60px] truncate">{m.label}</span>
+                        <span
+                          className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] mt-3"
+                          style={{ background: color, boxShadow: `0 0 8px ${color}99` }}
+                        >{emoji}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* HERO: Investor Readiness Score */}
           <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-6 mb-4 text-center">
+            <p className="text-[#C9A84C] text-xs font-bold uppercase tracking-wider mb-3">Investor Readiness Score™</p>
             <motion.div
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -986,26 +1229,69 @@ function ResultsScreen({
             >
               <CircleGauge score={score} size={150} />
             </motion.div>
-            <div className="flex items-center justify-center gap-4 mb-3">
+            <div className="flex items-center justify-center gap-4 mb-4">
               <span className={`text-6xl font-black ${gradeColor(analysis.grade)}`}>{analysis.grade}</span>
               <span className={`px-4 py-1.5 rounded-full border text-sm font-bold ${
                 analysis.ready_to_pitch
                   ? "border-green-500/50 bg-green-500/20 text-green-400"
                   : "border-red-500/50 bg-red-500/20 text-red-400"
               }`}>
-                {analysis.ready_to_pitch ? "✓ Ready to Pitch" : "✗ Not Ready Yet"}
+                {analysis.ready_to_pitch ? "✓ Investor-Ready" : "✗ Not Ready Yet"}
               </span>
             </div>
-            <p className="text-white font-bold text-lg leading-snug max-w-xl mx-auto">{analysis.bottom_line}</p>
+
+            {/* Fundability */}
+            <div className="max-w-md mx-auto mb-4 p-4 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[#C9A84C] text-xs font-bold uppercase tracking-wider">Fundability Score</span>
+                <span className="text-[#C9A84C] font-black text-xl">{fundabilityClamped}%</span>
+              </div>
+              <div className="h-2 bg-[#1A1040] rounded-full overflow-hidden mb-2">
+                <motion.div
+                  className="h-full rounded-full bg-[#C9A84C]"
+                  style={{ boxShadow: "0 0 12px rgba(201,168,76,0.5)" }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${fundabilityClamped}%` }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
+                />
+              </div>
+              <p className="text-white/60 text-xs">{fundabilityClamped}% chance of earning a follow-up meeting</p>
+            </div>
+
+            <p className="text-white font-bold text-lg leading-snug max-w-xl mx-auto">
+              {(analysis.bottom_line || "").split(/(?<=\.)\s/)[0]}
+            </p>
+            {analysis.emotional_summary && (
+              <p className="text-[#8B7CF8] text-sm mt-3 italic max-w-xl mx-auto">{analysis.emotional_summary}</p>
+            )}
             <p className="text-[#8B7CF8] text-xs mt-2">{setup.startupName} · {setup.audienceType}</p>
           </div>
 
-          {/* SECTION 2: Critical problems — ALWAYS FIRST */}
+          {/* Investor reaction simulation */}
+          {base && (
+            <Section title="Investor Reaction Simulation" icon={<Zap className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <ReactionCard emoji="🦈" role="Skeptical VC" text={reactions?.vc ?? base} />
+                <ReactionCard emoji="👼" role="Angel Investor" text={angelText} />
+                <ReactionCard emoji="🚀" role="Accelerator Partner" text={reactions?.accelerator ?? base} />
+                <ReactionCard emoji="🤝" role="Potential Customer" text={reactions?.customer ?? base} />
+              </div>
+            </Section>
+          )}
+
+          {/* What could lose the room */}
           {analysis.critical_problems?.length > 0 && (
-            <Section title={ft.whatNeedsWork} icon={<AlertTriangle className="w-4 h-4 text-red-400" />} color="text-red-400">
+            <Section id="lose-room" title="What Could Lose The Room" icon={<AlertTriangle className="w-4 h-4 text-red-400" />} color="text-red-400">
+              <p className="text-white/50 text-xs italic mb-4">Investors decide in 90 seconds. This is what breaks the spell.</p>
               <div className="space-y-4">
                 {analysis.critical_problems.map((p, i) => (
-                  <div key={i} className="p-4 rounded-xl border border-red-500/30 bg-red-500/5 space-y-2">
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.08 }}
+                    className="p-4 rounded-xl border border-red-500/30 bg-red-500/5 space-y-2"
+                  >
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-red-400 font-bold text-sm">{p.problem_name}</span>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -1017,18 +1303,24 @@ function ResultsScreen({
                     <p className="text-white/50 text-xs italic">What you said: &quot;{p.what_you_said}&quot;</p>
                     <p className="text-white/70 text-sm">{p.why_its_weak}</p>
                     <div className="pt-2 border-t border-red-500/20">
-                      <p className="text-[#C9A84C] text-xs font-bold mb-1.5">→ Better version:</p>
-                      <p className="text-[#C9A84C]/90 text-sm leading-relaxed">{p.rewritten_version}</p>
+                      <motion.div
+                        animate={{ boxShadow: ["0 0 0 rgba(201,168,76,0)", "0 0 14px rgba(201,168,76,0.25)", "0 0 0 rgba(201,168,76,0)"] }}
+                        transition={{ duration: 2.4, repeat: Infinity }}
+                        className="p-3 rounded-lg border border-[#C9A84C]/40 bg-[#C9A84C]/5"
+                      >
+                        <p className="text-[#C9A84C] text-xs font-bold mb-1.5">→ Rewrite:</p>
+                        <p className="text-[#C9A84C]/90 text-sm leading-relaxed">{p.rewritten_version}</p>
+                      </motion.div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </Section>
           )}
 
-          {/* SECTION 3: What worked */}
+          {/* What worked */}
           {analysis.what_worked?.length > 0 && (
-            <Section title={ft.whatLandedWell} icon={<Star className="w-4 h-4 text-green-400" />} color="text-green-400">
+            <Section id="what-worked" title={ft.whatLandedWell || "What Landed Well"} icon={<Star className="w-4 h-4 text-green-400" />} color="text-green-400">
               <div className="space-y-3">
                 {analysis.what_worked.map((w, i) => (
                   <div key={i} className="p-4 rounded-xl border border-green-500/20 bg-green-500/5">
@@ -1040,22 +1332,47 @@ function ResultsScreen({
             </Section>
           )}
 
-          {/* SECTION 4: Missing completely */}
+          {/* Missing completely */}
           {analysis.missing_completely?.length > 0 && (
-            <Section title={ft.whatNeverSaid} icon={<XCircle className="w-4 h-4 text-orange-400" />} color="text-orange-400">
+            <Section title={ft.whatNeverSaid || "What You Never Said"} icon={<XCircle className="w-4 h-4 text-orange-400" />} color="text-orange-400">
               <div className="flex flex-wrap gap-2">
                 {analysis.missing_completely.map((item, i) => (
-                  <span key={i} className="px-3 py-1.5 rounded-lg border border-orange-500/30 bg-orange-500/10 text-orange-300 text-sm">
-                    {item}
-                  </span>
+                  <span key={i} className="px-3 py-1.5 rounded-lg border border-orange-500/30 bg-orange-500/10 text-orange-300 text-sm">{item}</span>
                 ))}
               </div>
             </Section>
           )}
 
-          {/* SECTION 5: Filler words */}
+          {/* Killer rewrite — side by side */}
+          {analysis.the_killer_rewrite && (
+            <Section title="Killer Rewrite™" icon={<Flame className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="p-4 rounded-xl border border-white/10 bg-[#06040F]">
+                  <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-2">What You Said</p>
+                  <p className="text-white/50 text-sm leading-relaxed italic">
+                    &quot;{analysis.critical_problems?.[0]?.what_you_said || analysis.bottom_line}&quot;
+                  </p>
+                </div>
+                <motion.div
+                  animate={{ boxShadow: ["0 0 0 rgba(201,168,76,0)", "0 0 18px rgba(201,168,76,0.3)", "0 0 0 rgba(201,168,76,0)"] }}
+                  transition={{ duration: 2.6, repeat: Infinity }}
+                  className="p-4 rounded-xl border border-[#C9A84C]/50 bg-[#C9A84C]/5 relative"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[#C9A84C] text-xs font-bold uppercase tracking-wider">What Lands Better</p>
+                    <button onClick={copyRewrite} className="text-[#C9A84C]/70 hover:text-[#C9A84C] transition-colors">
+                      {rewriteCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <p className="text-white text-sm leading-relaxed">{analysis.the_killer_rewrite}</p>
+                </motion.div>
+              </div>
+            </Section>
+          )}
+
+          {/* Filler words */}
           {analysis.filler_analysis && (
-            <Section title={ft.fillerWords} icon={<Clock className="w-4 h-4 text-[#8B7CF8]" />} color="text-[#8B7CF8]">
+            <Section title={ft.fillerWords || "Filler Words"} icon={<Clock className="w-4 h-4 text-[#8B7CF8]" />} color="text-[#8B7CF8]">
               <div className="flex items-start gap-6 mb-4">
                 <div>
                   <p className={`text-5xl font-black ${analysis.filler_analysis.total_count > 10 ? "text-red-400" : analysis.filler_analysis.total_count > 5 ? "text-yellow-400" : "text-green-400"}`}>
@@ -1078,9 +1395,9 @@ function ResultsScreen({
             </Section>
           )}
 
-          {/* SECTION 6: Pacing */}
+          {/* Pacing */}
           {analysis.pacing && (
-            <Section title={ft.pacingAnalysis} icon={<TrendingUp className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
+            <Section title={ft.pacingAnalysis || "Pacing"} icon={<TrendingUp className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
               <div className="flex items-center gap-6 mb-4">
                 <div>
                   <p className={`text-5xl font-black ${analysis.pacing.verdict === "PERFECT" ? "text-green-400" : "text-yellow-400"}`}>
@@ -1099,7 +1416,6 @@ function ResultsScreen({
                   <p className="text-white/30 text-xs mt-2">Ideal: 130–150 WPM</p>
                 </div>
               </div>
-              {/* Simple bar */}
               <div className="h-2 bg-[#1A1040] rounded-full overflow-hidden mb-3">
                 <div
                   className={`h-full rounded-full ${analysis.pacing.verdict === "PERFECT" ? "bg-green-500" : "bg-yellow-500"}`}
@@ -1113,40 +1429,32 @@ function ResultsScreen({
             </Section>
           )}
 
-          {/* SECTION 7: Investor reaction */}
-          {analysis.investor_reaction && (
-            <Section title={ft.investorReaction} icon={<Zap className="w-4 h-4 text-[#7C3AED]" />} color="text-[#7C3AED]">
-              <div className="p-4 rounded-xl border border-[#7C3AED]/30 bg-[#7C3AED]/5">
-                <p className="text-white/80 text-sm leading-relaxed italic">&quot;{analysis.investor_reaction}&quot;</p>
-              </div>
-            </Section>
-          )}
-
-          {/* SECTION 8: Killer rewrite */}
-          {analysis.the_killer_rewrite && (
-            <Section title={ft.howShouldSound} icon={<Flame className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
-              <div className="p-4 rounded-xl border border-[#C9A84C]/30 bg-[#C9A84C]/5">
-                <p className="text-[#C9A84C] text-xs font-bold uppercase tracking-wider mb-2">Quantum&apos;s rewrite:</p>
-                <p className="text-white text-sm leading-relaxed">{analysis.the_killer_rewrite}</p>
-              </div>
-            </Section>
-          )}
-
-          {/* SECTION 9: Before next pitch */}
-          {analysis.before_next_pitch?.length > 0 && (
-            <Section title={ft.beforeNextPitch} icon={<Award className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
-              <ol className="space-y-3">
-                {analysis.before_next_pitch.slice(0, 3).map((item, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="w-6 h-6 rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/40 flex items-center justify-center text-[#C9A84C] text-xs font-black flex-shrink-0 mt-0.5">
-                      {i + 1}
-                    </span>
-                    <p className="text-white text-sm leading-relaxed">{item}</p>
-                  </li>
+          {/* Practice Plan */}
+          {(analysis.practice_drills?.length || analysis.before_next_pitch?.length) ? (
+            <Section title="Practice Plan™" icon={<Award className="w-4 h-4 text-[#C9A84C]" />} color="text-[#C9A84C]">
+              <div className="grid sm:grid-cols-3 gap-3">
+                {(analysis.practice_drills && analysis.practice_drills.length > 0
+                  ? analysis.practice_drills.slice(0, 3)
+                  : (analysis.before_next_pitch || []).slice(0, 3).map((item, i) => ({
+                      name: `Drill ${i + 1}`, instruction: item, duration: "5 min",
+                    }))
+                ).map((drill, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="p-4 rounded-xl border border-[#C9A84C]/25 bg-[#C9A84C]/5"
+                  >
+                    <div className="text-2xl mb-2">{["🎯", "🗣", "⚡"][i] ?? "🎯"}</div>
+                    <p className="text-[#C9A84C] font-bold text-sm mb-1">{drill.name}</p>
+                    <p className="text-white/70 text-xs leading-relaxed mb-2">{drill.instruction}</p>
+                    <span className="text-[10px] text-white/40 font-mono">{drill.duration} drill</span>
+                  </motion.div>
                 ))}
-              </ol>
+              </div>
             </Section>
-          )}
+          ) : null}
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2 pb-6">
@@ -1154,7 +1462,7 @@ function ResultsScreen({
               onClick={onRetry}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] font-black rounded-xl transition-colors text-sm"
             >
-              <RotateCcw className="w-4 h-4" /> {ft.practiceAgain}
+              <RotateCcw className="w-4 h-4" /> {ft.practiceAgain || "Practice Again"}
             </button>
             <button
               onClick={copyShare}
@@ -1182,7 +1490,8 @@ function ResultsScreen({
               >
                 <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-5">
                   <h3 className="text-[#C9A84C] text-sm font-bold mb-4 flex items-center gap-2">
-                    <History className="w-4 h-4" /> Past Sessions
+                    <History className="w-4 h-4" /> Your Progress
+                    {improving && <span className="text-green-400 text-xs flex items-center gap-1">↗ Improving</span>}
                   </h3>
                   {historyLoading ? (
                     <div className="text-center py-8 text-[#8B7CF8] text-sm">Loading...</div>
@@ -1190,7 +1499,6 @@ function ResultsScreen({
                     <p className="text-white/30 text-sm text-center py-4">No previous sessions yet.</p>
                   ) : (
                     <>
-                      {/* Chart */}
                       {chartData.length > 1 && (
                         <div className="mb-5 h-36">
                           <ResponsiveContainer width="100%" height="100%">
@@ -1207,7 +1515,6 @@ function ResultsScreen({
                           </ResponsiveContainer>
                         </div>
                       )}
-                      {/* Session list */}
                       <div className="space-y-2">
                         {history.map(h => (
                           <div key={h.id} className="flex items-center justify-between p-3 rounded-xl border border-[#1A1040] bg-[#06040F]">
@@ -1233,9 +1540,7 @@ function ResultsScreen({
             )}
           </AnimatePresence>
 
-          <p className="text-center text-white/20 text-xs pb-4">
-            Session ID: {sessionId}
-          </p>
+          <p className="text-center text-white/20 text-xs pb-4">Session ID: {sessionId}</p>
         </motion.div>
       </div>
     </div>
@@ -1245,8 +1550,7 @@ function ResultsScreen({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function PitchCoachLivePage() {
-  const { t, locale } = useLanguage();
-  const ft = t.features.pitchCoachLive as unknown as Record<string, string>;
+  const { locale } = useLanguage();
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -1262,12 +1566,9 @@ export default function PitchCoachLivePage() {
   const handleRecordingDone = useCallback(async (
     t: string, d: number, f: FillerCounts, w: number
   ) => {
-    // Validate transcript
     const wordCount = t.trim().split(/\s+/).filter(Boolean).length;
     if (wordCount < 15) {
-      setApiError(
-        "No speech detected. Please speak clearly into your microphone or use the text input option."
-      );
+      setApiError("No speech detected. Please speak clearly into your microphone or use the text input option.");
       setStep("setup");
       return;
     }
@@ -1275,7 +1576,6 @@ export default function PitchCoachLivePage() {
     setStep("analyzing");
 
     try {
-      // Use /api/analyze-pitch for Gemini analysis; also save via /api/pitch-coach-live
       const res = await fetch("/api/analyze-pitch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1285,6 +1585,8 @@ export default function PitchCoachLivePage() {
           startupDescription: setup?.startupDescription,
           audienceType: setup?.audienceType,
           targetDuration: setup?.targetDuration,
+          pitchGoal: setup?.pitchGoal,
+          biggestFear: setup?.biggestFear,
           language: locale === "ru" ? "Russian" : locale === "es" ? "Spanish" : locale === "zh" ? "Chinese" : "English",
         }),
       });
@@ -1302,9 +1604,8 @@ export default function PitchCoachLivePage() {
         return;
       }
 
-      setAnalysis(analysisData);
+      setAnalysis(analysisData as Analysis);
 
-      // Save session to DB in background (don't block results)
       fetch("/api/pitch-coach-live", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
