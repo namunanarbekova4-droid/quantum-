@@ -212,10 +212,7 @@ function SetupScreen({ onStart, locale, ft }: SetupScreenProps) {
       </div>
 
       {/* Form card */}
-      <div
-        className="rounded-2xl border border-[#1A1040] p-8 space-y-5"
-        style={{ background: "#0F0A1F" }}
-      >
+      <div className="rounded-2xl border border-[#1A1040] p-8 space-y-5 bg-[#0F0A1F]">
         {/* Startup Name */}
         <div>
           <label className="block text-sm font-medium text-[#8B7CF8] mb-2">
@@ -226,7 +223,7 @@ function SetupScreen({ onStart, locale, ft }: SetupScreenProps) {
             value={form.startupName}
             onChange={(e) => setForm((f) => ({ ...f, startupName: e.target.value }))}
             placeholder="e.g. QuantumLeap"
-            className="w-full px-4 py-3 rounded-xl bg-[#06040F] border border-[#1A1040] text-white placeholder-[#3D3060] focus:outline-none focus:border-[#7C3AED] transition-colors text-sm"
+            className="w-full px-4 py-3 rounded-xl bg-[#06040F] border border-[#1A1040] text-white placeholder-white/25 focus:outline-none focus:border-[#7C3AED] transition-colors text-sm"
           />
         </div>
 
@@ -242,7 +239,7 @@ function SetupScreen({ onStart, locale, ft }: SetupScreenProps) {
             }
             rows={3}
             placeholder={ft.answerPlaceholder}
-            className="w-full px-4 py-3 rounded-xl bg-[#06040F] border border-[#1A1040] text-white placeholder-[#3D3060] focus:outline-none focus:border-[#7C3AED] transition-colors text-sm resize-none"
+            className="w-full px-4 py-3 rounded-xl bg-[#06040F] border border-[#1A1040] text-white placeholder-white/25 focus:outline-none focus:border-[#7C3AED] transition-colors text-sm resize-none"
           />
         </div>
 
@@ -276,7 +273,7 @@ function SetupScreen({ onStart, locale, ft }: SetupScreenProps) {
                 setForm((f) => ({ ...f, raisingAmount: e.target.value }))
               }
               placeholder="$50K – $500K"
-              className="w-full px-4 py-3 rounded-xl bg-[#06040F] border border-[#1A1040] text-white placeholder-[#3D3060] focus:outline-none focus:border-[#7C3AED] transition-colors text-sm"
+              className="w-full px-4 py-3 rounded-xl bg-[#06040F] border border-[#1A1040] text-white placeholder-white/25 focus:outline-none focus:border-[#7C3AED] transition-colors text-sm"
             />
           </div>
         </div>
@@ -290,11 +287,7 @@ function SetupScreen({ onStart, locale, ft }: SetupScreenProps) {
         <button
           onClick={handleStart}
           disabled={loading}
-          className="w-full py-4 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-          style={{
-            background: loading ? "#7C3AED80" : "#C9A84C",
-            color: "#06040F",
-          }}
+          className="w-full py-4 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 disabled:opacity-60 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F]"
         >
           {loading ? (
             <>
@@ -450,8 +443,8 @@ function TrainingScreen({
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
-          className="rounded-2xl border border-[#1A1040] overflow-hidden mb-5"
-          style={{ background: "#0F0A1F", borderLeft: "4px solid #C9A84C" }}
+          className="rounded-2xl border border-[#1A1040] bg-[#0F0A1F] overflow-hidden mb-5"
+          style={{ borderLeft: "4px solid #C9A84C" }}
         >
           <div className="p-6">
             <p className="text-xl font-bold text-white leading-relaxed mb-2">
@@ -473,7 +466,7 @@ function TrainingScreen({
           disabled={!!feedback || scoring}
           rows={5}
           placeholder={ft.answerPlaceholder}
-          className="w-full px-4 py-4 rounded-xl bg-[#0F0A1F] border border-[#1A1040] text-white placeholder-[#3D3060] focus:outline-none focus:border-[#7C3AED] transition-colors text-sm resize-none disabled:opacity-60"
+          className="w-full px-4 py-4 rounded-xl bg-[#0F0A1F] border border-[#1A1040] text-white placeholder-white/25 focus:outline-none focus:border-[#7C3AED] transition-colors text-sm resize-none disabled:opacity-60"
         />
         <span className="absolute bottom-3 right-3 text-xs text-[#3D3060]">
           {answer.length} chars
@@ -491,8 +484,7 @@ function TrainingScreen({
         <button
           onClick={submitAnswer}
           disabled={scoring || !answer.trim()}
-          className="w-full py-4 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 disabled:opacity-50 mb-6"
-          style={{ background: "#C9A84C", color: "#06040F" }}
+          className="w-full py-4 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 disabled:opacity-50 mb-6 bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F]"
         >
           {scoring ? (
             <>
@@ -516,8 +508,7 @@ function TrainingScreen({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
-            className="rounded-2xl border border-[#1A1040] p-6 mb-5 space-y-5"
-            style={{ background: "#0F0A1F" }}
+            className="rounded-2xl border border-[#1A1040] p-6 mb-5 space-y-5 bg-[#0F0A1F]"
           >
             {/* Score + Verdict */}
             <div className="flex items-center gap-4">
@@ -570,11 +561,11 @@ function TrainingScreen({
             {/* Next button */}
             <button
               onClick={nextQuestion}
-              className="w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
-              style={{
-                background: currentIndex + 1 >= total ? "#7C3AED" : "#C9A84C",
-                color: "#06040F",
-              }}
+              className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                currentIndex + 1 >= total
+                  ? "bg-[#7C3AED] hover:bg-[#6D28D9] text-white"
+                  : "bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F]"
+              }`}
             >
               {currentIndex + 1 >= total ? (
                 <>{ft.seeResults}</>
@@ -648,10 +639,7 @@ function ResultsScreen({ setupData, entries, locale, onReset, ft }: ResultsScree
       className="relative z-10 max-w-2xl mx-auto w-full"
     >
       {/* Overall score hero */}
-      <div
-        className="rounded-2xl border border-[#1A1040] p-8 mb-6 text-center"
-        style={{ background: "#0F0A1F" }}
-      >
+      <div className="rounded-2xl border border-[#1A1040] p-8 mb-6 text-center bg-[#0F0A1F]">
         <p className="text-sm font-medium text-[#8B7CF8] uppercase tracking-wider mb-3">
           {ft.overallScore}
         </p>
@@ -672,8 +660,7 @@ function ResultsScreen({ setupData, entries, locale, onReset, ft }: ResultsScree
 
         <button
           onClick={onReset}
-          className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all"
-          style={{ background: "#7C3AED", color: "white" }}
+          className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F]"
         >
           <RotateCcw className="w-4 h-4" />
           {ft.practiceAgain}
@@ -694,12 +681,11 @@ function ResultsScreen({ setupData, entries, locale, onReset, ft }: ResultsScree
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className={`rounded-xl border p-5 ${
+                className={`rounded-xl border p-5 bg-[#0F0A1F] ${
                   isWeak
                     ? "border-red-500/40"
                     : "border-[#1A1040]"
                 }`}
-                style={{ background: "#0F0A1F" }}
               >
                 <div className="flex items-start gap-3">
                   <div
@@ -735,15 +721,11 @@ function ResultsScreen({ setupData, entries, locale, onReset, ft }: ResultsScree
       )}
 
       {entries.length === 0 && (
-        <div
-          className="rounded-2xl border border-[#1A1040] p-8 text-center"
-          style={{ background: "#0F0A1F" }}
-        >
+        <div className="rounded-2xl border border-[#1A1040] p-8 text-center bg-[#0F0A1F]">
           <p className="text-[#8B7CF8]">{ft.noAnswers}</p>
           <button
             onClick={onReset}
-            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm"
-            style={{ background: "#7C3AED", color: "white" }}
+            className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-[#C9A84C] hover:bg-[#D4B85C] text-[#06040F] transition-colors"
           >
             <RotateCcw className="w-4 h-4" /> {ft.startOver}
           </button>

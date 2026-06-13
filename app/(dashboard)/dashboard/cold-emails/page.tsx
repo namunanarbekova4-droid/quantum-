@@ -261,7 +261,7 @@ function EmailCard({
           <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border", rateColor(email.subject_lines?.[0]?.open_rate ?? 0))}>
             ~{email.subject_lines?.[0]?.open_rate ?? 0}% {ft.openRate}
           </span>
-          {expanded ? <ChevronUp className="w-4 h-4 text-[#555]" /> : <ChevronDown className="w-4 h-4 text-[#555]" />}
+          {expanded ? <ChevronUp className="w-4 h-4 text-[#8B7CF8]/50" /> : <ChevronDown className="w-4 h-4 text-[#8B7CF8]/50" />}
         </div>
       </button>
 
@@ -293,7 +293,7 @@ function EmailCard({
                       <span className="text-[10px] text-[#555] font-mono w-4 flex-shrink-0 mt-0.5">{si + 1}.</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white font-medium">{sl.text}</p>
-                        <p className="text-[11px] text-[#888] mt-0.5">{sl.why_it_works}</p>
+                        <p className="text-[11px] text-[#8B7CF8]/60 mt-0.5">{sl.why_it_works}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border", rateColor(sl.open_rate))}>
@@ -460,7 +460,7 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-[#555] border-b border-[#1A1040]">
+              <tr className="text-[#8B7CF8]/60 border-b border-[#1A1040]">
                 <th className="pb-2 text-left font-medium">Name</th>
                 <th className="pb-2 text-left font-medium">Email</th>
                 <th className="pb-2 text-left font-medium">#</th>
@@ -472,8 +472,8 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
               {rows.map((row) => (
                 <tr key={row.id ?? row.recipientEmail}>
                   <td className="py-2 pr-3 font-medium text-white">{row.recipientName}</td>
-                  <td className="py-2 pr-3 text-[#888]">{row.recipientEmail}</td>
-                  <td className="py-2 pr-3 text-center text-[#888]">#{row.emailNumberUsed}</td>
+                  <td className="py-2 pr-3 text-[#8B7CF8]/70">{row.recipientEmail}</td>
+                  <td className="py-2 pr-3 text-center text-[#8B7CF8]/70">#{row.emailNumberUsed}</td>
                   <td className="py-2 pr-3">
                     <select
                       value={row.status}
@@ -486,14 +486,14 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
                       <option value="meeting">Meeting 🎉</option>
                     </select>
                   </td>
-                  <td className="py-2 text-[#666]">{row.notes}</td>
+                  <td className="py-2 text-[#8B7CF8]/50">{row.notes}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       ) : (
-        <p className="text-xs text-[#444] text-center py-4">Add recipients to track your outreach progress.</p>
+        <p className="text-xs text-[#8B7CF8]/50 text-center py-4">Add recipients to track your outreach progress.</p>
       )}
     </div>
   );
@@ -511,7 +511,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
 
   const field = (label: string, children: React.ReactNode) => (
     <div>
-      <label className="block text-sm font-semibold text-white mb-2">{label}</label>
+      <label className="block text-xs font-medium text-[#8B7CF8] uppercase tracking-wider mb-2">{label}</label>
       {children}
     </div>
   );
@@ -706,7 +706,7 @@ function ResultsScreen({
       </div>
 
       <div className="space-y-4">
-        <p className="text-[10px] font-semibold text-[#8B7CF8]/60 uppercase tracking-widest">YOUR 10 EMAILS</p>
+        <p className="text-xs font-medium text-[#8B7CF8] uppercase tracking-wider">YOUR 10 EMAILS</p>
         {emails.map((email, i) => (
           <EmailCard
             key={`${email.number}-${i}`}
