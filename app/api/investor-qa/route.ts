@@ -41,9 +41,9 @@ export async function POST(req: Request) {
         );
       }
 
-      const prompt = `You are a seasoned venture capitalist who has sat on the other side of the table for 500+ pitch meetings. You know exactly which questions make founders panic.
+      const prompt = `You are a VC who did your homework before this meeting. You have read everything available about this startup and you know where the gaps are. Your questions are designed to reveal whether the founder has confronted the hard realities — or is still working from a thesis that hasn't been tested.
 
-Generate 15 brutally tough but fair investor questions for this startup:
+Generate 15 investor questions for this startup:
 
 Startup Name: ${startupName}
 Description: ${description}
@@ -51,12 +51,11 @@ Stage: ${stage}
 Raising: ${raisingAmount}
 
 Rules:
-- Questions must be specific to THIS startup, not generic
-- Mix of market, traction, team, financials, competition, moat, and vision questions
-- Include at least 2 "trap" questions (things that sound easy but reveal deep problems)
-- Questions should feel like they come from a real VC who did their homework
-- Some questions should challenge core assumptions of the business
-- Vary length: some short and punchy, some multi-part
+- At least 3 questions must expose specific contradictions in THIS startup — market size claimed vs. the niche they're actually targeting, B2B positioning vs. consumer-level pricing, "no competition" claims vs. obvious adjacent players, etc. Name the contradiction in the question.
+- The hardest questions should sound casual but reveal everything. "What happened the last time you talked to a customer this week?" is more revealing than "Describe your customer discovery process." Conversational delivery, surgical intent.
+- Include at least 2 questions about what has already failed or surprised them — not hypothetically, actually.
+- Mix of: market reality, traction interpretation, team blind spots, unit economics, competitive response, timing, and the one thing that would make this not work
+- Some short and blunt. Some multi-part that force prioritization.
 - Respond in ${language}
 
 Return ONLY valid JSON:
@@ -81,19 +80,17 @@ Return ONLY valid JSON:
         );
       }
 
-      const prompt = `You are a top-tier VC evaluating a founder's answer during a pitch meeting. You are brutally honest but constructive.
+      const prompt = `You are a VC scoring a founder's answer in real time. Score harshly — an answer that sounds reasonable but contains no specific data or concrete commitment is a 40, not a 65. Founders consistently confuse sounding confident with saying something.
 
 Startup: ${startupName}
 Investor Question: ${question}
 Founder's Answer: ${answer}
 
-Evaluate this answer on a scale of 0-100. Be strict. Investors have high standards.
-
-Scoring guide:
-- 80-100: Specific data, clear narrative, addresses the question directly, shows deep understanding
-- 60-79: Decent but missing key specifics or slightly off-topic
-- 40-59: Vague, hand-wavy, or partially answers the question
-- 0-39: Evasive, wrong, or exposes a critical gap
+Scoring guide — apply this strictly:
+- 80-100: Specific data, concrete numbers, direct answer, reveals genuine understanding of the problem. Investor leans forward.
+- 60-79: Directionally correct but missing specifics — rounds when it should sharpen, hedges when it should commit.
+- 40-59: Vague, generic, or answers an adjacent question instead of this one. Could have been said by any founder.
+- 0-39: Evasive, contradicts earlier claims, exposes a critical gap, or the founder clearly hasn't thought about this yet.
 
 Verdicts:
 - STRONG (70+): Investor leans forward
@@ -106,9 +103,9 @@ Return ONLY valid JSON:
 {
   "score": 0,
   "verdict": "STRONG",
-  "whatWorked": "specific praise about what was good in their answer",
-  "whatsWrong": "specific critique of what was missing or weak",
-  "betterVersion": "a rewritten, stronger version of the answer using the same facts but making them land better"
+  "whatWorked": "Quote the specific sentence or phrase from their answer that actually worked and explain precisely why — not a category like 'they showed confidence' but the exact thing that landed",
+  "whatsWrong": "Quote the specific sentence that weakened the answer and explain what it revealed or failed to address — not a category, the actual line",
+  "betterVersion": "A rewritten answer that is night-and-day better — not slightly rephrased, but fundamentally restructured. Uses the same facts they gave but makes them land. Specific, direct, no hedging. This should make the founder think 'I wish I had said that.'"
 }`;
 
       const result = await generateJSON<{

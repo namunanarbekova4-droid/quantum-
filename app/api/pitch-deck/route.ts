@@ -108,30 +108,52 @@ Traction: ${answers[7] || "-"}
 Team: ${answers[8] || "-"}
 Raise: ${answers[9] || "-"}`;
 
-  const slidesPrompt = `You are a world-class pitch deck writer who has helped 500+ startups raise $2B+.
-You understand investor psychology deeply. For each slide:
-- Create emotional momentum (build desire, reduce skepticism, inspire belief)
-- Use founder voice (personal, urgent, confident)
-- Keep content punchy — no walls of text
-- Every title must be a conviction statement, not a label
-- Optimize for the first 5 seconds of each slide
+  const slidesPrompt = `You are a pitch deck strategist who understands that every slide in a great deck has one job: advance a specific investor emotion. Investors don't just evaluate decks — they feel their way through them. If the emotion is wrong at any slide, the investor is gone before the ask.
+
+Emotion map you must follow precisely:
+- cover: curiosity — make them want to know more before you say a word
+- problem: urgency — they must feel the pain before they understand the solution
+- personal_story: trust — this is why the founder, this is why now, this is why this company and not another
+- solution: relief — the problem was worth sitting through because this is elegant
+- market: excitement — the size and timing are undeniable
+- product: confidence — this is real and it works
+- traction: conviction — the market has already voted
+- business_model: clarity — the economics make sense
+- competition: differentiation — there's a specific reason this wins
+- team: belief — these are the right people
+- financials: credibility — the numbers are grounded
+- ask: decision — make it easy to say yes
+
+Title rules: every title must be a conviction statement, not a label. "We've already signed 40 paying users" not "Traction." "The $50B market that everyone ignores" not "Market Size." The title must work even if the investor reads nothing else.
+
+key_stat: only include where it creates maximum impact. A weak stat is worse than no stat. If you can't find a number that creates conviction, leave it null.
 
 Create 12 slides for this startup. Respond in ${lang}.
 ${ctx}
 Slide types in order: cover,problem,personal_story,solution,market,product,traction,business_model,competition,team,financials,ask.
-Rules: punchy titles, founder voice, speaker_notes max 1 sentence, main_content max 2 sentences, key_stat only where it fits (else null).
-For each slide also include:
-- emotional_purpose: what this slide makes the investor feel (e.g., "Create urgency", "Build belief", "Reduce risk")
-- visual_hint: suggested visual treatment (e.g., "market circle chart", "3-step process diagram", "metric grid")
+Rules: speaker_notes max 1 sentence, main_content max 2 sentences, key_stat only where it creates impact (else null).
 Return JSON: {"slides":[{"slide_number":1,"slide_type":"cover","title":"","subtitle":"","main_content":"","speaker_notes":"","key_stat":null,"emotional_purpose":"","visual_hint":""}]}`;
 
-  const scriptsPrompt = `Pitch coach. Write pitch scripts for this startup. Respond in ${lang}.
-${ctx}
-Return JSON: {"three_minute_script":"","elevator_pitch":"","opening_hook":"","closing_statement":"","investor_questions":[{"question":"","answer":""}]}
-Keep three_minute_script under 400 words. Generate 3 investor_questions.`;
+  const scriptsPrompt = `You are a pitch coach who knows that the difference between a funded pitch and a forgotten one is almost always the opening and the arc. Most founders open with "Hi, I'm X and we're building Y" — and lose the room in the first eight seconds.
 
-  const deckIntelPrompt = `You are a top-tier VC analyst reviewing this pitch. Respond in ${lang}.
+Rules for what you must write:
+
+opening_hook: must be a specific, surprising fact or a counterintuitive statement that creates immediate curiosity. Not "Hi, I'm the founder of..." — a statement that makes investors look up from their phones. Example: "Every year, $400 billion in invoices go unpaid in the US alone. We've collected $2M of it in the last 90 days."
+
+elevator_pitch: exactly 2 sentences. Sentence one: who has the problem and what it costs them. Sentence two: how this solves it and what the result is. Nothing else.
+
+three_minute_script: must follow this exact arc — (1) pain: a specific scene of someone suffering this problem right now, (2) moment of insight: when the founder realized this was solvable and how, (3) solution: what it does in plain language, (4) proof: the most credible evidence that it works, (5) ask: exactly what is needed and what it unlocks. Under 400 words. No feature lists.
+
+investor_questions: 3 questions an investor will absolutely ask, with answers that are sharp and specific — not hedging.
+
+Respond in ${lang}.
 ${ctx}
+Return JSON: {"three_minute_script":"","elevator_pitch":"","opening_hook":"","closing_statement":"","investor_questions":[{"question":"","answer":""}]}`;
+
+  const deckIntelPrompt = `You are a VC analyst who has reviewed thousands of decks and knows exactly what makes investors say yes and no. You are not summarizing — you are diagnosing. Respond in ${lang}.
+${ctx}
+
+Be specific about what will make investors doubt this deck. Not categories of doubt — actual objections based on what this founder actually said. The investor_preview thoughts must be raw inner monologue, unfiltered — the real thing investors think but don't say out loud. "Wait, how big is this really if their first customer is an SMB?" not "Investor considers the market opportunity." red_flags must name the specific contradiction or gap in this deck, not a generic weakness.
 
 Analyze this startup pitch and return JSON:
 {
@@ -142,25 +164,25 @@ Analyze this startup pitch and return JSON:
     "investor_confidence": 75,
     "market_conviction": 85,
     "memorability": 70,
-    "verdict": "Strong idea with compelling traction. Needs sharper differentiation."
+    "verdict": "One sentence verdict — specific to this startup, naming what works and what doesn't"
   },
   "red_flags": [
     {
       "severity": "HIGH",
-      "issue": "No clear moat explanation",
-      "slide": "competition",
-      "fix": "Add 2-3 defensible advantages: IP, network effects, or proprietary data"
+      "issue": "Specific contradiction or gap in this deck — not a category, the actual problem",
+      "slide": "the slide where it shows up",
+      "fix": "Exact fix — what to say instead and why it addresses the doubt"
     }
   ],
   "wow_moment": {
-    "headline": "What if hiring took 30 seconds?",
-    "subtext": "Not a prediction. Our reality today.",
-    "stat": "$2M saved per company annually"
+    "headline": "The single most compelling thing about this startup as a conviction statement",
+    "subtext": "The specific detail that makes it real, not theoretical",
+    "stat": "The number that creates maximum belief — only if one exists"
   },
   "investor_preview": [
-    { "after_slide": 3, "thought": "Interesting problem, but who exactly pays for this?" },
-    { "after_slide": 6, "thought": "Ok, the traction is real. This team has figured something out." },
-    { "after_slide": 9, "thought": "The ask feels right for this stage." }
+    { "after_slide": 3, "thought": "Raw unfiltered investor thought — specific to this startup's actual content" },
+    { "after_slide": 6, "thought": "Raw unfiltered investor thought — what they're really wondering at this point" },
+    { "after_slide": 9, "thought": "Raw unfiltered investor thought — are they in or out and why" }
   ]
 }
 Keep red_flags to max 4 items. investor_preview exactly 3 items (slides 3, 6, 9).`;

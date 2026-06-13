@@ -49,7 +49,9 @@ export async function POST(req: Request) {
   };
   const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
 
-  const prompt = `You are a world-class startup pitch writer. Create a compelling one-pager for this startup.
+  const prompt = `An investor one-pager has one job: get a meeting. It fails when it tries to explain everything. The investor does not need to understand the product after reading — they need to want to ask questions.
+
+Every section must earn the investor's continued attention. If a section doesn't make them more curious or more confident, it shouldn't be there.
 
 Startup Name: ${startupName}
 Tagline: ${tagline}
@@ -65,16 +67,16 @@ Use of Funds: ${useOfFunds}
 Return ONLY a JSON object with this exact structure:
 {
   "onePager": {
-    "headline": "compelling headline combining name and tagline",
-    "problem": "2-3 sentences making the problem vivid and urgent",
-    "solution": "2-3 sentences describing the solution crisply",
-    "market": "2 sentences on market size and opportunity",
-    "model": "1-2 sentences on how money is made",
-    "traction": "2-3 sentences highlighting key proof points",
-    "team": "2-3 sentences on why this team wins",
-    "ask": "clear ask statement",
-    "useOfFunds": "2-3 sentences on fund allocation",
-    "closingStatement": "1-2 powerful closing sentences that leave investors wanting more"
+    "headline": "A bold claim with the proof baked in — not 'the future of X' but '[Company]: [specific claim that implies scale or defensibility]'",
+    "problem": "2-3 sentences that make the reader feel the pain viscerally — not 'many businesses struggle with X' but the specific texture of the problem from the customer's perspective. A good problem section makes the investor think 'yes, I've seen this'",
+    "solution": "2-3 sentences. What it does, not how it works. The mechanism only matters if it's the moat.",
+    "market": "2 sentences. Lead with the specific number that is relevant (SAM, not TAM inflated to billions), then why now.",
+    "model": "1-2 sentences on the exact revenue mechanism — who pays, how much, how often.",
+    "traction": "Lead with the most specific, surprising number even if it's small — '40 paying users in 3 weeks' beats 'growing user base.' Real proof of demand beats projections every time.",
+    "team": "2-3 sentences on the one specific thing in each founder's background that explains why they will win this, not generic credentials.",
+    "ask": "Specific amount, specific use of funds in 3 buckets, specific milestone it enables — 'Raising $X to reach Y by [date]'",
+    "useOfFunds": "3 specific allocations with percentages and what each one accomplishes",
+    "closingStatement": "1-2 sentences that crystallize the bet: why this team, this market, this moment — not inspiration but conviction"
   }
 }${langInstruction}`;
 

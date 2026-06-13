@@ -44,9 +44,9 @@ export async function POST(req: Request) {
 
   if (regenerateOne && emailType) {
     // Single email regeneration
-    const prompt = `You are the world's best cold email copywriter with a 40%+ open rate track record.
+    const prompt = `You are rewriting a cold email. Before you write a single word, identify why the original angle likely fails — most cold emails fail because they're about the sender, not the recipient's problem, or they bury the ask, or they sound like every other email in the inbox.
 
-Rewrite one cold email for this startup using the "${emailType}" technique.
+Then pick one specific psychological trigger to exploit: curiosity gap (they need to know how the story ends), social proof (someone they respect already did this), FOMO (this window is closing), reciprocity (give something real before asking), or specificity shock (a number so precise it forces attention).
 
 STARTUP:
 Name: ${startupName}
@@ -55,14 +55,14 @@ Targeting: ${targetType || "customers"}
 Sender: ${yourName || "the founder"}, ${yourRole || "Founder"}
 Goal: ${goal || "get a meeting"}
 ${special ? `Context: ${special}` : ""}
+Technique: ${emailType}
 
 RULES:
-- Use "${emailType}" as the psychological technique
-- Under 150 words
-- One clear CTA
-- Feel personal, not templated
-- NEVER say "I hope this finds you well" or similar clichés
-- Strong, specific subject lines
+- Under 120 words. Hard limit.
+- One CTA. One action. Nothing else.
+- Never open with "I hope this finds you well", "Just following up", "My name is", or any variation
+- The first sentence must make them want to read the second
+- Subject lines must create intrigue without sounding like spam
 
 IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON:
 {
@@ -95,9 +95,9 @@ IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON:
     }
   }
 
-  const prompt = `You are the world's best cold email copywriter. You have written emails with 40%+ open rates for hundreds of startups.
+  const prompt = `You are a growth hacker who understands why most cold emails fail: they're about the sender, not the recipient's problem; they bury the CTA under paragraphs of context; and they sound like every other template the recipient deleted this week.
 
-Write 10 COMPLETELY DIFFERENT cold emails for this startup. Each email uses a different psychological technique and angle.
+Write 10 COMPLETELY DIFFERENT cold emails for this startup. Each email must use a psychologically distinct mechanism — not just a different opening, but a fundamentally different reason the recipient would stop, read, and respond. The best cold emails either create genuine curiosity (they have to know) or recognition of pain (that's exactly my problem). Feature lists do neither.
 
 STARTUP INFO:
 Name: ${startupName}
@@ -108,14 +108,13 @@ Goal: ${goal || "get a meeting or demo call"}
 ${special ? `Additional context: ${special}` : ""}
 
 STRICT RULES:
-- Each email uses a completely different psychological angle (listed below)
-- Every email feels personal and human — NOT templated
+- Each email uses a psychologically distinct mechanism — not just a different angle, a different reason to act
+- Every email is about the recipient's problem, not the sender's product
 - Under 150 words each (strictly enforce this)
-- One clear, specific CTA per email
-- Subject lines optimized for 25%+ open rate
+- One clear, specific CTA per email — one action, nothing else
+- Subject lines must be intriguing enough to open without sounding like clickbait — they create a curiosity gap or promise something specific
 - NEVER use "I hope this finds you well", "touching base", "circle back", "synergy", or similar clichés
-- Be bold, specific, direct
-- Use the sender's name and role
+- CTA is never buried — it is the last thing they read
 
 Email types (in this exact order):
 1. The Problem-First Approach
