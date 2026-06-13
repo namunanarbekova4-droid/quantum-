@@ -41,22 +41,48 @@ interface Opponent {
 
 // ─── TTS ──────────────────────────────────────────────────────────────────────
 
+// Voice profiles per persona — different pitch, rate, and preferred voice gender/accent
+const VOICE_PROFILES: Record<string, { pitch: number; rate: number; preferMale: boolean; preferAccent: "GB" | "US" | "AU" }> = {
+  "savage-investor":   { pitch: 0.75, rate: 0.85, preferMale: true,  preferAccent: "US" }, // Low, slow, cold
+  "competitor":        { pitch: 0.85, rate: 1.10, preferMale: true,  preferAccent: "GB" }, // Confident, slightly faster
+  "board-member":      { pitch: 0.80, rate: 0.88, preferMale: true,  preferAccent: "US" }, // Authoritative
+  "tough-mentor":      { pitch: 1.15, rate: 1.05, preferMale: false, preferAccent: "US" }, // Higher, conversational
+  "brutal-strategist": { pitch: 0.90, rate: 0.95, preferMale: false, preferAccent: "AU" }, // Precise, neutral
+};
+
 function speak(text: string, personality: string) {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  const voices = window.speechSynthesis.getVoices();
-  const preferred =
-    voices.find((v) => v.name.includes("Google UK English Male")) ||
-    voices.find((v) => v.name.includes("Microsoft") && v.lang.startsWith("en")) ||
-    voices.find((v) => v.lang === "en-GB") ||
-    voices.find((v) => v.lang.startsWith("en"));
-  if (preferred) utterance.voice = preferred;
-  utterance.rate = 0.9;
-  utterance.pitch =
-    personality === "savage-investor" ? 0.8 : personality === "competitor" ? 0.85 : 1.0;
-  utterance.volume = 1;
-  window.speechSynthesis.speak(utterance);
+  const profile = VOICE_PROFILES[personality] ?? { pitch: 1.0, rate: 0.95, preferMale: true, preferAccent: "US" as const };
+
+  // Try to find a voice matching the persona's accent + gender preference
+  const maleKeywords = ["Male", "male", "David", "Daniel", "James", "Guy", "Mark", "Tom", "George"];
+  const femaleKeywords = ["Female", "female", "Samantha", "Victoria", "Karen", "Moira", "Fiona", "Alice", "Zoe"];
+  const accentMap = { GB: "en-GB", US: "en-US", AU: "en-AU" };
+  const targetLang = accentMap[profile.preferAccent];
+  const genderKws = profile.preferMale ? maleKeywords : femaleKeywords;
+
+  const doSpeak = () => {
+    const v = window.speechSynthesis.getVoices();
+    const picked =
+      v.find(vv => vv.lang === targetLang && genderKws.some(k => vv.name.includes(k))) ||
+      v.find(vv => vv.lang === targetLang) ||
+      v.find(vv => vv.lang.startsWith("en") && genderKws.some(k => vv.name.includes(k))) ||
+      v.find(vv => vv.lang.startsWith("en"));
+    if (picked) utterance.voice = picked;
+    utterance.pitch = profile.pitch;
+    utterance.rate = profile.rate;
+    utterance.volume = 1;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // voices may not be loaded yet on first call
+  if (window.speechSynthesis.getVoices().length > 0) {
+    doSpeak();
+  } else {
+    window.speechSynthesis.onvoiceschanged = () => { doSpeak(); window.speechSynthesis.onvoiceschanged = null; };
+  }
 }
 
 // ─── Waveform ─────────────────────────────────────────────────────────────────
