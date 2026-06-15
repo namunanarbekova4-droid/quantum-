@@ -24,6 +24,19 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { action } = body;
     const language = LANG_MAP[body.locale as string] || "English";
+    const locale = (body.locale as string) || "en";
+    const isZh = locale === "zh";
+    const isKk = locale === "kz";
+
+    const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${language}:
+Think in ${language} from the first word. Do NOT compose in English and translate.
+Every insight, question, and sentence must be written as a native ${language} speaker — not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese investor or startup ecosystem professional would naturally write.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve startup/investment terms (CAC, LTV, ARR, MRR, seed, PMF, churn, etc.) in English if the ${language} investment community naturally uses them.
+Respond 100% in ${language}. No English words unless they are standard terms used natively.`;
 
     // ── generate_questions ───────────────────────────────────────────────────
     if (action === "generate_questions") {
@@ -56,7 +69,7 @@ Rules:
 - Include at least 2 questions about what has already failed or surprised them — not hypothetically, actually.
 - Mix of: market reality, traction interpretation, team blind spots, unit economics, competitive response, timing, and the one thing that would make this not work
 - Some short and blunt. Some multi-part that force prioritization.
-- Respond in ${language}
+${langInstruction}
 
 Return ONLY valid JSON:
 { "questions": ["question1", "question2", ..., "question15"] }`;
@@ -97,7 +110,7 @@ Verdicts:
 - ACCEPTABLE (40-69): Investor is cautious but continues
 - WEAK (<40): Investor mentally checks out
 
-Respond in ${language}.
+${langInstruction}
 
 Return ONLY valid JSON:
 {

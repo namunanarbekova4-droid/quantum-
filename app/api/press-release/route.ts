@@ -37,7 +37,19 @@ export async function POST(req: Request) {
     zh: "Chinese",
     kz: "Kazakh",
   };
-  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every sentence must read as it would appear in a native ${lang}-language publication — not as a translation.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese tech journalist or PR professional would write.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve proper nouns, company names, product names, and standard industry terms in their original form.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively in ${lang} media.`;
 
   const prompt = `You are a TechCrunch editor deciding in the first eight seconds whether to cover this story. You ignore press releases that bury the news, use corporate language, or explain instead of show. You've seen ten thousand of these and you know immediately when someone is writing for their investors instead of for readers.
 

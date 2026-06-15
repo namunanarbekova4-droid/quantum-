@@ -41,7 +41,30 @@ export async function POST(req: Request) {
     zh: "Chinese",
     kz: "Kazakh",
   };
-  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const culturalInvestorEmailNorms = locale === "ru"
+    ? "Russian investor email context: Russian investors appreciate directness, formal respect, and clear structured thinking. Avoid overly casual American startup tone — lead with substance and credentials."
+    : locale === "es"
+    ? "Spanish/Latin American investor email context: Warmer opening with relationship context is not weakness — it signals social intelligence. Personal connection before the business pitch is culturally appropriate."
+    : locale === "zh"
+    ? "Chinese investor email context: Formal, respectful, structured. Acknowledge hierarchy and the investor's accomplishments briefly. Be precise with numbers. Avoid casual register — professionalism signals seriousness."
+    : locale === "kk"
+    ? "Kazakh investor email context: Warm and respectful tone that builds trust before the ask. Reference shared ecosystem context if possible. Relationship signaling is as important as the opportunity."
+    : "";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every sentence must sound as if written by a native ${lang}-speaking founder reaching out to an investor in their market.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese founder would write to a Chinese or international investor.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+${culturalInvestorEmailNorms}
+Preserve financial/startup terms (seed, Series A, ARR, MRR, CAC, LTV, etc.) in English if the ${lang} investment community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively.`;
 
   const prompt = `Most cold investor emails fail because they explain the product instead of fitting the investor's thesis. Investors are not reading to learn about startups — they're scanning for the one that matches what they've already decided they want to fund.
 

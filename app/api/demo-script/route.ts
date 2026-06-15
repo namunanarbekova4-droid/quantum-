@@ -28,12 +28,24 @@ export async function POST(req: Request) {
     zh: "Chinese",
     kz: "Kazakh",
   };
-  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every word of this demo script must be written as a native ${lang} speaker would naturally present and speak — not translated.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese product presenter would naturally speak.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve product/tech terms (demo, click, feature, API, etc.) in English if the ${lang} tech community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively.`;
 
   const totalSeconds =
     demoLength === "3min" ? 180 : demoLength === "5min" ? 300 : 600;
 
-  const prompt = `You are directing this demo like Steve Jobs directed product reveals. You know the fundamental rule that founders always get wrong: they put the wow moment at 80% of the demo, after the audience has already mentally left. The wow moment should land at 40% — early enough that the rest of the demo is experienced through the lens of belief, not skepticism.
+  const prompt = `You are directing this demo like Steve Jobs directed product reveals — for a ${lang}-speaking audience and presenter. You know the fundamental rule that founders always get wrong: they put the wow moment at 80% of the demo, after the audience has already mentally left. The wow moment should land at 40% — early enough that the rest of the demo is experienced through the lens of belief, not skepticism.
 
 Every scene has exactly one job. Not two jobs, one. When a scene tries to do two things, it does neither. Transitions must feel like the product is pulling the viewer forward, not like the presenter is advancing slides.
 

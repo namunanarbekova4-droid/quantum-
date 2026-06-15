@@ -27,7 +27,19 @@ export async function POST(req: Request) {
     zh: "Chinese",
     kz: "Kazakh",
   };
-  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every insight, recommendation, and sentence must be written as a native ${lang} speaker — not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese startup ecosystem professional would naturally write.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve startup/tech terms (MVP, traction, CAC, LTV, MRR, seed, ARR, PMF, etc.) in English if the ${lang} startup community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard startup terms used natively.`;
 
   const userMessages = (messages || []).filter(
     (m: { role: string }) => m.role === "user"

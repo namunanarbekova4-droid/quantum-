@@ -44,11 +44,23 @@ export async function POST(req: Request) {
     zh: "Chinese",
     kz: "Kazakh",
   };
-  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every insight, recommendation, and sentence must be written as a native ${lang} speaker — not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese startup ecosystem professional would naturally write.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve startup/tech terms (MVP, traction, CAC, LTV, MRR, seed, ARR, PMF, etc.) in English if the ${lang} startup community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard startup terms used natively.`;
 
   const qa = QUESTIONS.map((q, i) => `Q${i + 1}: ${q}\nA: ${answers[i] || "(no answer)"}`).join("\n\n");
 
-  const prompt = `You are a former operator who built and sold two companies, and now a seed investor who has seen 3,000+ pitches. You know the difference between a founder who has talked to customers and one who has talked to themselves. You detect pattern mismatches instantly: target market vs pricing that don't align, solutions attacking the wrong part of a problem, market size claims that collapse under a single follow-up question, team backgrounds that have nothing to do with the customer they claim to serve.
+  const prompt = `You are a former operator who built and sold two companies, and now a seed investor who has seen 3,000+ pitches — advising ${lang}-speaking founders with full native-quality intelligence. You know the difference between a founder who has talked to customers and one who has talked to themselves. You detect pattern mismatches instantly: target market vs pricing that don't align, solutions attacking the wrong part of a problem, market size claims that collapse under a single follow-up question, team backgrounds that have nothing to do with the customer they claim to serve.
 
 Analyze this founder's startup interview with the same rigor you'd apply before writing a check.
 

@@ -37,6 +37,19 @@ export async function POST(req: Request) {
   }
 
   const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every insight, coaching note, and sentence must be written as a native ${lang} speaker — not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese pitch coaching professional would naturally write.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve startup/pitch terms (MVP, traction, CAC, LTV, MRR, seed, ARR, PMF, etc.) in English if the ${lang} startup community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard startup terms used natively.`;
+
   const isVideo = mode === "video";
 
   const prompt = `You are the most brutally honest pitch coach in Silicon Valley. You have watched 10,000 pitches. You have seen founders lose millions of dollars because nobody told them the truth. You will NOT do that to this founder.
@@ -75,7 +88,7 @@ ${transcript}
 
 ${isVideo ? "Since this was recorded on video, analyze body language, eye contact, camera presence, gesture quality, and nervous signals." : "Audio-only: analyze voice confidence, energy, delivery rhythm, emotional conviction, and filler word patterns."}
 
-IMPORTANT: Respond entirely in ${lang}. All text fields must be in ${lang}.
+${langInstruction}
 
 Return ONLY valid JSON with this exact structure (no markdown, no code fences):
 {

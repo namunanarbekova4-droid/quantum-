@@ -55,7 +55,19 @@ export async function POST(req: Request) {
     };
 
     const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh" };
-    const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+    const lang = LANG_MAP[locale] ?? "English";
+    const isZh = locale === "zh";
+    const isKk = locale === "kz";
+
+    const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Adopt the cultural communication register of a native ${lang} speaker in this adversarial role — the personality, tone, and bluntness must feel authentic to how a ${lang}-speaking professional in this role would actually speak.
+${isZh ? 'Use Simplified Chinese (简体中文). Maintain the persona\'s character but express it as a Chinese professional naturally would.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve startup/finance/tech terms (CAC, LTV, burn rate, PMF, TAM, etc.) in English if the ${lang} business community naturally uses them in their speech.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively.`;
 
     const p = PERSONALITIES[personality] ?? PERSONALITIES["brutal-strategist"];
 

@@ -41,6 +41,29 @@ export async function POST(req: Request) {
   if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
 
   const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const culturalEmailNorms = locale === "ru"
+    ? "Cultural email norms for Russian recipients: use a more formal opening, lead with a direct value proposition, avoid overly casual language — Russian business culture respects directness and substance over charm."
+    : locale === "es"
+    ? "Cultural email norms for Spanish recipients: use a warmer, relationship-first opening, build rapport before the ask, a personal touch is not weakness — it is expected."
+    : locale === "zh"
+    ? "Cultural email norms for Chinese recipients: be formal and respectful, acknowledge hierarchy if applicable, be clear and structured, avoid ambiguity, use polished professional tone throughout."
+    : locale === "kk"
+    ? "Cultural email norms for Kazakh recipients: warm and relationship-building tone, reference shared context or community when possible, respect and courtesy are paramount before the business ask."
+    : "";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every sentence must read as if written by a native ${lang}-speaking founder, not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese business professional would naturally write.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+${culturalEmailNorms}
+Preserve startup/tech terms (MVP, SaaS, API, demo, CAC, LTV, etc.) in English if the ${lang} business community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively.`;
 
   if (regenerateOne && emailType) {
     // Single email regeneration
@@ -64,7 +87,9 @@ RULES:
 - The first sentence must make them want to read the second
 - Subject lines must create intrigue without sounding like spam
 
-IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON:
+${langInstruction}
+
+Return ONLY valid JSON:
 {
   "number": 1,
   "type": "${emailType}",
@@ -128,7 +153,9 @@ Email types (in this exact order):
 9. The Follow-up Version
 10. The Last Attempt
 
-IMPORTANT: Respond entirely in ${lang}. Return ONLY valid JSON (no markdown, no code fences):
+${langInstruction}
+
+Return ONLY valid JSON (no markdown, no code fences):
 
 {
   "emails": [

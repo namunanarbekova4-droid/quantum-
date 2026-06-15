@@ -38,11 +38,34 @@ export async function POST(req: Request) {
     zh: "Chinese",
     kz: "Kazakh",
   };
-  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const culturalStoryNorms = locale === "ru"
+    ? "Russian storytelling context: Russian founders often frame struggle and adversity with stoic resolve — lean into this, it is authentic and compelling. Avoid forcing an overly American 'hero's journey' arc."
+    : locale === "es"
+    ? "Spanish storytelling context: Spanish and Latin American founders often weave family, community, and passion into their narrative — these are strengths, not distractions. Let the warmth and personal stakes come through naturally."
+    : locale === "zh"
+    ? "Chinese storytelling context: Chinese founders often connect personal story to collective impact and national/societal progress — this framing resonates deeply with Chinese audiences. Structured, purposeful narrative is respected."
+    : locale === "kk"
+    ? "Kazakh storytelling context: Kazakh founders may draw on community ties, heritage, and the responsibility to build something meaningful for their region — honor this context, it is a source of authentic motivation."
+    : "";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every sentence must read as if written by a native ${lang}-speaking founder, not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese founder would naturally tell their story.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+${culturalStoryNorms}
+Preserve startup/tech terms (MVP, seed, pitch, traction, etc.) in English if the ${lang} startup community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively.`;
 
   const qa = QUESTIONS.map((q, i) => `Q: ${q}\nA: ${answers[i] || "(no answer)"}`).join("\n\n");
 
-  const prompt = `You are extracting the real story beneath the startup narrative. Founders often tell the sanitized version — the version that sounds good, not the version that's true. Your job is to find the specific moment, the real stakes, the actual reason only THIS person would be doing this.
+  const prompt = `You are extracting the real story beneath the startup narrative — writing for a ${lang}-speaking founder and their native audience. Founders often tell the sanitized version — the version that sounds good, not the version that's true. Your job is to find the specific moment, the real stakes, the actual reason only THIS person would be doing this.
 
 The best founder stories have three things: a specific moment of pain (not "I noticed a problem" but "I was sitting in a hospital waiting room at 2am trying to explain a form I didn't understand"), a decision point with real consequences (what they gave up, what they risked, what they couldn't go back from), and a reason this founder and not someone else (what in their background, their obsession, their failure made this problem theirs to solve).
 

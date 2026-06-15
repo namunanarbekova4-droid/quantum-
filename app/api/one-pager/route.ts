@@ -47,7 +47,19 @@ export async function POST(req: Request) {
     zh: "Chinese",
     kz: "Kazakh",
   };
-  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every sentence must be written as a native ${lang} speaker would naturally write investor materials.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese startup would present to investors.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve financial/startup terms (ARR, MRR, CAC, LTV, seed, Series A, PMF, etc.) in English if the ${lang} investment community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively.`;
 
   const prompt = `An investor one-pager has one job: get a meeting. It fails when it tries to explain everything. The investor does not need to understand the product after reading — they need to want to ask questions.
 

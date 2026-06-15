@@ -96,6 +96,19 @@ export async function POST(req: Request) {
   }
 
   const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every insight, recommendation, and sentence must be written as a native ${lang} speaker — not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese startup ecosystem professional would naturally write.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve startup/tech terms (MVP, traction, CAC, LTV, MRR, seed, ARR, PMF, etc.) in English if the ${lang} startup community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard startup terms used natively.`;
+
   const ctx = `Startup: ${startupName}
 What: ${answers[0] || "-"}
 Problem: ${answers[1] || "-"}
@@ -128,7 +141,7 @@ Title rules: every title must be a conviction statement, not a label. "We've alr
 
 key_stat: only include where it creates maximum impact. A weak stat is worse than no stat. If you can't find a number that creates conviction, leave it null.
 
-Create 12 slides for this startup. Respond in ${lang}.
+Create 12 slides for this startup.${langInstruction}
 ${ctx}
 Slide types in order: cover,problem,personal_story,solution,market,product,traction,business_model,competition,team,financials,ask.
 Rules: speaker_notes max 1 sentence, main_content max 2 sentences, key_stat only where it creates impact (else null).
@@ -146,11 +159,11 @@ three_minute_script: must follow this exact arc — (1) pain: a specific scene o
 
 investor_questions: 3 questions an investor will absolutely ask, with answers that are sharp and specific — not hedging.
 
-Respond in ${lang}.
 ${ctx}
+${langInstruction}
 Return JSON: {"three_minute_script":"","elevator_pitch":"","opening_hook":"","closing_statement":"","investor_questions":[{"question":"","answer":""}]}`;
 
-  const deckIntelPrompt = `You are a VC analyst who has reviewed thousands of decks and knows exactly what makes investors say yes and no. You are not summarizing — you are diagnosing. Respond in ${lang}.
+  const deckIntelPrompt = `You are a VC analyst who has reviewed thousands of decks and knows exactly what makes investors say yes and no. You are not summarizing — you are diagnosing.
 ${ctx}
 
 Be specific about what will make investors doubt this deck. Not categories of doubt — actual objections based on what this founder actually said. The investor_preview thoughts must be raw inner monologue, unfiltered — the real thing investors think but don't say out loud. "Wait, how big is this really if their first customer is an SMB?" not "Investor considers the market opportunity." red_flags must name the specific contradiction or gap in this deck, not a generic weakness.
@@ -185,7 +198,9 @@ Analyze this startup pitch and return JSON:
     { "after_slide": 9, "thought": "Raw unfiltered investor thought — are they in or out and why" }
   ]
 }
-Keep red_flags to max 4 items. investor_preview exactly 3 items (slides 3, 6, 9).`;
+Keep red_flags to max 4 items. investor_preview exactly 3 items (slides 3, 6, 9).
+${ctx}
+${langInstruction}`;
 
   try {
     const [slidesData, scriptsData, intelData] = await Promise.all([
