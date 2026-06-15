@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/lib/i18n";
+import { getSpeechLocale, getFillerWords, getWeakWords, getStrongWords, SupportedLanguage } from "@/lib/i18n/language-context";
 import {
   Mic, MicOff, StopCircle, RotateCcw, Copy, Check,
   AlertTriangle, Flame, Star, Zap, TrendingUp, Award,
@@ -110,13 +111,25 @@ declare global {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-const FILLER_WORDS = ["um", "uh", "like", "so", "you know", "basically", "kind of", "sort of"];
-const HEDGE_WORDS = ["maybe", "i think", "probably", "hopefully", "kind of", "sort of", "basically"];
+// Legacy English-only filler list kept for FillerCounts type compatibility
+const FILLER_WORDS_EN = ["um", "uh", "like", "so", "you know", "basically", "kind of", "sort of"];
 
 function countFillers(text: string): FillerCounts {
   const lower = text.toLowerCase();
   const c = (w: string) => (lower.match(new RegExp(`\\b${w.replace(" ", "\\s+")}\\b`, "gi")) ?? []).length;
   return { um: c("um"), uh: c("uh"), like: c("like"), so: c("so"), you_know: c("you know") };
+}
+
+function countFillersLocale(text: string, locale: string): Record<string, number> {
+  const lang = locale as SupportedLanguage;
+  const fillers = getFillerWords(lang);
+  const lower = text.toLowerCase();
+  const counts: Record<string, number> = {};
+  for (const f of fillers) {
+    const matches = lower.match(new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')) ?? [];
+    counts[f] = matches.length;
+  }
+  return counts;
 }
 
 function totalFillers(f: FillerCounts) {
@@ -147,40 +160,144 @@ function gradeColor(g: string) {
   return "text-red-400";
 }
 
-function highlightFillers(text: string): React.ReactNode[] {
-  const STRONG = ["revenue", "growth", "market", "customer", "million", "billion", "traction", "raise", "team", "solution", "problem", "retention", "users"];
+function highlightFillers(text: string, locale: string = 'en'): React.ReactNode[] {
+  const lang = locale as SupportedLanguage;
+  const fillers = getFillerWords(lang);
+  const weakWords = getWeakWords(lang);
+  const strongWords = getStrongWords(lang);
+
+  // For CJK languages (Chinese), do character-level detection instead of word-boundary regex
+  if (lang === 'zh') {
+    const nodes: React.ReactNode[] = [];
+    let remaining = text;
+    let i = 0;
+    while (remaining.length > 0) {
+      let matched = false;
+      for (const w of fillers) {
+        if (remaining.startsWith(w)) {
+          nodes.push(<span key={i++} className="text-red-400 font-semibold">{w}</span>);
+          remaining = remaining.slice(w.length);
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        for (const w of weakWords) {
+          if (remaining.startsWith(w)) {
+            nodes.push(<span key={i++} className="text-yellow-400">{w}</span>);
+            remaining = remaining.slice(w.length);
+            matched = true;
+            break;
+          }
+        }
+      }
+      if (!matched) {
+        for (const w of strongWords) {
+          if (remaining.startsWith(w)) {
+            nodes.push(<span key={i++} className="text-[#C9A84C] font-semibold">{w}</span>);
+            remaining = remaining.slice(w.length);
+            matched = true;
+            break;
+          }
+        }
+      }
+      if (!matched) {
+        nodes.push(<span key={i++}>{remaining[0]}</span>);
+        remaining = remaining.slice(1);
+      }
+    }
+    return nodes;
+  }
+
+  // Word-boundary detection for Latin/Cyrillic scripts
   const tokens = text.split(/(\s+)/);
   return tokens.map((token, i) => {
-    const clean = token.toLowerCase().replace(/[^a-z\s]/g, "");
-    if (FILLER_WORDS.some(f => clean === f || clean === f.replace(" ", ""))) {
+    const clean = token.toLowerCase().trim();
+    if (fillers.some(f => clean === f || clean.startsWith(f + ',') || clean.startsWith(f + '.'))) {
       return <span key={i} className="text-red-400 font-semibold">{token}</span>;
     }
-    if (HEDGE_WORDS.some(h => clean === h || clean === h.replace(" ", ""))) {
-      return <span key={i} className="text-yellow-300 font-semibold">{token}</span>;
+    if (weakWords.some(w => clean.includes(w))) {
+      return <span key={i} className="text-yellow-400">{token}</span>;
     }
-    if (STRONG.some(s => clean.includes(s))) {
+    if (strongWords.some(s => clean.includes(s.toLowerCase()))) {
       return <span key={i} className="text-[#C9A84C] font-semibold">{token}</span>;
     }
     return <span key={i}>{token}</span>;
   });
 }
 
-// Structure detector keyword map
-const STRUCTURE_SECTIONS: Array<{ key: string; label: string; keywords: string[] }> = [
-  { key: "problem", label: "Problem", keywords: ["problem", "pain", "struggle", "challenge", "frustrated", "broken"] },
-  { key: "solution", label: "Solution", keywords: ["solution", "we built", "our product", "we solve", "helps"] },
-  { key: "market", label: "Market", keywords: ["market", "billion", "million", "customers", "opportunity", "industry"] },
-  { key: "whynow", label: "Why Now", keywords: ["now", "timing", "trend", "ai", "regulation", "shift", "moment"] },
-  { key: "traction", label: "Traction", keywords: ["users", "revenue", "growth", "mrr", "customers", "retention"] },
-  { key: "model", label: "Model", keywords: ["pricing", "subscription", "charge", "revenue model", "saas", "per month"] },
-  { key: "ask", label: "Ask", keywords: ["raise", "looking for", "seeking", "investment", "round", "funding"] },
+// Structure detector keyword map — multilingual
+const STRUCTURE_KEYWORDS_BY_LANG: Record<string, Record<string, string[]>> = {
+  en: {
+    problem: ['problem', 'pain', 'struggle', 'challenge', 'frustrated', 'broken'],
+    solution: ['solution', 'we built', 'our product', 'we solve', 'helps'],
+    market: ['market', 'billion', 'million', 'customers', 'opportunity'],
+    whyNow: ['now', 'timing', 'trend', 'shift', 'moment', 'regulation'],
+    traction: ['users', 'revenue', 'growth', 'mrr', 'retention'],
+    businessModel: ['pricing', 'subscription', 'charge', 'revenue model', 'saas'],
+    ask: ['raise', 'looking for', 'seeking', 'investment', 'round', 'funding'],
+  },
+  ru: {
+    problem: ['проблема', 'боль', 'сложность', 'трудность', 'не работает', 'сломано'],
+    solution: ['решение', 'мы создали', 'наш продукт', 'мы решаем', 'помогает'],
+    market: ['рынок', 'миллиард', 'миллион', 'клиенты', 'возможность'],
+    whyNow: ['сейчас', 'момент', 'тренд', 'регуляция', 'сдвиг'],
+    traction: ['пользователи', 'выручка', 'рост', 'retention', 'MRR'],
+    businessModel: ['подписка', 'цена', 'монетизация', 'модель'],
+    ask: ['привлекаем', 'ищем', 'инвестиции', 'раунд', 'финансирование'],
+  },
+  es: {
+    problem: ['problema', 'dolor', 'dificultad', 'frustración', 'roto'],
+    solution: ['solución', 'construimos', 'nuestro producto', 'resolvemos', 'ayuda'],
+    market: ['mercado', 'billones', 'millones', 'clientes', 'oportunidad'],
+    whyNow: ['ahora', 'momento', 'tendencia', 'regulación', 'cambio'],
+    traction: ['usuarios', 'ingresos', 'crecimiento', 'mrr', 'retención'],
+    businessModel: ['suscripción', 'precio', 'monetización', 'modelo'],
+    ask: ['buscamos', 'inversión', 'ronda', 'financiamiento', 'captar'],
+  },
+  zh: {
+    problem: ['问题', '痛点', '困难', '挑战', '不方便'],
+    solution: ['解决方案', '我们开发', '我们的产品', '帮助', '解决'],
+    market: ['市场', '亿', '万', '客户', '机会'],
+    whyNow: ['现在', '时机', '趋势', '政策', '转变'],
+    traction: ['用户', '收入', '增长', 'MRR', '留存'],
+    businessModel: ['订阅', '定价', '商业模式', '变现'],
+    ask: ['融资', '寻找', '投资', '轮', '资金'],
+  },
+  kk: {
+    problem: ['мәселе', 'проблема', 'қиындық', 'ауыртпалық'],
+    solution: ['шешім', 'біз жасадық', 'біздің өнім', 'шешеді', 'көмектеседі'],
+    market: ['нарық', 'миллиард', 'миллион', 'тұтынушылар', 'мүмкіндік'],
+    whyNow: ['қазір', 'уақыт', 'тренд', 'өзгеріс'],
+    traction: ['қолданушылар', 'табыс', 'өсім', 'retention'],
+    businessModel: ['жазылым', 'баға', 'монетизация', 'модель'],
+    ask: ['инвестиция', 'іздейміз', 'қаражат', 'раунд'],
+  },
+};
+
+const STRUCTURE_SECTION_LABELS: Array<{ key: string; label: string }> = [
+  { key: "problem", label: "Problem" },
+  { key: "solution", label: "Solution" },
+  { key: "market", label: "Market" },
+  { key: "whyNow", label: "Why Now" },
+  { key: "traction", label: "Traction" },
+  { key: "businessModel", label: "Model" },
+  { key: "ask", label: "Ask" },
 ];
 
-function detectStructure(text: string): Record<string, boolean> {
+// Keep STRUCTURE_SECTIONS for backward compatibility with any existing usage
+const STRUCTURE_SECTIONS = STRUCTURE_SECTION_LABELS.map(s => ({
+  ...s,
+  keywords: STRUCTURE_KEYWORDS_BY_LANG.en[s.key] ?? [],
+}));
+
+function detectStructure(text: string, locale: string = 'en'): Record<string, boolean> {
   const lower = text.toLowerCase();
   const out: Record<string, boolean> = {};
-  for (const s of STRUCTURE_SECTIONS) {
-    out[s.key] = s.keywords.some(k => lower.includes(k));
+  const keywordsMap = STRUCTURE_KEYWORDS_BY_LANG[locale] ?? STRUCTURE_KEYWORDS_BY_LANG.en;
+  for (const s of STRUCTURE_SECTION_LABELS) {
+    const keywords = keywordsMap[s.key] ?? [];
+    out[s.key] = keywords.some(k => lower.includes(k));
   }
   return out;
 }
@@ -594,11 +711,12 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
 
 interface RecordingProps {
   setup: SetupData;
+  locale: string; // language code from useLanguage()
   onDone: (transcript: string, duration: number, fillers: FillerCounts, wpm: number) => void;
   onBack: () => void;
 }
 
-function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
+function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
   const [transcript, setTranscript] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -707,7 +825,7 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
         const rec = new SRClass();
         rec.continuous = true;
         rec.interimResults = true;
-        rec.lang = "en-US";
+        rec.lang = getSpeechLocale(locale as SupportedLanguage);
         (rec as ISpeechRecognition & { maxAlternatives?: number }).maxAlternatives = 1;
 
         rec.onresult = (e: ISpeechRecognitionEvent) => {
@@ -777,7 +895,7 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
           const rec = new SRClass();
           rec.continuous = true;
           rec.interimResults = true;
-          rec.lang = "en-US";
+          rec.lang = getSpeechLocale(locale as SupportedLanguage);
           (rec as ISpeechRecognition & { maxAlternatives?: number }).maxAlternatives = 1;
           rec.onresult = (e: ISpeechRecognitionEvent) => {
             let interim = "";
@@ -830,7 +948,7 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
 
   const confidence = calcConfidence(totalF, wpm);
   const conf = confidenceLabel(confidence);
-  const structure = detectStructure(activeTranscript);
+  const structure = detectStructure(activeTranscript, locale);
 
   if (!browserOk && !manualMode) {
     return (
@@ -958,7 +1076,7 @@ function RecordingScreen({ setup, onDone, onBack }: RecordingProps) {
               </div>
               <div className="text-sm leading-relaxed">
                 {transcript
-                  ? highlightFillers(transcript)
+                  ? highlightFillers(transcript, locale)
                   : <span className="text-white/25 italic">Start speaking — your words appear here...</span>}
               </div>
             </div>
@@ -1662,6 +1780,7 @@ export default function PitchCoachLivePage() {
             )}
             <RecordingScreen
               setup={setup}
+              locale={locale}
               onDone={handleRecordingDone}
               onBack={() => setStep("setup")}
             />
