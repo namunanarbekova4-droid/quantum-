@@ -69,7 +69,7 @@ export default function ManifestoPage() {
       const data = await res.json();
       setResult(data);
     } catch {
-      setError("Manifesto generation failed. Check your connection and try again.");
+      setError("Didn't generate cleanly. Try again — these things happen.");
     } finally {
       setLoading(false);
     }

@@ -110,7 +110,7 @@ export default function DemoScriptPage() {
       const data = await res.json();
       setScript(data.script);
     } catch {
-      setError("Script generation failed. Check your connection and try again.");
+      setError("Didn't generate cleanly. Try again — these things happen.");
     } finally {
       setLoading(false);
     }
@@ -188,7 +188,8 @@ export default function DemoScriptPage() {
             {!script && !loading && (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-96 flex flex-col items-center justify-center bg-[#0F0A1F] border border-[#1A1040] rounded-2xl text-center p-8">
                 <Play className="w-12 h-12 text-[#1A1040] mb-4" />
-                <p className="text-white/30 text-sm">{fds.scriptAppearsHere}</p>
+                <p className="text-white font-semibold text-base mb-2">The best demos show, don&apos;t tell.</p>
+                <p className="text-white/40 text-sm">Let&apos;s build yours.</p>
                 <div className="mt-4 space-y-1.5 text-left">
                   <p className="text-[#8B7CF8]/50 text-xs"><span className="text-[#7C3AED]">[00:00 - 00:30]</span> Scene timing</p>
                   <p className="text-[#8B7CF8]/50 text-xs"><span className="text-green-400">"Exact words to say"</span></p>

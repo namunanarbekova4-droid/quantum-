@@ -78,7 +78,7 @@ export default function FounderStoryPage() {
       const data = await res.json();
       setResult(data);
     } catch {
-      setError("Story generation failed. Check your connection and try again.");
+      setError("Didn't generate cleanly. Try again — these things happen.");
     } finally {
       setLoading(false);
     }
@@ -132,7 +132,7 @@ export default function FounderStoryPage() {
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) handleNext(); }}
-              placeholder="Be specific. Real details make stories stick..."
+              placeholder="Real details make stories stick. The more specific, the better."
               rows={6}
               autoFocus
               className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED]/50 rounded-xl p-5 text-white placeholder-white/30 resize-none outline-none transition-colors text-base"

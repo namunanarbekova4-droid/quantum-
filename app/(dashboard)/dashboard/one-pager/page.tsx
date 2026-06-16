@@ -101,7 +101,7 @@ export default function OnePagerPage() {
       const data = await res.json();
       setResult(data.onePager);
     } catch {
-      setError("One-pager generation failed. Check your connection and try again.");
+      setError("Didn't generate cleanly. Try again — these things happen.");
     } finally {
       setLoading(false);
     }
@@ -212,7 +212,7 @@ export default function OnePagerPage() {
                 className="h-96 flex flex-col items-center justify-center bg-[#0F0A1F] border border-[#1A1040] rounded-2xl text-center p-8"
               >
                 <FileText className="w-12 h-12 text-[#1A1040] mb-4" />
-                <p className="text-white/30 text-sm">Your one-pager will appear here</p>
+                <p className="text-white font-semibold text-base mb-2">One page.</p><p className="text-white/40 text-sm">One clear reason to keep reading.</p>
               </motion.div>
             )}
 

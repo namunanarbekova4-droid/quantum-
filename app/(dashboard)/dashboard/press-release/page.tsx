@@ -96,7 +96,7 @@ export default function PressReleasePage() {
       setResult(data);
       setSelectedHeadline(0);
     } catch {
-      setError("Press release generation failed. Check your connection and try again.");
+      setError("Didn't generate cleanly. Try again — these things happen.");
     } finally {
       setLoading(false);
     }
@@ -169,7 +169,7 @@ export default function PressReleasePage() {
             {!result && !loading && (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-96 flex flex-col items-center justify-center bg-[#0F0A1F] border border-[#1A1040] rounded-2xl text-center p-8">
                 <Newspaper className="w-12 h-12 text-[#1A1040] mb-4" />
-                <p className="text-white/30 text-sm">Your press release will appear here</p>
+                <p className="text-white/40 text-sm">Write the story the way you&apos;d want a journalist to tell it.</p>
               </motion.div>
             )}
 

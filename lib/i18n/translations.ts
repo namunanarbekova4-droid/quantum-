@@ -935,7 +935,7 @@ export const en = {
   features: {
     compass: {
       title: "Quantum Compass",
-      subtitle: "Emotional and strategic support for founders who feel lost.",
+      subtitle: "You don't need to sound smart here. Just tell me what's actually happening.",
       situationPrompt: "Tell me what's happening...",
       situations: [
         "Is my idea stupid?",
@@ -948,13 +948,13 @@ export const en = {
       thinking: "Quantum is thinking...",
       questionOf: "Question",
       of: "of",
-      answerPlaceholder: "Share your thoughts...",
+      answerPlaceholder: "Tell me what's actually going on. No polish needed.",
       next: "Next",
       finish: "Get Response",
     },
     ideaValidator: {
       title: "Idea Validator",
-      subtitle: "8 questions to validate your startup idea with brutal honesty.",
+      subtitle: "Be honest. Weak ideas become strong when founders face reality early.",
       questionOf: "Question",
       of: "of",
       nextQuestion: "Next Question",
@@ -1096,7 +1096,7 @@ export const en = {
     },
     onePager: {
       title: "One Pager Generator",
-      subtitle: "Professional investor one-pager in your voice.",
+      subtitle: "One page. One clear reason to keep reading.",
       startupName: "Startup Name",
       tagline: "Tagline",
       problem: "Problem",
@@ -1115,7 +1115,7 @@ export const en = {
     },
     investorEmail: {
       title: "Investor Email Writer",
-      subtitle: "Personalized investor outreach in 3 tones.",
+      subtitle: "Most investor emails get ignored. The ones that work do one thing: earn a reply, not a deal.",
       investorName: "Investor Name",
       fund: "Fund Name",
       whyInvestor: "Why this investor?",
@@ -1134,7 +1134,7 @@ export const en = {
     },
     demoScript: {
       title: "Demo Script Writer",
-      subtitle: "Full script with exact words and click actions.",
+      subtitle: "The best demos show, don't tell. Let's build yours.",
       productDescription: "Product Description",
       demoLength: "Demo Length",
       mainFeatures: "Main Features to Show",
@@ -1163,7 +1163,7 @@ export const en = {
     },
     pressRelease: {
       title: "Press Release AI",
-      subtitle: "Professional press releases that get published.",
+      subtitle: "Write the story the way you'd want a journalist to tell it.",
       announcement: "Announcement",
       significance: "Why it's significant",
       quote: "Your quote (raw thoughts)",
@@ -1179,7 +1179,7 @@ export const en = {
     },
     manifesto: {
       title: "Startup Manifesto Builder",
-      subtitle: "Define what your company stands for.",
+      subtitle: "What do you actually believe? Not what sounds good — what you'd still believe if nobody agreed.",
       questionOf: "Question",
       of: "of",
       nextQuestion: "Next Question",
@@ -1205,7 +1205,7 @@ export const en = {
     },
     founderStory: {
       title: "Founder Story Builder",
-      subtitle: "Your story in 5 formats, in your exact voice.",
+      subtitle: "The best founders learn to tell their story. Yours is already worth telling.",
       questionOf: "Question",
       of: "of",
       nextQuestion: "Next Question",
@@ -1271,7 +1271,7 @@ export const en = {
     },
     pricingIntelligence: {
       title: "Pricing Intelligence",
-      subtitle: "Find the right price for your product.",
+      subtitle: "Price is the clearest signal of how much you believe in your own value.",
       product: "Product / Service",
       customer: "Target Customer",
       competitors: "Top 3 competitors and pricing",
@@ -1349,7 +1349,7 @@ export const en = {
     },
     coldEmails: {
       title: "Your First 10 Cold Emails",
-      subtitle: "Tell us about your startup. We write emails that actually get replies.",
+      subtitle: "Nobody gets this perfect on the first try. Let's write emails people actually answer.",
       startupName: "Your startup name",
       whatBuilt: "What you built",
       whoEmailing: "Who are you emailing?",
@@ -1392,7 +1392,7 @@ export const en = {
     },
     investorQA: {
       title: "Investor Q&A Trainer",
-      subtitle: "Practice the questions that make founders sweat. Master them before you walk in the room.",
+      subtitle: "Investors will ask hard questions. Know your answers before the room does.",
       startupName: "Startup Name",
       startupDoes: "What does your startup do?",
       stage: "Stage",
@@ -1490,7 +1490,7 @@ export const en = {
     },
     pitchCoachLive: {
       title: "Pitch Coach Live",
-      subtitle: "Speak your pitch out loud. Get brutal honest coaching in real time.",
+      subtitle: "Don't try to sound impressive. Just explain what you're building — clearly and honestly.",
       startupName: "Startup Name",
       startupDescription: "What does your startup do?",
       audienceType: "Who are you pitching to?",
@@ -1556,7 +1556,7 @@ export const en = {
     },
     pitchDeck: {
       title: "Pitch Deck Creator",
-      subtitle: "Answer 10 questions. Get a complete 12-slide deck in your exact voice.",
+      subtitle: "Every great deck started as a mess. Let's build yours one slide at a time.",
       getStarted: "Get Started →",
       questionOf: "Question",
       of: "of",

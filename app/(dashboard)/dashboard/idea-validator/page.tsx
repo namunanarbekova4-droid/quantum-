@@ -86,7 +86,7 @@ export default function IdeaValidatorPage() {
       const data = await res.json();
       setResult(data);
     } catch {
-      setError("Analysis failed. Check your connection and try again.");
+      setError("Analysis hit a snag. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -143,7 +143,7 @@ export default function IdeaValidatorPage() {
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && e.metaKey) handleNext(); }}
-              placeholder="Answer honestly — the AI will see through vague answers..."
+              placeholder="Describe your idea honestly — including the parts you're unsure about."
               rows={6}
               autoFocus
               className="w-full bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED]/50 rounded-xl p-5 text-white placeholder-white/30 resize-none outline-none transition-colors text-base"

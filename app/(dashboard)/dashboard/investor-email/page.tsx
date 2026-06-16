@@ -104,7 +104,7 @@ export default function InvestorEmailPage() {
       const data = await res.json();
       setResult(data);
     } catch {
-      setError("Email generation failed. Check your connection and try again.");
+      setError("Didn't generate cleanly. Try again — these things happen.");
     } finally {
       setLoading(false);
     }
@@ -158,7 +158,8 @@ export default function InvestorEmailPage() {
             {!result && !loading && (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-96 flex flex-col items-center justify-center bg-[#0F0A1F] border border-[#1A1040] rounded-2xl text-center p-8">
                 <Mail className="w-12 h-12 text-[#1A1040] mb-4" />
-                <p className="text-white/30 text-sm">3 email versions will appear here</p>
+                <p className="text-white font-semibold text-base mb-2">Most investor emails get ignored.</p>
+                <p className="text-white/40 text-sm">The ones that work earn a reply, not a deal. Let&apos;s write one of those.</p>
               </motion.div>
             )}
 

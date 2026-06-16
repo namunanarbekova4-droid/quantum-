@@ -541,7 +541,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
           <textarea
             value={form.description}
             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-            placeholder="e.g. AI tool that generates 10 cold emails in different styles based on your startup description..."
+            placeholder="What you do, who it's for, and why they should care."
             rows={3}
             className="w-full bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-sm rounded-lg px-4 py-3 resize-none outline-none transition-colors placeholder:text-[#444]"
           />
@@ -789,7 +789,7 @@ export default function ColdEmailsPage() {
       setStep("results");
     } catch (err) {
       setStep("setup");
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "That one didn't land. Give it a moment and try again.");
     }
   };
 

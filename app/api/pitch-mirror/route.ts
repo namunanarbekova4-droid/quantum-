@@ -4,8 +4,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { classifyError } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 
 const LANG_MAP: Record<string, string> = {
   en: "English",
@@ -37,13 +36,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "transcript required" }, { status: 400 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
-  if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
-
   const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every insight, coaching note, and sentence must be written as a native ${lang} speaker — not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese pitch coaching professional would naturally write.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve startup/pitch terms (MVP, traction, CAC, LTV, MRR, seed, ARR, PMF, etc.) in English if the ${lang} startup community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard startup terms used natively.`;
+
   const isVideo = mode === "video";
 
   const prompt = `You are the most brutally honest pitch coach in Silicon Valley. You have watched 10,000 pitches. You have seen founders lose millions of dollars because nobody told them the truth. You will NOT do that to this founder.
+
+FEEDBACK QUALITY RULES:
+- Every critical_problem.why must start with "Investors will..." or "This loses the room because..."
+- bottom_line must be a direct mentor sentence — honest, not harsh, not fake-positive
+- If overall_score < 55: open with "Not pitch-ready yet. Here's what needs to change."
+- If score 55-74: open with "Getting closer. These specific things are holding it back."
+- If score >= 75: open with "You're onto something. One or two changes make this fundable."
+- before_next_pitch items must explain WHY each drill matters, not just what to do
 
 RULES:
 - NEVER say "Great job", "Well done", "Nice start", or any softening phrase
@@ -79,7 +96,7 @@ ${transcript}
 
 ${isVideo ? "Since this was recorded on video, analyze body language, eye contact, camera presence, gesture quality, and nervous signals." : "Audio-only: analyze voice confidence, energy, delivery rhythm, emotional conviction, and filler word patterns."}
 
-IMPORTANT: Respond entirely in ${lang}. All text fields must be in ${lang}.
+${langInstruction}
 
 Return ONLY valid JSON with this exact structure (no markdown, no code fences):
 {
@@ -142,18 +159,7 @@ Return ONLY valid JSON with this exact structure (no markdown, no code fences):
 }`;
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-    });
-
-    const result = await model.generateContent(prompt);
-    let raw = result.response.text().trim();
-    raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("No JSON in response");
-    const feedback = JSON.parse(match[0]);
+    const feedback = await generateJSON<Record<string, unknown>>(prompt);
 
     // Save session
     const saved = await prisma.pitchMirrorSession.create({
@@ -167,7 +173,7 @@ Return ONLY valid JSON with this exact structure (no markdown, no code fences):
         mode: mode ?? "audio",
         transcript: transcript ?? "",
         overallScore: Number(feedback.overall_score) || 0,
-        feedback,
+        feedback: feedback as object,
       },
     });
 

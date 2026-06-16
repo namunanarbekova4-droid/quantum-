@@ -491,7 +491,10 @@ function HistoryDrawer({ onLoad }: { onLoad: (deck: PitchDeckResult, name: strin
                 {loading ? (
                   <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-[#7C3AED]" /></div>
                 ) : decks.length === 0 ? (
-                  <p className="text-sm text-center py-8" style={{ color: "#555" }}>No saved decks yet</p>
+                  <div className="text-center py-8">
+                  <p className="text-white/60 text-sm font-semibold mb-1">Your story deserves a deck worth sharing.</p>
+                  <p className="text-[#555] text-xs">Generate your first deck — it gets better every time.</p>
+                </div>
                 ) : decks.map((d) => (
                   <button
                     key={d.id}
@@ -552,7 +555,7 @@ export default function PitchDeckPage() {
       setResult(data);
       setStep(3);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+      setError(e instanceof Error ? e.message : "That one didn't land. Give it a moment and try again.");
       setStep(1);
     }
   }, [locale]);

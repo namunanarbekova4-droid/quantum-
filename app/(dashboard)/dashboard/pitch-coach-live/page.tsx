@@ -357,7 +357,7 @@ function SetupScreen({ onStart }: { onStart: (d: SetupData) => void }) {
             <textarea
               value={form.startupDescription}
               onChange={e => setForm({ ...form, startupDescription: e.target.value })}
-              placeholder="Describe in 2-3 sentences"
+              placeholder="What you build, who it helps, and why it matters. 2-3 sentences."
               rows={3}
               className={`${inputCls} resize-none`}
             />
@@ -894,7 +894,7 @@ function AnalyzingScreen() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center max-w-sm">
         <div className="w-16 h-16 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin mx-auto mb-6" />
         <h2 className="text-2xl font-bold text-white mb-2">Analyzing Your Pitch</h2>
-        <p className="text-[#8B7CF8] text-sm mb-8">The harshest pitch coach in Silicon Valley is reviewing your pitch...</p>
+        <p className="text-[#8B7CF8] text-sm mb-8">Going through every line. This takes about 30 seconds.</p>
         <div className="space-y-2 text-left">
           {steps.map((s, i) => (
             <div key={i} className={`flex items-center gap-3 text-sm transition-all ${i < done ? "text-green-400" : "text-white/25"}`}>
@@ -927,12 +927,12 @@ function ResultsScreen({
   const score = analysis.overall_score;
 
   const bannerCfg = score > 80
-    ? { cls: "border-green-500/50 bg-green-500/10 text-green-300", msg: "Strong pitch. Almost investor-ready." }
+    ? { cls: "border-green-500/50 bg-green-500/10 text-green-300", msg: "You're onto something. This could get a meeting if you tighten the close." }
     : score >= 70
-    ? { cls: "border-blue-500/50 bg-blue-500/10 text-blue-300", msg: "Good foundation. Polish these details." }
+    ? { cls: "border-blue-500/50 bg-blue-500/10 text-blue-300", msg: "Solid foundation. A few sharp changes and this becomes fundable." }
     : score >= 55
-    ? { cls: "border-yellow-500/50 bg-yellow-500/10 text-yellow-300", msg: "Getting closer. Fix these issues first." }
-    : { cls: "border-red-500/50 bg-red-500/10 text-red-300", msg: "This pitch needs major work before any investor meetings." };
+    ? { cls: "border-yellow-500/50 bg-yellow-500/10 text-yellow-300", msg: "Not pitch-ready yet — but that's fixable. Here's exactly what to work on." }
+    : { cls: "border-red-500/50 bg-red-500/10 text-red-300", msg: "This needs real work. That's honest, and it's useful. Let's go through it." };
 
   async function loadHistory() {
     setHistoryLoading(true);
@@ -1183,7 +1183,10 @@ function ResultsScreen({
                   {historyLoading ? (
                     <div className="text-center py-8 text-[#8B7CF8] text-sm">Loading...</div>
                   ) : history.length === 0 ? (
-                    <p className="text-white/30 text-sm text-center py-4">No previous sessions yet.</p>
+                    <div className="text-center py-8">
+                    <p className="text-white font-semibold text-sm mb-1">Your next pitch starts here.</p>
+                    <p className="text-white/40 text-xs">The best founders rehearse more than people think. Each session makes the next one sharper.</p>
+                  </div>
                   ) : (
                     <>
                       {/* Chart */}
@@ -1292,7 +1295,7 @@ export default function PitchCoachLivePage() {
         if (res.status === 429 || errMsg.toLowerCase().includes("quota") || errMsg.toLowerCase().includes("unavailable")) {
           setApiError("AI analysis temporarily unavailable. Please try again in a few minutes.");
         } else {
-          setApiError("Analysis failed. Please try again.");
+          setApiError("Analysis hit a snag. Check your connection and try again.");
         }
         setStep("setup");
         return;
@@ -1323,7 +1326,7 @@ export default function PitchCoachLivePage() {
 
       setStep("results");
     } catch {
-      setApiError("Connection error. Please check your internet and try again.");
+      setApiError("Lost the connection. Try again when you're back online.");
       setStep("setup");
     }
   }, [setup, locale]);
