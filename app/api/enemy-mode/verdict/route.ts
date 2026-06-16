@@ -45,7 +45,19 @@ export async function POST(req: Request) {
     };
 
     const LANG_MAP: Record<string, string> = { en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh" };
-    const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+    const lang = LANG_MAP[locale] ?? "English";
+    const isZh = locale === "zh";
+    const isKk = locale === "kz";
+
+    const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every sentence of this verdict must be written as a native ${lang} speaker — not a translator.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese strategic advisor would deliver a final verdict.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve business/strategy terms (pivot, burn, TAM, PMF, etc.) in English if the ${lang} business community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively.`;
 
     const p = PERSONALITIES[personality] ?? PERSONALITIES["brutal-strategist"];
 
@@ -73,7 +85,9 @@ Based on the entire conversation, produce a final verdict as a JSON object with 
   "recommendationLabel": "Exactly one of: Strong Move | Proceed Carefully | Weak Strategy | High Risk | Not Ready Yet"
 }
 
-Respond ONLY with valid JSON. No markdown, no explanation, no code fences.${langInstruction}`;
+${langInstruction}
+
+Respond ONLY with valid JSON. No markdown, no explanation, no code fences.`;
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "");
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });

@@ -38,32 +38,46 @@ export async function POST(req: Request) {
     zh: "Chinese",
     kz: "Kazakh",
   };
-  const langInstruction = `\n\nIMPORTANT: You must respond entirely in ${LANG_MAP[locale] ?? "English"}. Never mix languages in your response.`;
+  const lang = LANG_MAP[locale] ?? "English";
+  const isZh = locale === "zh";
+  const isKk = locale === "kz";
+
+  const langInstruction = `
+
+LANGUAGE REQUIREMENT — ${lang}:
+Think in ${lang} from the first word. Do NOT compose in English and translate.
+Every sentence must be written as a native ${lang} speaker would naturally express these ideas.
+${isZh ? 'Use Simplified Chinese (简体中文). Write as a Chinese company founder would articulate values and mission.' : ''}
+${isKk ? 'Use standard Kazakh (Қазақ тілі). Quality must match English quality exactly — this is a critical market.' : ''}
+Preserve startup/tech terms (MVP, startup, culture, mission, etc.) in English if the ${lang} business community naturally uses them.
+Respond 100% in ${lang}. No English words unless they are standard terms used natively.`;
 
   const qa = QUESTIONS.map((q, i) => `Q: ${q}\nA: ${answers[i] || "(no answer)"}`).join("\n\n");
 
-  const prompt = `You are a master brand strategist who helps founders articulate their deepest purpose and principles.
+  const prompt = `You are writing a manifesto that will make some people deeply uncomfortable. That is the point. A manifesto that no one disagrees with is a press release. A real manifesto declares a specific enemy — a broken system, a wrong assumption, a bad norm that everyone has accepted — and explains why this company exists to end it.
+
+Generic mission statements are useless. "We empower people" means nothing. "We believe the healthcare system is designed for payers, not patients, and we are building for patients" means something. The difference is specificity about what's wrong and courage to say who you're not for.
 
 Here are the founder's answers to 6 deep questions:
 
 ${qa}
 
-Create a powerful company manifesto and brand foundations. Return ONLY a JSON object:
+Create the company manifesto and brand foundations. Return ONLY a JSON object:
 {
-  "manifesto": "500-800 words of flowing, inspiring prose. Not a list. A narrative that captures WHY this company exists and what it stands for. Should give chills to the right reader.",
+  "manifesto": "500-800 words of opinionated, flowing prose. Not a list. Declare the broken thing. Name the enemy (a system, an assumption, a norm). Explain why this company exists now and not five years ago. Make it clear what this company will never do even if it costs money. The right person reading this should feel seen. The wrong person should feel excluded. That tension is the sign it's working.",
   "coreValues": [
-    {"name": "Value Name", "explanation": "2-3 sentences on what this means in practice"},
-    {"name": "Value Name", "explanation": "2-3 sentences on what this means in practice"},
-    {"name": "Value Name", "explanation": "2-3 sentences on what this means in practice"},
-    {"name": "Value Name", "explanation": "2-3 sentences on what this means in practice"},
-    {"name": "Value Name", "explanation": "2-3 sentences on what this means in practice"}
+    {"name": "Behavioral value name — a verb or action", "explanation": "2-3 sentences describing what this looks like on a Tuesday, not on a poster. 'We ship on Thursdays, not when it's perfect' not 'We value excellence.' What does someone do differently because of this value?"},
+    {"name": "Behavioral value name", "explanation": "2-3 sentences of real behavior"},
+    {"name": "Behavioral value name", "explanation": "2-3 sentences of real behavior"},
+    {"name": "Behavioral value name", "explanation": "2-3 sentences of real behavior"},
+    {"name": "Behavioral value name", "explanation": "2-3 sentences of real behavior"}
   ],
-  "missionStatement": "One sentence. What you do, for whom, and to what end.",
-  "visionStatement": "One sentence. The world you're building toward.",
-  "culturePrinciples": ["short principle 1", "short principle 2", "short principle 3", "short principle 4", "short principle 5"]
+  "missionStatement": "One sentence. Must describe who you are NOT for as clearly as who you are for. Not a category — a specific trade-off.",
+  "visionStatement": "One sentence. The specific change in the world if this company fully succeeds — not 'a better world' but what specifically is different.",
+  "culturePrinciples": ["behavioral principle — what someone actually does", "behavioral principle", "behavioral principle", "behavioral principle", "behavioral principle"]
 }
 
-Make it specific to their answers. No generic startup platitudes. This should feel unmistakably like THEM.${langInstruction}`;
+Use their actual answers. The specificity in their words is the raw material. Do not sand it into generic startup language.${langInstruction}`;
 
   try {
     const result = await generateJSON<ManifestoResult>(prompt);

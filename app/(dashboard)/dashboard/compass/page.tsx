@@ -55,7 +55,7 @@ export default function CompassPage() {
         setStage("response");
       }
     } catch {
-      setError("Connection error. Check your internet and try again.");
+      setError("Lost the connection. Try again in a moment.");
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export default function CompassPage() {
   return (
     <div className="min-h-screen p-6 lg:p-8 max-w-4xl mx-auto">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
+      <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }} className="mb-10">
         <div className="flex items-center gap-3 mb-2">
           {stage !== "landing" && (
             <button onClick={reset} className="text-[#8B7CF8] hover:text-white transition-colors mr-1">
@@ -242,7 +242,7 @@ export default function CompassPage() {
         {loading && (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <LoadingSpinner />
-            <p className="text-center text-[#8B7CF8] text-sm">{fc.thinking}</p>
+            <p className="text-center text-[#8B7CF8] text-sm">Mapping your direction…</p>
           </motion.div>
         )}
 

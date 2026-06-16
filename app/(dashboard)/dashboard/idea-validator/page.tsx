@@ -167,7 +167,7 @@ export default function IdeaValidatorPage() {
         {loading && (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-20">
             <div className="w-14 h-14 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin mx-auto mb-6" />
-            <p className="text-[#8B7CF8] text-lg">Analyzing your idea...</p>
+            <p className="text-[#8B7CF8] text-lg">Pressure-testing your idea…</p>
             <p className="text-white/30 text-sm mt-2">This takes about 10 seconds</p>
           </motion.div>
         )}

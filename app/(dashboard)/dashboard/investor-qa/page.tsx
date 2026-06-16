@@ -183,7 +183,7 @@ function SetupScreen({ onStart, locale, ft }: SetupScreenProps) {
       if (!res.ok) throw new Error(data.error || "Failed to generate questions");
       onStart(form, data.questions as string[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : "Quantum hit a snag. Try again — we'll get it right.");
     } finally {
       setLoading(false);
     }
@@ -355,7 +355,7 @@ function TrainingScreen({
       if (!res.ok) throw new Error(data.error || "Scoring failed");
       setFeedback(data as ScoreResult);
     } catch (err) {
-      setScoreError(err instanceof Error ? err.message : "Something went wrong");
+      setScoreError(err instanceof Error ? err.message : "Let's try that again.");
     } finally {
       setScoring(false);
     }

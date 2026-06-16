@@ -24,7 +24,7 @@ const T = {
     search_placeholder: "Search tools...",
     no_results: "No tools found for",
     pitch_arsenal: "Your Pitch Arsenal",
-    pitch_arsenal_sub: "Everything you need to nail your pitch",
+    pitch_arsenal_sub: "The tools that separate funded founders from everyone else",
     hero1_title: "Pitch Coach Live",
     hero1_desc: "Speak your pitch out loud. Get honest, specific coaching in real time. Know exactly what to work on before you walk into any investor meeting.",
     hero1_s1: "Real-time feedback", hero1_s2: "Voice analysis",
@@ -33,28 +33,28 @@ const T = {
     hero2_title: "Pitch Deck Creator",
     hero2_desc: "Answer 10 questions in your own words. Get a complete pitch deck written in your exact voice — ready to present and download.",
     hero2_s1: "12 slides", hero2_s2: "Your voice", hero2_s3: "PDF export",
-    hero2_btn: "Create My Deck →",
+    hero2_btn: "Build My Deck →",
     hero2_badge: "AI POWERED",
     hero3_title: "Pitch Mirror",
     hero3_desc: "Record yourself pitching. Watch it back with AI notes. See what investors see — and fix it before it costs you the meeting.",
     hero3_s1: "Video feedback", hero3_s2: "AI annotations",
-    hero3_btn: "Start Practicing →",
+    hero3_btn: "Start Rehearsing →",
     hero3_badge: "PRACTICE",
     cat1_title: "🎯 Find & Grow",
-    cat1_desc: "Tools that find real opportunities for you",
+    cat1_desc: "Surface real opportunities before your competitors do",
     cat2_title: "🧠 Build & Validate",
-    cat2_desc: "Before you build, make sure it's right",
+    cat2_desc: "Pressure-test your idea before the market does",
     cat3_title: "✍️ Create & Write",
-    cat3_desc: "Professional content in your voice",
+    cat3_desc: "Words that move investors, customers, and press",
     cat4_title: "📈 Strategy & Plan",
-    cat4_desc: "Plan your next moves with confidence",
+    cat4_desc: "Think further ahead than the room expects",
     open: "Open →",
     founder_wall: "🏆 Founder Wall",
     see_leaderboard: "See Full Leaderboard →",
     latest_signals: "🔔 Latest Signals",
     manage_alerts: "Manage Alerts →",
-    no_leaders: "Be the first on the leaderboard 🔥",
-    no_alerts: "No alerts yet. Set up signal radar.",
+    no_leaders: "The leaderboard is waiting for its first name. 🔥",
+    no_alerts: "No signals yet. Set up your radar and stay ahead.",
     setup_alerts: "Set up alerts →",
     day_streak: "day streak",
     challenge_title: "Challenge Any Decision",
@@ -685,7 +685,7 @@ export default function DashboardPage() {
 
         {/* Greeting */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white">{greeting}, {userName}. 👋</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-white">{greeting}, {userName}.</h1>
           <p className="text-[#8B7CF8] mt-1 text-sm">{txt.tagline}</p>
         </motion.div>
 

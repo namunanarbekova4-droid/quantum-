@@ -65,9 +65,6 @@ type Tab = "calendar" | "posts" | "strategy" | "bonus";
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
 const PLATFORMS = ["LinkedIn", "Twitter/X", "Instagram", "TikTok", "Telegram"];
-const GOALS = ["Get first users", "Build personal brand", "Attract investors", "Grow community", "All of the above"];
-const TOPICS = ["My founder journey", "Product updates", "Industry insights", "Startup tips", "Behind the scenes", "Failures & lessons", "Wins & milestones", "Hot takes"];
-const TONES = ["Bold and direct", "Warm and personal", "Educational and helpful", "Funny and casual", "Professional and data-driven"];
 
 const LOADING_MESSAGES = [
   "Learning your founder voice...",
@@ -214,7 +211,7 @@ interface PostCardProps {
 
 function PostCard({ post, onRegenerate, regenerating, locale }: PostCardProps) {
   const { t: tl } = useLanguage();
-  const ft = tl.features.contentPlan as Record<string, string>;
+  const ft = tl.features.contentPlan as unknown as Record<string, string>;
   const [expanded, setExpanded] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -322,6 +319,13 @@ interface SetupScreenProps {
 }
 
 function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenProps) {
+  const { t: tInner } = useLanguage();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cp = tInner.features.contentPlan as any;
+  const GOALS: string[] = cp.goalOptions ?? ["Get first users", "Build personal brand", "Attract investors", "Grow community", "All of the above"];
+  const TOPICS: string[] = cp.topicOptions ?? ["My founder journey", "Product updates", "Industry insights", "Startup tips", "Behind the scenes", "Failures & lessons", "Wins & milestones", "Hot takes"];
+  const TONES: string[] = cp.toneOptions ?? ["Bold and direct", "Warm and personal", "Educational and helpful", "Funny and casual", "Professional and data-driven"];
+
   const [form, setForm] = useState<SetupData>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -405,7 +409,7 @@ function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenPro
         >
           {/* Q1 */}
           <div>
-            <label className={labelCls}>1. Your startup name and what it does</label>
+            <label className={labelCls}>{ft.labelStartup ?? "1. Your startup name and what it does"}</label>
             <input value={form.startupName} onChange={e => setForm({ ...form, startupName: e.target.value })}
               placeholder="e.g. Quantum — AI platform for young founders"
               className={inputCls} />
@@ -413,7 +417,7 @@ function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenPro
 
           {/* Q2 */}
           <div>
-            <label className={labelCls}>2. Who is your target audience?</label>
+            <label className={labelCls}>{ft.labelAudience ?? "2. Who is your target audience?"}</label>
             <input value={form.targetAudience} onChange={e => setForm({ ...form, targetAudience: e.target.value })}
               placeholder="e.g. Early stage founders, age 18-30, building their first startup"
               className={inputCls} />
@@ -421,7 +425,7 @@ function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenPro
 
           {/* Q3 */}
           <div>
-            <label className={labelCls}>3. What platforms do you post on?</label>
+            <label className={labelCls}>{ft.labelPlatforms ?? "3. What platforms do you post on?"}</label>
             <div className="flex flex-wrap gap-2">
               {PLATFORMS.map(p => (
                 <Chip key={p} label={p} selected={form.platforms.includes(p)} onClick={() => toggleMulti("platforms", p)} />
@@ -431,7 +435,7 @@ function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenPro
 
           {/* Q4 */}
           <div>
-            <label className={labelCls}>4. What is your main goal with content?</label>
+            <label className={labelCls}>{ft.labelGoal ?? "4. What is your main goal with content?"}</label>
             <div className="flex flex-wrap gap-2">
               {GOALS.map(g => (
                 <Chip key={g} label={g} selected={form.goal === g} onClick={() => setForm({ ...form, goal: g })} />
@@ -441,7 +445,7 @@ function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenPro
 
           {/* Q5 */}
           <div>
-            <label className={labelCls}>5. What topics do you want to cover?</label>
+            <label className={labelCls}>{ft.labelTopics ?? "5. What topics do you want to cover?"}</label>
             <div className="flex flex-wrap gap-2">
               {TOPICS.map(t => (
                 <Chip key={t} label={t} selected={form.topics.includes(t)} onClick={() => toggleMulti("topics", t)} />
@@ -451,7 +455,7 @@ function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenPro
 
           {/* Q6 */}
           <div>
-            <label className={labelCls}>6. How would you describe your tone?</label>
+            <label className={labelCls}>{ft.labelTone ?? "6. How would you describe your tone?"}</label>
             <div className="flex flex-wrap gap-2">
               {TONES.map(t => (
                 <Chip key={t} label={t} selected={form.tone === t} onClick={() => setForm({ ...form, tone: t })} />
@@ -461,7 +465,7 @@ function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenPro
 
           {/* Q7 */}
           <div>
-            <label className={labelCls}>7. Share one personal story from your founder journey</label>
+            <label className={labelCls}>{ft.labelStory ?? "7. Share one personal story from your founder journey"}</label>
             <textarea value={form.personalStory} onChange={e => setForm({ ...form, personalStory: e.target.value })}
               placeholder="E.g. The moment I decided to build this, a failure I learned from, something surprising I discovered..."
               rows={4} className={`${inputCls} resize-none`} />
@@ -469,7 +473,7 @@ function SetupScreen({ onGenerate, history, historyLoading, ft }: SetupScreenPro
 
           {/* Q8 */}
           <div>
-            <label className={labelCls}>8. Anything to avoid? <span className="text-white/30 normal-case font-normal">(optional)</span></label>
+            <label className={labelCls}>{ft.labelAvoid ?? "8. Anything to avoid?"} <span className="text-white/30 normal-case font-normal">(optional)</span></label>
             <textarea value={form.avoidContent} onChange={e => setForm({ ...form, avoidContent: e.target.value })}
               placeholder="E.g. Don't want to seem too salesy, avoid technical jargon..."
               rows={2} className={`${inputCls} resize-none`} />
@@ -1148,7 +1152,7 @@ function ResultsScreen({ plan, setup, planId, locale, onRegenerate, ft }: Result
 
 export default function ContentPlanPage() {
   const { t, locale } = useLanguage();
-  const ft = t.features.contentPlan as Record<string, string>;
+  const ft = t.features.contentPlan as unknown as Record<string, string>;
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
   const [plan, setPlan] = useState<ContentPlan | null>(null);

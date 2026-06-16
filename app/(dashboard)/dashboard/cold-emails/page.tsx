@@ -63,18 +63,18 @@ interface TrackRow {
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
 const GENERATING_MSGS = [
-  "Analyzing your startup...",
-  "Crafting personalized angles...",
-  "Writing email 1 of 10...",
-  "Writing email 2 of 10...",
-  "Writing email 3 of 10...",
-  "Writing email 4 of 10...",
-  "Writing email 5 of 10...",
-  "Writing email 6 of 10...",
-  "Writing email 7 of 10...",
-  "Writing email 8 of 10...",
-  "Polishing subject lines...",
-  "Ready!",
+  "Crafting your angle…",
+  "Finding the hook that opens doors…",
+  "Writing email 1 of 10…",
+  "Writing email 2 of 10…",
+  "Writing email 3 of 10…",
+  "Writing email 4 of 10…",
+  "Writing email 5 of 10…",
+  "Writing email 6 of 10…",
+  "Writing email 7 of 10…",
+  "Writing email 8 of 10…",
+  "Sharpening subject lines…",
+  "Your outreach is ready.",
 ];
 
 // GOAL_LABELS is now built inside the component using ft (see ColdEmailsPage)
@@ -176,7 +176,7 @@ function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
       )}
     >
       {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-      {copied ? "Copied!" : label}
+      {copied ? "Locked in." : label}
     </button>
   );
 }

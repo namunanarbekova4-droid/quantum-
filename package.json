@@ -35,6 +35,7 @@
     "lucide-react": "^1.16.0",
     "next": "14.2.35",
     "next-auth": "^4.24.14",
+    "pptxgenjs": "^4.0.1",
     "prisma": "^6.19.3",
     "react": "^18",
     "react-dom": "^18",

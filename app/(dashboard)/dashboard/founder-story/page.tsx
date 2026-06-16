@@ -35,7 +35,7 @@ function CopyButton({ text }: { text: string }) {
       className="flex items-center gap-1.5 px-4 py-2 border border-[#1A1040] hover:border-[#7C3AED]/40 rounded-xl text-[#8B7CF8] hover:text-white transition-colors text-sm"
     >
       {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-      {copied ? "Copied!" : "Copy"}
+      {copied ? "Locked in." : "Copy"}
     </button>
   );
 }
@@ -156,7 +156,7 @@ export default function FounderStoryPage() {
         {loading && (
           <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-20">
             <div className="w-14 h-14 border-2 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin mx-auto mb-6" />
-            <p className="text-[#8B7CF8] text-lg">Crafting your story...</p>
+            <p className="text-[#8B7CF8] text-lg">Uncovering your narrative…</p>
             <p className="text-white/30 text-sm mt-2">Writing 5 formats — takes about 15 seconds</p>
           </motion.div>
         )}
