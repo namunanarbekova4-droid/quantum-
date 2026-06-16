@@ -176,10 +176,11 @@ ${conversationForMemory}`;
             emotionalBaseline: string;
           }>(memoryPrompt);
 
+          const uid = session.user.id as string;
           await prisma.compassMemory.upsert({
-            where: { userId: session.user.id },
+            where: { userId: uid },
             create: {
-              userId: session.user.id,
+              userId: uid,
               fears: extracted.fears ?? [],
               wins: extracted.wins ?? [],
               recurringPatterns: extracted.patterns ?? [],

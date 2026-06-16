@@ -725,6 +725,8 @@ interface RecordingProps {
 }
 
 function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
+  const { t: tl } = useLanguage();
+  const ft = tl.features.pitchCoachLive as unknown as Record<string, string>;
   const [transcript, setTranscript] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
