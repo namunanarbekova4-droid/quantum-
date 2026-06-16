@@ -99,6 +99,14 @@ export default function CompassPage() {
   const [copied, setCopied] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
   const [answerFocused, setAnswerFocused] = useState(false);
+  const [memory, setMemory] = useState<{sessionCount: number; emotionalBaseline: string} | null>(null);
+
+  useEffect(() => {
+    fetch("/api/compass/memory")
+      .then(r => r.json())
+      .then(d => { if (d && d.sessionCount > 0) setMemory(d); })
+      .catch(() => {});
+  }, []);
 
   const userMessages = messages.filter((m) => m.role === "user");
   const rotatingSubtitle = useRotatingText(ROTATING_PROMPTS, 3000);
@@ -208,6 +216,13 @@ export default function CompassPage() {
               className="w-full max-w-lg"
             >
               <div className="text-center mb-10">
+                {memory && memory.sessionCount > 1 && (
+                  <div className="mb-4">
+                    <p className="text-[#8B7CF8]/50 text-xs">
+                      Session {memory.sessionCount} · Quantum remembers your previous conversations
+                    </p>
+                  </div>
+                )}
                 <h1 className="text-2xl font-bold text-white mb-4">
                   How are you really feeling about your startup today?
                 </h1>

@@ -37,6 +37,7 @@ model User {
   roomMembers RoomMember[]
   messages   Message[]
   compassSessions   CompassSession[]
+  compassMemory     CompassMemory?
   pitchBuilds       PitchBuild[]
   onePagers         OnePager[]
   investorEmails    InvestorEmail[]
@@ -326,6 +327,18 @@ model CompassSession {
   conversation Json     @default("[]")
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CompassMemory {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  recurringPatterns Json     @default("[]")
+  fears             Json     @default("[]")
+  wins              Json     @default("[]")
+  emotionalBaseline String   @default("unknown")
+  sessionCount      Int      @default(0)
+  lastUpdated       DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PitchBuild {
