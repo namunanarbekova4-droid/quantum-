@@ -34,8 +34,30 @@ export function isRTL(lang: SupportedLanguage): boolean {
   return RTL_LANGUAGES.includes(lang);
 }
 
-export function getSpeechLocale(lang: SupportedLanguage): string {
-  return SPEECH_LOCALES[lang] ?? 'en-US';
+// The app uses 'kz' as the Kazakh locale code in i18n; map both 'kk' and 'kz' to kk-KZ
+const SPEECH_LOCALE_ALIASES: Record<string, string> = {
+  kz: 'kk-KZ',
+};
+
+export function getSpeechLocale(lang: string): string {
+  if (lang in SPEECH_LOCALE_ALIASES) return SPEECH_LOCALE_ALIASES[lang];
+  return SPEECH_LOCALES[lang as SupportedLanguage] ?? 'en-US';
+}
+
+export function getFillerWordsForLocale(lang: string): string[] {
+  // Handle kz alias
+  const normalized = lang === 'kz' ? 'kk' : lang;
+  return FILLER_WORDS[normalized as SupportedLanguage] ?? FILLER_WORDS.en;
+}
+
+export function getWeakWordsForLocale(lang: string): string[] {
+  const normalized = lang === 'kz' ? 'kk' : lang;
+  return WEAK_WORDS[normalized as SupportedLanguage] ?? WEAK_WORDS.en;
+}
+
+export function getStrongWordsForLocale(lang: string): string[] {
+  const normalized = lang === 'kz' ? 'kk' : lang;
+  return STRONG_WORDS[normalized as SupportedLanguage] ?? STRONG_WORDS.en;
 }
 
 export function getLanguageDisplayName(lang: SupportedLanguage): string {

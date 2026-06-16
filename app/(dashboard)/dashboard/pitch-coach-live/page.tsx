@@ -275,15 +275,23 @@ const STRUCTURE_KEYWORDS_BY_LANG: Record<string, Record<string, string[]>> = {
   },
 };
 
-const STRUCTURE_SECTION_LABELS: Array<{ key: string; label: string }> = [
-  { key: "problem", label: "Problem" },
-  { key: "solution", label: "Solution" },
-  { key: "market", label: "Market" },
-  { key: "whyNow", label: "Why Now" },
-  { key: "traction", label: "Traction" },
-  { key: "businessModel", label: "Model" },
-  { key: "ask", label: "Ask" },
-];
+const STRUCTURE_SECTION_KEYS = ["problem", "solution", "market", "whyNow", "traction", "businessModel", "ask"] as const;
+
+// Labels by locale — covers all 5 supported languages
+const STRUCTURE_LABELS_BY_LANG: Record<string, Record<string, string>> = {
+  en: { problem: "Problem", solution: "Solution", market: "Market", whyNow: "Why Now", traction: "Traction", businessModel: "Model", ask: "Ask" },
+  ru: { problem: "Проблема", solution: "Решение", market: "Рынок", whyNow: "Почему сейчас", traction: "Трекшн", businessModel: "Модель", ask: "Запрос" },
+  es: { problem: "Problema", solution: "Solución", market: "Mercado", whyNow: "Por qué ahora", traction: "Tracción", businessModel: "Modelo", ask: "Solicitud" },
+  zh: { problem: "问题", solution: "解决方案", market: "市场", whyNow: "为何现在", traction: "牵引力", businessModel: "模式", ask: "融资需求" },
+  kz: { problem: "Мәселе", solution: "Шешім", market: "Нарық", whyNow: "Неліктен қазір", traction: "Трекшн", businessModel: "Модель", ask: "Сұраныс" },
+  kk: { problem: "Мәселе", solution: "Шешім", market: "Нарық", whyNow: "Неліктен қазір", traction: "Трекшн", businessModel: "Модель", ask: "Сұраныс" },
+};
+
+function getStructureLabels(locale: string): Record<string, string> {
+  return STRUCTURE_LABELS_BY_LANG[locale] ?? STRUCTURE_LABELS_BY_LANG.en;
+}
+
+const STRUCTURE_SECTION_LABELS: Array<{ key: string; label: string }> = STRUCTURE_SECTION_KEYS.map(k => ({ key: k, label: STRUCTURE_LABELS_BY_LANG.en[k] }));
 
 // Keep STRUCTURE_SECTIONS for backward compatibility with any existing usage
 const STRUCTURE_SECTIONS = STRUCTURE_SECTION_LABELS.map(s => ({
@@ -1069,9 +1077,9 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
               style={{ minHeight: 160, maxHeight: "40vh" }}
             >
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Smart Transcript</p>
+                <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">{ft.smartTranscript || "Smart Transcript"}</p>
                 <button onClick={switchToManual} className="text-[10px] text-white/30 hover:text-[#8B7CF8] transition-colors underline">
-                  Switch to text input
+                  {ft.switchToText || "Switch to text input"}
                 </button>
               </div>
               <div className="text-sm leading-relaxed">
@@ -1084,20 +1092,21 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
 
           {/* Pitch structure detector */}
           <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-3 sticky top-2 z-10">
-            <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider mb-2">Pitch Structure</p>
+            <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider mb-2">{ft.pitchStructure || "Pitch Structure"}</p>
             <div className="flex flex-wrap gap-2">
-              {STRUCTURE_SECTIONS.map(s => {
-                const ok = structure[s.key];
+              {STRUCTURE_SECTION_KEYS.map(key => {
+                const ok = structure[key];
+                const labels = getStructureLabels(locale);
                 return (
                   <span
-                    key={s.key}
+                    key={key}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-bold border transition-colors ${
                       ok
                         ? "border-green-500/40 bg-green-500/15 text-green-300"
                         : "border-red-500/30 bg-red-500/5 text-red-400/70"
                     }`}
                   >
-                    {ok ? "✅" : "❌"} {s.label}
+                    {ok ? "✅" : "❌"} {labels[key]}
                   </span>
                 );
               })}
@@ -1106,20 +1115,20 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
 
           {/* Live metrics */}
           <div className="grid grid-cols-3 gap-2">
-            <MetricCard title="Pace" value={wpm > 0 ? `${wpm}` : "—"} sub={paceVerdict} color={paceColor} />
+            <MetricCard title={ft.pace || "Pace"} value={wpm > 0 ? `${wpm}` : "—"} sub={paceVerdict} color={paceColor} />
             <MetricCard
-              title="Fillers"
+              title={ft.fillerWordsMetric || "Fillers"}
               value={String(totalF)}
-              sub={totalF > 0 ? `um ${fillers.um} · uh ${fillers.uh}` : "Clean"}
+              sub={totalF > 0 ? `um ${fillers.um} · uh ${fillers.uh}` : (ft.keepItUp || "Clean")}
               color={totalF > 8 ? "text-red-400" : totalF > 3 ? "text-yellow-400" : "text-green-400"}
             />
-            <MetricCard title="Energy" value={energy} sub="from pace" color={energyColor} />
+            <MetricCard title={ft.energy || "Energy"} value={energy} sub={ft.basedOnPace || "from pace"} color={energyColor} />
           </div>
 
           {/* Time check */}
           <div className="bg-[#06040F] border border-[#1A1040] rounded-xl p-3">
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Time Check</p>
+              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">{ft.timeCheck || "Time Check"}</p>
               <p className={`text-xs font-bold ${elapsed > targetSec * 1.1 ? "text-red-400" : "text-green-400"}`}>{timeStatus}</p>
             </div>
             <div className="h-1.5 bg-[#1A1040] rounded-full overflow-hidden">
@@ -1130,7 +1139,7 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
           {/* Coaching cards */}
           <div className="space-y-2 min-h-[40px]">
             <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider flex items-center gap-2">
-              <BarChart2 className="w-3.5 h-3.5" /> Live Coaching
+              <BarChart2 className="w-3.5 h-3.5" /> {ft.liveCoaching || "Live Coaching"}
             </p>
             <AnimatePresence>
               {tips.map(tip => <CoachTipCard key={tip.id} tip={tip} />)}
