@@ -101,7 +101,7 @@ export function TopBar({ userName = "User", userRole = "FOUNDER" }: TopBarProps)
                 <motion.div initial={DD_INIT} animate={DD_ANIM} exit={DD_EXIT} transition={DD_TRANS} className="absolute right-0 top-full mt-1.5 w-80 bg-[#0F0A1F] border border-[#1A1040] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-20">
                   <div className="px-4 py-3 border-b border-[#1A1040] flex items-center justify-between">
                     <span className="text-sm font-semibold text-white">{t.topbar.notifications}</span>
-                    <span className="text-xs text-[#8B7CF8]/50">0 new</span>
+                    <span className="text-xs text-[#8B7CF8]/50">0 {t.topbar.newNotifications}</span>
                   </div>
                   <div className="py-10 text-center">
                     <div className="w-10 h-10 rounded-xl bg-[#1A1040] flex items-center justify-center mx-auto mb-3">

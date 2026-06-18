@@ -62,20 +62,7 @@ interface TrackRow {
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
-const GENERATING_MSGS = [
-  "Crafting your angle…",
-  "Finding the hook that opens doors…",
-  "Writing email 1 of 10…",
-  "Writing email 2 of 10…",
-  "Writing email 3 of 10…",
-  "Writing email 4 of 10…",
-  "Writing email 5 of 10…",
-  "Writing email 6 of 10…",
-  "Writing email 7 of 10…",
-  "Writing email 8 of 10…",
-  "Sharpening subject lines…",
-  "Your outreach is ready.",
-];
+// GENERATING_MSGS is now built inside the component from translations (see ColdEmailsPage)
 
 // GOAL_LABELS is now built inside the component using ft (see ColdEmailsPage)
 
@@ -159,7 +146,7 @@ function Badge({ ok, warn, label }: { ok?: boolean; warn?: boolean; label: strin
 
 // ─── Copy button ────────────────────────────────────────────────────────────────
 
-function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
+function CopyBtn({ text, label = "Copy", lockedLabel = "Locked in." }: { text: string; label?: string; lockedLabel?: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -176,7 +163,7 @@ function CopyBtn({ text, label = "Copy" }: { text: string; label?: string }) {
       )}
     >
       {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-      {copied ? "Locked in." : label}
+      {copied ? lockedLabel : label}
     </button>
   );
 }
@@ -196,7 +183,7 @@ function EmailCard({
   index: number;
   campaignSetup: SetupData;
   locale: string;
-  ft: Record<string, string>;
+  ft: Record<string, string | string[]>;
   goalLabels: Record<EmailGoal, string>;
   onRegenerated: (updated: Email) => void;
 }) {
@@ -254,7 +241,7 @@ function EmailCard({
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-white">{email.type}</p>
           <p className="text-xs text-[#8B7CF8] truncate mt-0.5">
-            {email.subject_lines?.[0]?.text ?? "No subject"}
+            {email.subject_lines?.[0]?.text ?? ft.noSubject as string}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -277,16 +264,16 @@ function EmailCard({
             <div className="px-5 pb-5 space-y-5 border-t border-[#1A1040]">
               {/* Quality badges */}
               <div className="flex flex-wrap gap-2 pt-4">
-                {badges.personalized && <Badge ok label="Personalized" />}
-                {badges.clearCta     && <Badge ok label="Clear CTA" />}
-                {badges.under150     && <Badge ok label="Under 150 words" />}
-                {badges.noSpam       && <Badge ok label="No spam words" />}
-                {badges.tooLong      && <Badge warn label={`Too long (${badges.wordCount} words)`} />}
+                {badges.personalized && <Badge ok label={ft.badgePersonalized as string} />}
+                {badges.clearCta     && <Badge ok label={ft.badgeClearCta as string} />}
+                {badges.under150     && <Badge ok label={ft.badgeUnder150 as string} />}
+                {badges.noSpam       && <Badge ok label={ft.badgeNoSpam as string} />}
+                {badges.tooLong      && <Badge warn label={`${ft.badgeTooLong as string} (${badges.wordCount} ${ft.words as string})`} />}
               </div>
 
               {/* Subject lines */}
               <div>
-                <p className="text-xs font-semibold text-[#8B7CF8] uppercase tracking-wider mb-3">Subject lines</p>
+                <p className="text-xs font-semibold text-[#8B7CF8] uppercase tracking-wider mb-3">{ft.subjectLines as string}</p>
                 <div className="space-y-2">
                   {(email.subject_lines ?? []).map((sl, si) => (
                     <div key={si} className="flex items-start gap-3 bg-[#06040F] rounded-lg p-3 border border-[#1A1040]">
@@ -299,7 +286,7 @@ function EmailCard({
                         <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded border", rateColor(sl.open_rate))}>
                           ~{sl.open_rate}%
                         </span>
-                        <CopyBtn text={sl.text} label={ft.copySubject} />
+                        <CopyBtn text={sl.text} label={ft.copySubject as string} lockedLabel={ft.lockedIn as string} />
                       </div>
                     </div>
                   ))}
@@ -308,7 +295,7 @@ function EmailCard({
 
               {/* Email body */}
               <div>
-                <p className="text-xs font-semibold text-[#8B7CF8] uppercase tracking-wider mb-3">Email body</p>
+                <p className="text-xs font-semibold text-[#8B7CF8] uppercase tracking-wider mb-3">{ft.emailBody as string}</p>
                 {editing ? (
                   <div className="space-y-2">
                     <textarea
@@ -322,13 +309,13 @@ function EmailCard({
                         onClick={() => setEditing(false)}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A84C] text-[#06040F] text-xs font-bold rounded-lg hover:bg-[#d4b660] transition-colors"
                       >
-                        <Save className="w-3.5 h-3.5" /> Save
+                        <Save className="w-3.5 h-3.5" /> {ft.saveTracking as string}
                       </button>
                       <button
                         onClick={() => { setEditBody(email.body ?? ""); setEditing(false); }}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1A1040] text-[#8B7CF8] text-xs rounded-lg border border-[#2D1B69] hover:text-white transition-colors"
                       >
-                        <X className="w-3.5 h-3.5" /> Cancel
+                        <X className="w-3.5 h-3.5" /> {ft.cancelEdit as string}
                       </button>
                     </div>
                   </div>
@@ -343,13 +330,13 @@ function EmailCard({
 
               {!editing && (
                 <div className="flex flex-wrap gap-2">
-                  <CopyBtn text={editBody} label={ft.copyEmail} />
-                  <CopyBtn text={email.subject_lines?.[0]?.text ?? ""} label={ft.copySubject} />
+                  <CopyBtn text={editBody} label={ft.copyEmail as string} lockedLabel={ft.lockedIn as string} />
+                  <CopyBtn text={email.subject_lines?.[0]?.text ?? ""} label={ft.copySubject as string} lockedLabel={ft.lockedIn as string} />
                   <button
                     onClick={() => setEditing(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border bg-[#1A1040] border-[#2D1B69] text-[#8B7CF8] hover:text-white hover:border-[#7C3AED]/50 transition-all"
                   >
-                    <Edit3 className="w-3.5 h-3.5" /> Edit
+                    <Edit3 className="w-3.5 h-3.5" /> {ft.editLabel as string}
                   </button>
                   <button
                     onClick={handleRegen}
@@ -372,6 +359,8 @@ function EmailCard({
 // ─── Outreach tracker ───────────────────────────────────────────────────────────
 
 function OutreachTracker({ campaignId }: { campaignId: string }) {
+  const { t } = useLanguage();
+  const ft = t.features.coldEmails as unknown as Record<string, string | string[]>;
   const [rows, setRows] = useState<TrackRow[]>([]);
   const [newRow, setNewRow] = useState<Partial<TrackRow>>({
     recipientName: "", recipientEmail: "", emailNumberUsed: 1, status: "sent", notes: "",
@@ -416,20 +405,20 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
     <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-xl p-5 space-y-5">
       <div className="flex items-center gap-2">
         <Target className="w-4 h-4 text-[#C9A84C]" />
-        <h3 className="text-sm font-bold text-white">Track Your Outreach</h3>
+        <h3 className="text-sm font-bold text-white">{ft.trackOutreach as string}</h3>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_80px_1fr_auto] gap-2 items-end">
         <input
           value={newRow.recipientName ?? ""}
           onChange={e => setNewRow(r => ({ ...r, recipientName: e.target.value }))}
-          placeholder="Name"
+          placeholder={ft.nameHeader as string}
           className="bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-xs rounded-lg px-3 py-2 outline-none"
         />
         <input
           value={newRow.recipientEmail ?? ""}
           onChange={e => setNewRow(r => ({ ...r, recipientEmail: e.target.value }))}
-          placeholder="Email"
+          placeholder={ft.emailHeader as string}
           type="email"
           className="bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-xs rounded-lg px-3 py-2 outline-none"
         />
@@ -443,7 +432,7 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
         <input
           value={newRow.notes ?? ""}
           onChange={e => setNewRow(r => ({ ...r, notes: e.target.value }))}
-          placeholder="Notes"
+          placeholder={ft.notes as string}
           className="bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-xs rounded-lg px-3 py-2 outline-none"
         />
         <button
@@ -452,7 +441,7 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
           className="flex items-center gap-1 px-3 py-2 bg-[#C9A84C] hover:bg-[#d4b660] text-[#06040F] text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
         >
           {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-          Add
+          {ft.add as string}
         </button>
       </div>
 
@@ -461,11 +450,11 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
           <table className="w-full text-xs">
             <thead>
               <tr className="text-[#8B7CF8]/60 border-b border-[#1A1040]">
-                <th className="pb-2 text-left font-medium">Name</th>
-                <th className="pb-2 text-left font-medium">Email</th>
+                <th className="pb-2 text-left font-medium">{ft.nameHeader as string}</th>
+                <th className="pb-2 text-left font-medium">{ft.emailHeader as string}</th>
                 <th className="pb-2 text-left font-medium">#</th>
-                <th className="pb-2 text-left font-medium">Status</th>
-                <th className="pb-2 text-left font-medium">Notes</th>
+                <th className="pb-2 text-left font-medium">{ft.status as string}</th>
+                <th className="pb-2 text-left font-medium">{ft.notes as string}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1A1040]">
@@ -480,10 +469,10 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
                       onChange={e => row.id && updateStatus(row.id, e.target.value)}
                       className={cn("text-[10px] font-bold px-2 py-0.5 rounded border bg-transparent cursor-pointer outline-none", STATUS_COLORS[row.status])}
                     >
-                      <option value="sent">Sent</option>
-                      <option value="opened">Opened</option>
-                      <option value="replied">Replied</option>
-                      <option value="meeting">Meeting 🎉</option>
+                      <option value="sent">{ft.statusSent as string}</option>
+                      <option value="opened">{ft.statusOpened as string}</option>
+                      <option value="replied">{ft.statusReplied as string}</option>
+                      <option value="meeting">{ft.statusMeeting as string}</option>
                     </select>
                   </td>
                   <td className="py-2 text-[#8B7CF8]/50">{row.notes}</td>
@@ -493,7 +482,7 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
           </table>
         </div>
       ) : (
-        <p className="text-xs text-[#8B7CF8]/50 text-center py-4">Add recipients to track your outreach progress.</p>
+        <p className="text-xs text-[#8B7CF8]/50 text-center py-4">{ft.noRecipients as string}</p>
       )}
     </div>
   );
@@ -501,7 +490,7 @@ function OutreachTracker({ campaignId }: { campaignId: string }) {
 
 // ─── Setup screen ───────────────────────────────────────────────────────────────
 
-function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData) => void; ft: Record<string, string>; goalLabels: Record<EmailGoal, string> }) {
+function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData) => void; ft: Record<string, string | string[]>; goalLabels: Record<EmailGoal, string> }) {
   const [form, setForm] = useState<SetupData>({
     startupName: "", description: "", targetType: "customers",
     yourName: "", yourRole: "Founder", goal: "demo", special: "",
@@ -529,7 +518,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
       </div>
 
       <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-xl p-6 space-y-6">
-        {field(ft.startupName,
+        {field(ft.startupName as string,
           <input
             value={form.startupName}
             onChange={e => setForm(f => ({ ...f, startupName: e.target.value }))}
@@ -537,7 +526,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
             className="w-full bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-sm rounded-lg px-4 py-3 outline-none transition-colors placeholder:text-[#444]"
           />
         )}
-        {field(ft.whatBuilt,
+        {field(ft.whatBuilt as string,
           <textarea
             value={form.description}
             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -546,7 +535,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
             className="w-full bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-sm rounded-lg px-4 py-3 resize-none outline-none transition-colors placeholder:text-[#444]"
           />
         )}
-        {field(ft.whoEmailing,
+        {field(ft.whoEmailing as string,
           <div className="flex gap-2">
             {(["customers", "investors", "partners"] as TargetType[]).map(t => (
               <button
@@ -563,7 +552,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
           </div>
         )}
         <div className="grid grid-cols-2 gap-4">
-          {field(ft.yourName,
+          {field(ft.yourName as string,
             <input
               value={form.yourName}
               onChange={e => setForm(f => ({ ...f, yourName: e.target.value }))}
@@ -571,7 +560,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
               className="w-full bg-[#06040F] border border-[#1A1040] focus:border-[#7C3AED]/60 text-white text-sm rounded-lg px-4 py-3 outline-none transition-colors placeholder:text-[#444]"
             />
           )}
-          {field(ft.yourRole,
+          {field(ft.yourRole as string,
             <input
               value={form.yourRole}
               onChange={e => setForm(f => ({ ...f, yourRole: e.target.value }))}
@@ -580,7 +569,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
             />
           )}
         </div>
-        {field(ft.whatWant,
+        {field(ft.whatWant as string,
           <div className="grid grid-cols-2 gap-2">
             {(Object.entries(goalLabels) as [EmailGoal, string][]).map(([k, v]) => (
               <button
@@ -596,7 +585,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
             ))}
           </div>
         )}
-        {field(ft.special,
+        {field(ft.special as string,
           <textarea
             value={form.special}
             onChange={e => setForm(f => ({ ...f, special: e.target.value }))}
@@ -615,7 +604,7 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
               : "bg-[#1A1040] text-[#444] cursor-not-allowed"
           )}
         >
-          {ft.generate}
+          {ft.generate as string}
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
@@ -625,12 +614,12 @@ function SetupScreen({ onSubmit, ft, goalLabels }: { onSubmit: (data: SetupData)
 
 // ─── Generating screen ──────────────────────────────────────────────────────────
 
-function GeneratingScreen() {
+function GeneratingScreen({ msgs, writingEmails }: { msgs: string[]; writingEmails: string }) {
   const [msgIndex, setMsgIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const msgTimer = setInterval(() => setMsgIndex(i => Math.min(i + 1, GENERATING_MSGS.length - 1)), 2000);
+    const msgTimer = setInterval(() => setMsgIndex(i => Math.min(i + 1, msgs.length - 1)), 2000);
     const progTimer = setInterval(() => setProgress(p => {
       if (p >= 94) return p;
       return p + (p < 30 ? 3 : p < 70 ? 2 : 0.6);
@@ -656,10 +645,10 @@ function GeneratingScreen() {
             transition={{ duration: 0.3 }}
             className="text-lg font-semibold text-white"
           >
-            {GENERATING_MSGS[msgIndex]}
+            {msgs[msgIndex]}
           </motion.p>
         </AnimatePresence>
-        <p className="text-sm text-[#8B7CF8]">Writing emails that feel human...</p>
+        <p className="text-sm text-[#8B7CF8]">{writingEmails}</p>
         <div className="w-full h-1.5 bg-[#1A1040] rounded-full overflow-hidden mt-6">
           <motion.div
             className="h-full rounded-full"
@@ -678,7 +667,7 @@ function GeneratingScreen() {
 function ResultsScreen({
   campaign, setup, locale, onReset, ft, goalLabels,
 }: {
-  campaign: Campaign; setup: SetupData; locale: string; onReset: () => void; ft: Record<string, string>; goalLabels: Record<EmailGoal, string>;
+  campaign: Campaign; setup: SetupData; locale: string; onReset: () => void; ft: Record<string, string | string[]>; goalLabels: Record<EmailGoal, string>;
 }) {
   const [emails, setEmails] = useState(campaign.emails ?? []);
 
@@ -692,21 +681,21 @@ function ResultsScreen({
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl mx-auto space-y-10">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">10 Cold Emails Ready</h1>
+          <h1 className="text-2xl font-bold text-white">{ft.emailsReady as string}</h1>
           <p className="text-sm text-[#8B7CF8] mt-1">
-            Each email uses a different angle to reach your <span className="text-white">{setup.targetType}</span>.
+            {ft.emailsSubtitle as string} <span className="text-white">{ft[setup.targetType] as string ?? setup.targetType}</span>.
           </p>
         </div>
         <button
           onClick={onReset}
           className="flex items-center gap-2 px-4 py-2 bg-[#1A1040] border border-[#2D1B69] text-[#8B7CF8] hover:text-white hover:border-[#7C3AED]/50 rounded-lg text-sm font-medium transition-all"
         >
-          <RefreshCw className="w-4 h-4" /> Write New Set
+          <RefreshCw className="w-4 h-4" /> {ft.writeNewSet as string}
         </button>
       </div>
 
       <div className="space-y-4">
-        <p className="text-xs font-medium text-[#8B7CF8] uppercase tracking-wider">YOUR 10 EMAILS</p>
+        <p className="text-xs font-medium text-[#8B7CF8] uppercase tracking-wider">{ft.yourEmails as string}</p>
         {emails.map((email, i) => (
           <EmailCard
             key={`${email.number}-${i}`}
@@ -725,7 +714,7 @@ function ResultsScreen({
         <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-xl p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-[#C9A84C]" />
-            <h3 className="text-sm font-bold text-white">{ft.yourStrategy}</h3>
+            <h3 className="text-sm font-bold text-white">{ft.yourStrategy as string}</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
@@ -734,7 +723,7 @@ function ResultsScreen({
               { label: ft.followUp,    value: s.follow_up_timing },
               { label: ft.subjectStyle, value: s.subject_style },
             ].map(({ label, value }) => value && (
-              <div key={label} className="bg-[#06040F] rounded-lg p-3 border border-[#1A1040]">
+              <div key={label as string} className="bg-[#06040F] rounded-lg p-3 border border-[#1A1040]">
                 <p className="text-[10px] font-semibold text-[#C9A84C] uppercase tracking-wide mb-1">{label}</p>
                 <p className="text-xs text-[#ccc] leading-relaxed">{value}</p>
               </div>
@@ -752,12 +741,13 @@ function ResultsScreen({
 
 export default function ColdEmailsPage() {
   const { t, locale } = useLanguage();
-  const ft = t.features.coldEmails as Record<string, string>;
+  const ft = t.features.coldEmails as unknown as Record<string, string | string[]>;
+  const GENERATING_MSGS = (ft.generatingMsgs as string[] | undefined) ?? [ft.generating as string];
   const goalLabels: Record<EmailGoal, string> = {
-    demo: ft.getDemo,
-    feedback: ft.getFeedback,
-    investment: ft.getMeeting,
-    partnership: ft.getPartnership,
+    demo: ft.getDemo as string,
+    feedback: ft.getFeedback as string,
+    investment: ft.getMeeting as string,
+    partnership: ft.getPartnership as string,
   };
   const [step, setStep] = useState<Step>("setup");
   const [setup, setSetup] = useState<SetupData | null>(null);
@@ -796,7 +786,7 @@ export default function ColdEmailsPage() {
   return (
     <div className="min-h-screen bg-[#06040F] p-5 lg:p-8">
       <AnimatePresence mode="wait">
-        {step === "generating" && <GeneratingScreen key="generating" />}
+        {step === "generating" && <GeneratingScreen key="generating" msgs={GENERATING_MSGS} writingEmails={ft.writingEmails as string} />}
       </AnimatePresence>
 
       {step !== "generating" && (
