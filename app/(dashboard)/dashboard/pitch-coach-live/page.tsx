@@ -997,16 +997,14 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
           ← <span className="font-semibold text-white/80">{setup.startupName}</span>
         </button>
         <div className="flex items-center gap-2 flex-1 justify-center">
-          {manualMode ? (
-            <span className="text-[#C9A84C] text-xs font-bold tracking-widest">TEXT MODE</span>
-          ) : (
+          {!manualMode && (
             <>
               <motion.div
                 className="w-2.5 h-2.5 rounded-full bg-red-500"
                 animate={{ opacity: paused ? 0.4 : [1, 0.3, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               />
-              <span className="text-red-400 text-xs font-bold tracking-widest">{paused ? "PAUSED" : "LIVE"}</span>
+              <span className="text-red-400 text-xs font-bold tracking-widest">{paused ? (ft.pause || "PAUSED").toUpperCase() : (ft.recording || "LIVE").toUpperCase()}</span>
             </>
           )}
         </div>
