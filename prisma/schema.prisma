@@ -415,7 +415,7 @@ model CustomerSearch {
   id                 String   @id @default(cuid())
   userId             String
   productDescription String   @db.Text
-  idealCustomer      String
+  idealCustomer      String   @db.Text
   problem            String   @db.Text
   industry           String
   results            Json     @default("{}")

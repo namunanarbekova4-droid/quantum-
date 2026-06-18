@@ -88,25 +88,33 @@ Respond entirely in ${lang}. Return JSON:
   }
 }`;
 
+  let data: FirstCustomerResult;
   try {
-    const data = await generateJSON<FirstCustomerResult>(prompt);
+    data = await generateJSON<FirstCustomerResult>(prompt);
+  } catch (err) {
+    console.error("first-customer AI error:", err);
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
+  }
 
+  // Save to DB (non-critical — don't block response if it fails)
+  let savedId: string | undefined;
+  try {
     const saved = await prisma.customerSearch.create({
       data: {
         userId: session.user.id,
-        productDescription,
-        idealCustomer: idealCustomer || "",
-        problem,
-        industry,
+        productDescription: productDescription.slice(0, 10000),
+        idealCustomer: (idealCustomer || "").slice(0, 500),
+        problem: problem.slice(0, 10000),
+        industry: industry.slice(0, 100),
         results: data as object,
       },
     });
-
-    return NextResponse.json({ id: saved.id, ...data });
+    savedId = saved.id;
   } catch (err) {
-    console.error("first-customer error:", err);
-    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
+    console.error("first-customer save error (non-critical):", err);
   }
+
+  return NextResponse.json({ id: savedId, ...data });
 }
 
 export async function GET() {
