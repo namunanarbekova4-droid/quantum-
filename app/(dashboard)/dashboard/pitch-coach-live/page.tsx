@@ -793,9 +793,18 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
   }, []); // eslint-disable-line
 
   useEffect(() => {
+    // Kazakh on iOS Safari: speech recognition won't work — auto-switch to text input
+    const isKzLocale = locale === "kz" || locale === "kk";
+    const noSpeechDelay = isKzLocale ? 8000 : 15000;
     noSpeechTimerRef.current = setTimeout(() => {
-      if (transcriptRef.current.trim().length === 0) setNoSpeechWarning(true);
-    }, 15000);
+      if (transcriptRef.current.trim().length === 0) {
+        setNoSpeechWarning(true);
+        if (isKzLocale) {
+          // Auto-switch to text input for Kazakh since browser support is limited
+          setTimeout(() => switchToManual(), 3000);
+        }
+      }
+    }, noSpeechDelay);
     return () => { if (noSpeechTimerRef.current) clearTimeout(noSpeechTimerRef.current); };
   }, []); // eslint-disable-line
 
@@ -1018,13 +1027,13 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
           >
             <div className="flex items-center gap-2 text-yellow-300 text-sm">
               <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-              <span>No speech detected. Speak clearly into your microphone, or use text input.</span>
+              <span>{ft.noSpeechDetected || "No speech detected. Speak clearly into your microphone, or use text input."}</span>
             </div>
             <button
               onClick={switchToManual}
               className="flex-shrink-0 px-3 py-1 rounded-lg bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 text-xs font-bold hover:bg-yellow-500/30 transition-colors"
             >
-              Use Text Input
+              {ft.useTextInput || "Use Text Input"}
             </button>
           </motion.div>
         )}
@@ -1038,8 +1047,13 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
           {!manualMode && (
             <div className="bg-[#0F0A1F] border border-[#1A1040] rounded-2xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Live Confidence</span>
-                <span className="text-xs font-bold" style={{ color: conf.color }}>{conf.emoji} {conf.label}</span>
+                <span className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">{ft.liveCoaching || "Live Confidence"}</span>
+                <span className="text-xs font-bold" style={{ color: conf.color }}>{conf.emoji} {
+                  confidence >= 85 ? (ft.confInvestorReady || "Investor-Ready") :
+                  confidence >= 65 ? (ft.confConfident || "Confident") :
+                  confidence >= 45 ? (ft.confUncertain || "Uncertain") :
+                  (ft.confNervous || "Nervous")
+                }</span>
               </div>
               <div className="h-2.5 bg-[#1A1040] rounded-full overflow-hidden">
                 <motion.div
@@ -1062,11 +1076,11 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
           {/* Manual or live transcript */}
           {manualMode ? (
             <div className="flex flex-col gap-2">
-              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">Paste or type your pitch below</p>
+              <p className="text-[#8B7CF8] text-[10px] font-semibold uppercase tracking-wider">{ft.pasteYourPitch || "Paste or type your pitch below"}</p>
               <textarea
                 value={manualText}
                 onChange={e => setManualText(e.target.value)}
-                placeholder="Type or paste your pitch here..."
+                placeholder={ft.typeOrPaste || "Type or paste your pitch here..."}
                 className="w-full px-4 py-3 rounded-2xl bg-[#0F0A1F] border border-[#1A1040] focus:border-[#7C3AED] text-white text-sm leading-relaxed outline-none resize-none transition-colors placeholder-white/25"
                 style={{ minHeight: 240 }}
               />
@@ -1087,7 +1101,7 @@ function RecordingScreen({ setup, locale, onDone, onBack }: RecordingProps) {
               <div className="text-sm leading-relaxed">
                 {transcript
                   ? highlightFillers(transcript, locale)
-                  : <span className="text-white/25 italic">Start speaking — your words appear here...</span>}
+                  : <span className="text-white/25 italic">{ft.startSpeaking || "Start speaking — your words appear here..."}</span>}
               </div>
             </div>
           )}
