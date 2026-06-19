@@ -343,7 +343,7 @@ export default function InvestorFinderPage() {
 
   async function handleFind() {
     if (!startupName.trim() || !description.trim()) {
-      setError("Please fill in startup name and description.");
+      setError(ft.errorFill);
       return;
     }
     setError("");
@@ -369,7 +369,7 @@ export default function InvestorFinderPage() {
       setStep(1);
       setTab("investors");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(err instanceof Error ? err.message : ft.errorGeneric);
     } finally {
       setLoading(false);
     }
@@ -499,7 +499,7 @@ export default function InvestorFinderPage() {
                 {/* Description */}
                 <div>
                   <label className="block text-sm text-[#8B7CF8] mb-1.5 font-medium">
-                    What does it do?
+                    {ft.whatDoesItDo}
                   </label>
                   <textarea
                     rows={3}
@@ -636,7 +636,7 @@ export default function InvestorFinderPage() {
                         : "text-[#8B7CF8] hover:text-white"
                     }`}
                   >
-                    Investors ({investors.length})
+                    {ft.investorsCount} ({investors.length})
                   </button>
                   <button
                     onClick={() => setTab("pipeline")}

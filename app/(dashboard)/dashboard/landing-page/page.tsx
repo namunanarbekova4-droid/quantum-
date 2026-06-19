@@ -87,7 +87,7 @@ function useCopy(text: string) {
   return { copied, copy };
 }
 
-function CopyBtn({ text, small }: { text: string; small?: boolean }) {
+function CopyBtn({ text, small, copyLabel = "Copy Section", copiedLabel = "Copied!" }: { text: string; small?: boolean; copyLabel?: string; copiedLabel?: string }) {
   const { copied, copy } = useCopy(text);
   return (
     <button
@@ -99,12 +99,12 @@ function CopyBtn({ text, small }: { text: string; small?: boolean }) {
       }`}
     >
       {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-      {copied ? "Copied!" : "Copy Section"}
+      {copied ? copiedLabel : copyLabel}
     </button>
   );
 }
 
-function RegenerateBtn({ onClick, loading }: { onClick: () => void; loading: boolean }) {
+function RegenerateBtn({ onClick, loading, label = "Regenerate" }: { onClick: () => void; loading: boolean; label?: string }) {
   return (
     <button
       onClick={onClick}
@@ -112,7 +112,7 @@ function RegenerateBtn({ onClick, loading }: { onClick: () => void; loading: boo
       className="flex items-center gap-1.5 px-2.5 py-1 text-xs border border-[#7C3AED]/40 text-[#7C3AED] hover:bg-[#7C3AED]/10 rounded-lg transition-colors disabled:opacity-50"
     >
       <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
-      Regenerate
+      {label}
     </button>
   );
 }
@@ -155,6 +155,8 @@ function SectionCard({
   regenLoading: boolean;
   children: React.ReactNode;
 }) {
+  const { t: tl } = useLanguage();
+  const ftl = tl.features.landingPage as Record<string, string>;
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -167,8 +169,8 @@ function SectionCard({
           <span className="text-[#C9A84C] text-xs font-bold uppercase tracking-widest">{label}</span>
         </div>
         <div className="flex items-center gap-2">
-          <CopyBtn text={copyText} small />
-          <RegenerateBtn onClick={onRegenerate} loading={regenLoading} />
+          <CopyBtn text={copyText} small copyLabel={ftl.copySection} copiedLabel={ftl.copied} />
+          <RegenerateBtn onClick={onRegenerate} loading={regenLoading} label={ftl.regenerate} />
         </div>
       </div>
       <div className="p-5">{children}</div>
@@ -550,7 +552,7 @@ function ResultsScreen({
       <div className="space-y-4">
         {/* 1. Hero */}
         <SectionCard
-          label="Hero Section"
+          label={ft.hero}
           icon={Layout}
           copyText={[
             "Headlines:",
@@ -610,7 +612,7 @@ function ResultsScreen({
 
         {/* 2. Problem */}
         <SectionCard
-          label="Problem Section"
+          label={ft.problemSection}
           icon={Target}
           copyText={[
             result.problem.sectionHeadline,
@@ -637,7 +639,7 @@ function ResultsScreen({
 
         {/* 3. Solution */}
         <SectionCard
-          label="Solution Section"
+          label={ft.solutionSection}
           icon={Zap}
           copyText={[
             result.solution.sectionHeadline,
@@ -664,7 +666,7 @@ function ResultsScreen({
 
         {/* 4. Social Proof */}
         <SectionCard
-          label="Social Proof"
+          label={ft.socialProof}
           icon={MessageSquare}
           copyText={[
             result.socialProof.statsCopy,
@@ -702,7 +704,7 @@ function ResultsScreen({
 
         {/* 5. CTA Section */}
         <SectionCard
-          label="CTA Section"
+          label={ft.finalCta}
           icon={ArrowRight}
           copyText={[
             result.cta.headline,
@@ -727,7 +729,7 @@ function ResultsScreen({
 
         {/* 6. SEO Meta */}
         <SectionCard
-          label="SEO Meta"
+          label={ft.seoMeta ?? "SEO Meta"}
           icon={Share2}
           copyText={[
             `Title: ${result.seo.pageTitle}`,
