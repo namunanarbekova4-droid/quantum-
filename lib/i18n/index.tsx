@@ -20,21 +20,21 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
 
   useEffect(() => {
+    // Apply localStorage immediately for instant render, then confirm from DB
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
     if (stored && locales[stored]) {
       setLocaleState(stored);
-    } else {
-      // Try to load from profile
-      fetch("/api/user/profile")
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data?.language && locales[data.language as Locale]) {
-            setLocaleState(data.language as Locale);
-            localStorage.setItem(STORAGE_KEY, data.language);
-          }
-        })
-        .catch(() => {});
     }
+    // Always fetch from DB to get the authoritative value
+    fetch("/api/user/profile")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.language && locales[data.language as Locale]) {
+          setLocaleState(data.language as Locale);
+          localStorage.setItem(STORAGE_KEY, data.language);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const setLocale = useCallback((next: Locale) => {
