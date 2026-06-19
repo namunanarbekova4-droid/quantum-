@@ -1170,6 +1170,7 @@ export const en = {
       download: "Download",
       copy: "Copy",
       copied: "Locked in.",
+      errorGenerate: "Didn't generate cleanly. Try again — these things happen.",
     },
     investorEmail: {
       title: "Investor Email Writer",
@@ -2989,6 +2990,7 @@ export const ru: TranslationKeys = {
       download: "Скачать",
       copy: "Копировать",
       copied: "Скопировано!",
+      errorGenerate: "Не удалось сгенерировать. Попробуйте ещё раз.",
     },
     investorEmail: {
       title: "Написание письма инвестору",
@@ -4808,6 +4810,7 @@ export const es: TranslationKeys = {
       download: "Descargar",
       copy: "Copiar",
       copied: "¡Copiado!",
+      errorGenerate: "No se generó correctamente. Intenta de nuevo.",
     },
     investorEmail: {
       title: "Escritor de emails para inversores",
@@ -6627,6 +6630,7 @@ export const zh: TranslationKeys = {
       download: "下载",
       copy: "复制",
       copied: "已复制！",
+      errorGenerate: "生成失败，请重试。",
     },
     investorEmail: {
       title: "投资者邮件撰写器",
@@ -8377,6 +8381,7 @@ export const kz: TranslationKeys = createLocale({
       download: "Жүктеу",
       copy: "Көшіру",
       copied: "Көшірілді!",
+      errorGenerate: "Дұрыс жасалмады. Қайталап көріңіз.",
     },
     investorEmail: {
       title: "Инвесторға хат жазушы",

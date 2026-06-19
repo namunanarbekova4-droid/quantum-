@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { generateJSON } from "@/lib/gemini";
+import { generateJSON, classifyError } from "@/lib/gemini";
 
 export const maxDuration = 60;
 
@@ -92,6 +92,11 @@ Return ONLY a JSON object with this exact structure:
   }
 }${langInstruction}`;
 
-  const result = await generateJSON<OnePagerResult>(prompt);
-  return NextResponse.json(result);
+  try {
+    const result = await generateJSON<OnePagerResult>(prompt);
+    return NextResponse.json(result);
+  } catch (err) {
+    console.error("one-pager AI error:", err);
+    return NextResponse.json({ error: classifyError(err) }, { status: 500 });
+  }
 }

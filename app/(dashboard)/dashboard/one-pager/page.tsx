@@ -66,7 +66,7 @@ function FormField({
 
 export default function OnePagerPage() {
   const { t, locale } = useLanguage();
-  const fo = t.features.onePager;
+  const fo = t.features.onePager as Record<string, string>;
   const [form, setForm] = useState({
     startupName: "",
     tagline: "",
@@ -97,11 +97,11 @@ export default function OnePagerPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, locale }),
       });
-      if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error ?? "Request failed");
       setResult(data.onePager);
     } catch {
-      setError("Didn't generate cleanly. Try again — these things happen.");
+      setError(fo.errorGenerate ?? "Didn't generate cleanly. Try again — these things happen.");
     } finally {
       setLoading(false);
     }
