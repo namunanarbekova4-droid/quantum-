@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FileText, Download, Image as ImageIcon, Copy, Check,
+  FileText, Copy, Check,
   ZoomIn, ZoomOut, Maximize2, Sun, Moon, Printer,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
@@ -376,29 +376,10 @@ export default function OnePagerPage() {
   }, [theme, zoom]);
 
   // ── PNG via canvas ──
-  const downloadPNG = useCallback(async () => {
-    const el = docRef.current;
-    if (!el) return;
-    try {
-      // Attempt dynamic import of html2canvas if available, otherwise fall back to print
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mod = await import("html2canvas" as any).catch(() => null);
-      const html2canvas = mod?.default ?? null;
-      if (!html2canvas) {
-        window.print();
-        return;
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const canvas = await (html2canvas as any)(el, { scale: 3, useCORS: true, backgroundColor: null });
-      const url = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${doc?.company_name ?? "one-pager"}.png`;
-      a.click();
-    } catch {
-      window.print();
-    }
-  }, [doc]);
+  const downloadPNG = useCallback(() => {
+    // No html2canvas installed — export via print dialog (user can save as PDF/image)
+    window.print();
+  }, []);
 
   // ── Copy text ──
   const copyText = useCallback(() => {
@@ -547,7 +528,7 @@ export default function OnePagerPage() {
                     onClick={downloadPNG}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-[#1A1040] text-[#8B7CF8] hover:text-white hover:border-[#7C3AED]/40 rounded-lg transition-colors"
                   >
-                    <ImageIcon className="w-3.5 h-3.5" /> PNG
+                    <Printer className="w-3.5 h-3.5" /> Print / PNG
                   </button>
                   <button
                     onClick={downloadPDF}
