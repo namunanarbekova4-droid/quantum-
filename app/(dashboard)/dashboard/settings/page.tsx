@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
+import { Locale, localeLabels } from "@/lib/i18n/translations";
 import { type Plan, PLAN_DISPLAY, PLAN_LIMITS } from "@/lib/plans";
 
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
-  const { t } = useLanguage();
+  const { t, locale, setLocale } = useLanguage();
+  const [langSaved, setLangSaved] = useState(false);
   const { toast } = useToast();
 
   const tabs = [
@@ -209,6 +211,7 @@ export default function SettingsPage() {
 
       <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} className="mt-6">
         {tab === "profile" && (
+          <>
           <Card className="p-6 space-y-5">
             <h2 className="text-base font-semibold text-white">{t.settings.profile.title}</h2>
             <div className="flex items-center gap-4">
@@ -278,6 +281,42 @@ export default function SettingsPage() {
               <Button onClick={save} loading={saving}>{t.common.save}</Button>
             </div>
           </Card>
+
+          {/* Language selector */}
+          <Card className="p-6 space-y-4 mt-4">
+            <h2 className="text-base font-semibold text-white">{t.settings.language.title}</h2>
+            <p className="text-sm text-[#8B7CF8]/70">{t.settings.language.subtitle}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+              {(Object.keys(localeLabels) as Locale[]).map((loc) => {
+                const info = localeLabels[loc];
+                return (
+                  <button
+                    key={loc}
+                    onClick={() => {
+                      setLocale(loc);
+                      setLangSaved(true);
+                      setTimeout(() => setLangSaved(false), 2000);
+                    }}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all",
+                      locale === loc
+                        ? "bg-[#C9A84C]/15 border-[#C9A84C]/60 text-[#C9A84C]"
+                        : "bg-[#06040F] border-[#1A1040] text-[#8B7CF8] hover:text-white hover:border-[#2D1B69]"
+                    )}
+                  >
+                    <span className="text-base">{info.flag}</span>
+                    <span className="text-xs">{info.nativeLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {langSaved && (
+              <p className="text-xs text-green-400 flex items-center gap-1">
+                <Check className="w-3 h-3" /> {t.settings.language.saved}
+              </p>
+            )}
+          </Card>
+          </>
         )}
 
         {tab === "account" && (
@@ -364,7 +403,7 @@ export default function SettingsPage() {
                 <div className="w-8 h-8 bg-[#C9A84C]/10 border border-[#C9A84C]/20 rounded-lg flex items-center justify-center">
                   <CreditCard className="w-4 h-4 text-[#C9A84C]" />
                 </div>
-                <h2 className="text-base font-semibold text-white">Plan &amp; Usage</h2>
+                <h2 className="text-base font-semibold text-white">{t.settings.billing.planUsage}</h2>
               </div>
 
               {planData ? (
@@ -374,24 +413,24 @@ export default function SettingsPage() {
                       {PLAN_DISPLAY[planData.plan].label}
                     </span>
                     <span className="px-2 py-0.5 text-xs font-semibold bg-[#C9A84C]/10 border border-[#C9A84C]/20 text-[#C9A84C] rounded-full">
-                      Early Access — FREE
+                      {t.settings.billing.earlyAccessFree}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
                     {[
                       {
-                        label: "Decisions this month",
+                        label: t.settings.billing.decisionsThisMonth,
                         used: planData.usage.decisionsThisMonth,
                         limit: planData.limits.decisionsPerMonth,
                       },
                       {
-                        label: "Mentor requests",
+                        label: t.settings.billing.mentorRequests,
                         used: planData.usage.mentorRequestsThisMonth,
                         limit: planData.limits.mentorRequestsPerMonth,
                       },
                       {
-                        label: "Active alerts",
+                        label: t.settings.billing.activeAlerts,
                         used: planData.usage.alertsCount,
                         limit: planData.limits.alerts,
                       },
@@ -401,7 +440,7 @@ export default function SettingsPage() {
                         <p className="text-lg font-bold text-white font-mono">
                           {stat.used}
                           <span className="text-xs text-[#555] font-sans ml-1">
-                            / {stat.limit === -1 ? "Unlimited" : stat.limit}
+                            / {stat.limit === -1 ? t.settings.billing.unlimited : stat.limit}
                           </span>
                         </p>
                       </div>
@@ -418,18 +457,13 @@ export default function SettingsPage() {
 
             {/* Plan selection cards */}
             <Card className="p-6">
-              <h3 className="text-sm font-semibold text-[#555555] uppercase tracking-wider mb-2">Change Plan</h3>
-              <p className="text-xs text-[#888] mb-5">All plans are free during Early Access. Upgrade to unlock more features.</p>
+              <h3 className="text-sm font-semibold text-[#555555] uppercase tracking-wider mb-2">{t.settings.billing.changePlan}</h3>
+              <p className="text-xs text-[#888] mb-5">{t.settings.billing.changePlanDesc}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {(["FREE_TRIAL", "PRO", "MAX", "PREMIUM"] as Plan[]).map((planId) => {
                   const isCurrent = planData?.plan === planId;
                   const isMax = planId === "MAX";
-                  const features: Record<Plan, string[]> = {
-                    FREE_TRIAL: ["5 decisions/month", "7-day history"],
-                    PRO: ["50 decisions/month", "3 alerts", "1 private room"],
-                    MAX: ["Unlimited decisions", "Unlimited alerts", "VIP community"],
-                    PREMIUM: ["Everything in Max", "API access", "Account manager"],
-                  };
+                  const planFeatures = t.settings.billing.planFeatures as Record<Plan, string[]>;
                   return (
                     <div
                       key={planId}
@@ -443,12 +477,12 @@ export default function SettingsPage() {
                         </span>
                         {isCurrent && (
                           <span className="flex items-center gap-1 text-xs text-[#C9A84C]">
-                            <Check className="w-3 h-3" /> Current
+                            <Check className="w-3 h-3" /> {t.settings.billing.current}
                           </span>
                         )}
                       </div>
                       <ul className="space-y-1.5 mb-4">
-                        {features[planId].map((f) => (
+                        {(planFeatures[planId] ?? []).map((f) => (
                           <li key={f} className="text-xs text-[#888] flex items-start gap-1.5">
                             <Check className="w-3 h-3 text-[#C9A84C] flex-shrink-0 mt-0.5" />
                             {f}
@@ -467,7 +501,7 @@ export default function SettingsPage() {
                             : "border border-[#C9A84C]/30 text-[#C9A84C] hover:bg-[#C9A84C]/8 disabled:opacity-70"
                         )}
                       >
-                        {upgradingPlan === planId ? "Upgrading..." : isCurrent ? "Current Plan" : "Select Plan"}
+                        {upgradingPlan === planId ? t.settings.billing.upgrading : isCurrent ? t.settings.billing.currentPlan : t.settings.billing.selectPlan}
                       </button>
                     </div>
                   );
@@ -478,8 +512,7 @@ export default function SettingsPage() {
             {/* Early access note */}
             <div className="p-4 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg">
               <p className="text-xs text-[#555] leading-relaxed">
-                All plan changes are instant and free during Early Access. No payment required.
-                Paid plans will be introduced after launch with advance notice to all members.
+                {t.settings.billing.planChangesNote}
               </p>
             </div>
           </div>
