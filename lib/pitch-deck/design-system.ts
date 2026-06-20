@@ -18,23 +18,23 @@ export const AURORA_PALETTES: Record<SlideType, [string, string]> = {
   ask:            ["rgba(45,212,191,0.45)", "rgba(59,130,246,0.35)"],
 };
 
-export interface OrbConfig { x: string; y: string; size: string; color: string; }
+export type OrbConfig = { x: string; y: string; size: string; color: string };
 
 export function generateAuroraOrbs(slideType: SlideType): OrbConfig[] {
   const [c1, c2] = AURORA_PALETTES[slideType];
   const configs: Record<SlideType, OrbConfig[]> = {
-    cover:          [{ x: "10%", y: "15%", size: "600px", color: c1 }, { x: "65%", y: "55%", size: "500px", color: c2 }],
-    problem:        [{ x: "75%", y: "5%",  size: "550px", color: c1 }, { x: "0%",  y: "60%", size: "480px", color: c2 }],
-    personal_story: [{ x: "5%",  y: "10%", size: "520px", color: c1 }, { x: "70%", y: "65%", size: "460px", color: c2 }],
-    solution:       [{ x: "60%", y: "0%",  size: "580px", color: c1 }, { x: "5%",  y: "55%", size: "500px", color: c2 }],
-    market:         [{ x: "0%",  y: "0%",  size: "560px", color: c1 }, { x: "70%", y: "50%", size: "520px", color: c2 }],
-    product:        [{ x: "55%", y: "5%",  size: "540px", color: c1 }, { x: "0%",  y: "60%", size: "480px", color: c2 }],
-    traction:       [{ x: "70%", y: "0%",  size: "580px", color: c1 }, { x: "5%",  y: "55%", size: "500px", color: c2 }],
-    business_model: [{ x: "0%",  y: "5%",  size: "550px", color: c1 }, { x: "65%", y: "60%", size: "480px", color: c2 }],
-    competition:    [{ x: "65%", y: "5%",  size: "560px", color: c1 }, { x: "0%",  y: "55%", size: "520px", color: c2 }],
-    team:           [{ x: "5%",  y: "5%",  size: "520px", color: c1 }, { x: "60%", y: "60%", size: "480px", color: c2 }],
-    financials:     [{ x: "70%", y: "5%",  size: "580px", color: c1 }, { x: "0%",  y: "60%", size: "500px", color: c2 }],
-    ask:            [{ x: "10%", y: "10%", size: "600px", color: c1 }, { x: "60%", y: "50%", size: "540px", color: c2 }],
+    cover:          [{ x: "10%",  y: "15%",  size: "600px", color: c1 }, { x: "65%", y: "55%",  size: "500px", color: c2 }],
+    problem:        [{ x: "75%",  y: "5%",   size: "550px", color: c1 }, { x: "0%",  y: "60%",  size: "480px", color: c2 }],
+    personal_story: [{ x: "5%",   y: "10%",  size: "520px", color: c1 }, { x: "70%", y: "65%",  size: "460px", color: c2 }],
+    solution:       [{ x: "60%",  y: "0%",   size: "580px", color: c1 }, { x: "5%",  y: "55%",  size: "500px", color: c2 }],
+    market:         [{ x: "0%",   y: "0%",   size: "560px", color: c1 }, { x: "70%", y: "50%",  size: "520px", color: c2 }],
+    product:        [{ x: "55%",  y: "5%",   size: "540px", color: c1 }, { x: "0%",  y: "60%",  size: "480px", color: c2 }],
+    traction:       [{ x: "70%",  y: "0%",   size: "580px", color: c1 }, { x: "5%",  y: "55%",  size: "500px", color: c2 }],
+    business_model: [{ x: "0%",   y: "5%",   size: "550px", color: c1 }, { x: "65%", y: "60%",  size: "480px", color: c2 }],
+    competition:    [{ x: "65%",  y: "5%",   size: "560px", color: c1 }, { x: "0%",  y: "55%",  size: "520px", color: c2 }],
+    team:           [{ x: "5%",   y: "5%",   size: "520px", color: c1 }, { x: "60%", y: "60%",  size: "480px", color: c2 }],
+    financials:     [{ x: "70%",  y: "5%",   size: "580px", color: c1 }, { x: "0%",  y: "60%",  size: "500px", color: c2 }],
+    ask:            [{ x: "10%",  y: "10%",  size: "600px", color: c1 }, { x: "60%", y: "50%",  size: "540px", color: c2 }],
   };
   return configs[slideType];
 }

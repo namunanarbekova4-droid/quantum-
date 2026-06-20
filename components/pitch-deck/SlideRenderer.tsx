@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import type { SlideType } from "@/lib/pitch-deck/design-system";
 import { CoverSlide } from "./slides/CoverSlide";
@@ -11,35 +10,85 @@ import { TeamSlide } from "./slides/TeamSlide";
 import { AskSlide } from "./slides/AskSlide";
 import { GenericSlide } from "./slides/GenericSlide";
 
+// Maps to the PitchSlide shape returned by the API
 export interface SlideData {
+  slide_number?: number;
   slide_type: string;
   title: string;
-  body?: string;
+  subtitle?: string;
+  main_content?: string;
+  speaker_notes?: string;
+  key_stat?: string | null;
+  emotional_purpose?: string;
+  visual_hint?: string;
+  // Optional structured data
   bullets?: string[];
+  body?: string;
   keystat?: string;
-  notes?: string;
-  team?: { name: string; role?: string; bio?: string }[];
+  team?: { name: string; role: string; bio?: string }[];
 }
 
-export function SlideRenderer({ slide }: { slide: SlideData }) {
-  const type = slide.slide_type as SlideType;
-  const p = { title: slide.title, body: slide.body, bullets: slide.bullets, keystat: slide.keystat };
+interface SlideRendererProps {
+  slide: SlideData;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const VALID_SLIDE_TYPES: SlideType[] = [
+  "cover", "problem", "personal_story", "solution", "market",
+  "product", "traction", "business_model", "competition", "team", "financials", "ask",
+];
+
+function toSlideType(raw: string): SlideType {
+  return VALID_SLIDE_TYPES.includes(raw as SlideType) ? (raw as SlideType) : "cover";
+}
+
+export function SlideRenderer({ slide, style }: SlideRendererProps) {
+  const type = toSlideType(slide.slide_type);
+
+  // Normalize: support both structured (bullets/body) and API shape (main_content/subtitle)
+  const body = slide.body ?? slide.main_content ?? slide.subtitle ?? "";
+  const keystat = slide.keystat ?? (slide.key_stat != null ? String(slide.key_stat) : undefined);
+  const bullets = slide.bullets;
+
+  const commonProps = { title: slide.title, body, bullets, keystat };
+
+  let content: React.ReactNode;
   switch (type) {
-    case "cover":          return <CoverSlide title={slide.title} subtitle={slide.body} keystat={slide.keystat} />;
-    case "problem":        return <ProblemSlide {...p} />;
-    case "personal_story": return <GenericSlide slideType="personal_story" {...p} />;
-    case "solution":       return <SolutionSlide {...p} />;
-    case "market":         return <MarketSlide title={slide.title} body={slide.body} keystat={slide.keystat} />;
-    case "product":        return <ProductSlide {...p} />;
-    case "traction":       return <TractionSlide {...p} />;
-    case "business_model": return <GenericSlide slideType="business_model" {...p} />;
-    case "competition":    return <GenericSlide slideType="competition" {...p} />;
-    case "team":           return <TeamSlide title={slide.title} team={slide.team} body={slide.body} bullets={slide.bullets} />;
-    case "financials":     return <GenericSlide slideType="financials" {...p} />;
-    case "ask":            return <AskSlide {...p} />;
-    default: {
-      const safeType: SlideType = ["cover","problem","personal_story","solution","market","product","traction","business_model","competition","team","financials","ask"].includes(type) ? type as SlideType : "cover";
-      return <GenericSlide slideType={safeType} {...p} />;
-    }
+    case "cover":
+      content = <CoverSlide {...commonProps} subtitle={slide.subtitle} />; break;
+    case "problem":
+      content = <ProblemSlide {...commonProps} />; break;
+    case "personal_story":
+      content = <GenericSlide slideType="personal_story" {...commonProps} />; break;
+    case "solution":
+      content = <SolutionSlide {...commonProps} />; break;
+    case "market":
+      content = <MarketSlide {...commonProps} />; break;
+    case "product":
+      content = <ProductSlide {...commonProps} />; break;
+    case "traction":
+      content = <TractionSlide {...commonProps} />; break;
+    case "business_model":
+      content = <GenericSlide slideType="business_model" {...commonProps} />; break;
+    case "competition":
+      content = <GenericSlide slideType="competition" {...commonProps} />; break;
+    case "team":
+      content = <TeamSlide {...commonProps} team={slide.team} />; break;
+    case "financials":
+      content = <GenericSlide slideType="financials" {...commonProps} />; break;
+    case "ask":
+      content = <AskSlide {...commonProps} />; break;
+    default:
+      content = <GenericSlide slideType="cover" {...commonProps} />;
   }
+
+  if (style) {
+    return (
+      <div style={{ position: "relative", width: "100%", overflow: "hidden", ...style }}>
+        {content}
+      </div>
+    );
+  }
+  return <>{content}</>;
 }
