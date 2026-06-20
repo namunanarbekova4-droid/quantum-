@@ -12,6 +12,7 @@ import { ThemeSelector } from "@/features/pitch-deck/components/ThemeSelector";
 import { DECK_THEMES } from "@/features/pitch-deck/lib/theme-system";
 import type { ThemeId, DeckTheme } from "@/features/pitch-deck/lib/theme-system";
 import { generatePPTX } from "@/features/pitch-deck/lib/pptx-generator";
+import { SlideRenderer } from "@/components/pitch-deck/SlideRenderer";
 
 // ─── Slide themes ─────────────────────────────────────────────────────────────
 
@@ -985,33 +986,31 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="absolute inset-0 flex flex-col justify-between p-8 md:p-12"
-                style={{ background: theme.bg }}
+                className="absolute inset-0"
               >
-                {/* Top row: badge + slide num */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{ background: theme.accent + "22", color: theme.accent, border: `1px solid ${theme.accent}44` }}>
+                <SlideRenderer slide={{
+                  slide_type: slide.slide_type,
+                  title: slide.title,
+                  body: slide.main_content,
+                  keystat: slide.key_stat ?? undefined,
+                }} />
+                {/* Overlay controls */}
+                <div className="absolute top-3 left-4 right-4 flex items-center justify-between pointer-events-none" style={{ zIndex: 10 }}>
+                  <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full pointer-events-auto" style={{ background: "rgba(0,0,0,0.45)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.15)" }}>
                     {slide.slide_type.replace(/_/g, " ")}
                   </span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-medium" style={{ color: theme.textColor + "88" }}>
+                  <div className="flex items-center gap-3 pointer-events-auto">
+                    <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
                       {current + 1} / {slides.length}
                     </span>
-                    <button onClick={toggleFullscreen} className="p-1 rounded-md transition-opacity hover:opacity-70" style={{ color: theme.textColor + "88" }}>
+                    <button onClick={toggleFullscreen} className="p-1 rounded-md transition-opacity hover:opacity-70" style={{ color: "rgba(255,255,255,0.5)" }}>
                       {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
-
-                {/* Radial glow overlay for depth */}
-                <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 80% 10%, ${theme.accent}18 0%, transparent 60%)` }} />
-
-                {/* Per-type slide content */}
-                {renderSlideContent(slide, theme, deckName, fullscreen)}
-
-                {/* Bottom: startup name watermark */}
-                <div className="flex items-center justify-between relative z-10">
-                  <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: theme.textColor + "44" }}>
+                {/* Bottom watermark + dots */}
+                <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between" style={{ zIndex: 10 }}>
+                  <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.25)" }}>
                     {deckName}
                   </span>
                   <div className="flex items-center gap-1">
@@ -1022,7 +1021,7 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
                         className="transition-all rounded-full"
                         style={{
                           width: i === current ? 20 : 6, height: 6,
-                          background: i === current ? theme.accent : theme.textColor + "44",
+                          background: i === current ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.25)",
                         }}
                       />
                     ))}
