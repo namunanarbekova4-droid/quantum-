@@ -12,6 +12,7 @@ import { ThemeSelector } from "@/features/pitch-deck/components/ThemeSelector";
 import { DECK_THEMES } from "@/features/pitch-deck/lib/theme-system";
 import type { ThemeId, DeckTheme } from "@/features/pitch-deck/lib/theme-system";
 import { generatePPTX } from "@/features/pitch-deck/lib/pptx-generator";
+import { SlideRenderer } from "@/components/pitch-deck/SlideRenderer";
 
 // ─── Slide themes ─────────────────────────────────────────────────────────────
 
@@ -985,47 +986,46 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="absolute inset-0 flex flex-col justify-between p-8 md:p-12"
-                style={{ background: theme.bg }}
+                className="absolute inset-0"
               >
-                {/* Top row: badge + slide num */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{ background: theme.accent + "22", color: theme.accent, border: `1px solid ${theme.accent}44` }}>
-                    {slide.slide_type.replace(/_/g, " ")}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-medium" style={{ color: theme.textColor + "88" }}>
-                      {current + 1} / {slides.length}
+                {/* Aurora cinematic slide renderer */}
+                <SlideRenderer slide={slide} style={{ borderRadius: fullscreen ? 0 : 16 }} />
+
+                {/* Overlay controls layer */}
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none" style={{ padding: "clamp(8px,2%,20px) clamp(10px,2.5%,24px)" }}>
+                  {/* Top row: badge + slide num + fullscreen */}
+                  <div className="flex items-center justify-between pointer-events-auto">
+                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(4px)" }}>
+                      {slide.slide_type.replace(/_/g, " ")}
                     </span>
-                    <button onClick={toggleFullscreen} className="p-1 rounded-md transition-opacity hover:opacity-70" style={{ color: theme.textColor + "88" }}>
-                      {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+                        {current + 1} / {slides.length}
+                      </span>
+                      <button onClick={toggleFullscreen} className="p-1 rounded-md transition-opacity hover:opacity-70" style={{ color: "rgba(255,255,255,0.5)" }}>
+                        {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Radial glow overlay for depth */}
-                <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 80% 10%, ${theme.accent}18 0%, transparent 60%)` }} />
-
-                {/* Per-type slide content */}
-                {renderSlideContent(slide, theme, deckName, fullscreen)}
-
-                {/* Bottom: startup name watermark */}
-                <div className="flex items-center justify-between relative z-10">
-                  <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: theme.textColor + "44" }}>
-                    {deckName}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {slides.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
-                        className="transition-all rounded-full"
-                        style={{
-                          width: i === current ? 20 : 6, height: 6,
-                          background: i === current ? theme.accent : theme.textColor + "44",
-                        }}
-                      />
-                    ))}
+                  {/* Bottom: startup name + dot nav */}
+                  <div className="flex items-center justify-between pointer-events-auto">
+                    <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.3)" }}>
+                      {deckName}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {slides.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                          className="transition-all rounded-full"
+                          style={{
+                            width: i === current ? 20 : 6, height: 6,
+                            background: i === current ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.25)",
+                          }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -1155,32 +1155,26 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
           {/* Thumbnail strip */}
           {!fullscreen && (
             <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {slides.map((s, i) => {
-                const th = getTheme(s.slide_type);
-                const thumbBg = deckTheme.gradient;
-                const thumbTitle = deckTheme.textPrimary;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setCurrent(i)}
-                    className="flex-shrink-0 rounded-lg overflow-hidden transition-all"
-                    style={{
-                      width: 100, height: 68,
-                      outline: i === current ? `2px solid ${th.accent}` : "2px solid transparent",
-                      outlineOffset: 2,
-                      background: thumbBg,
-                    }}
-                  >
-                    <div className="w-full h-full flex flex-col justify-between p-1.5" style={{ background: thumbBg }}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[7px] font-bold" style={{ color: th.accent }}>{s.slide_type.replace(/_/g, " ")}</span>
-                        <span className="text-[7px]" style={{ color: thumbTitle + "66" }}>{i + 1}</span>
-                      </div>
-                      <span className="text-[8px] font-semibold leading-tight line-clamp-2" style={{ color: thumbTitle }}>{s.title}</span>
-                    </div>
-                  </button>
-                );
-              })}
+              {slides.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  className="flex-shrink-0 rounded-lg overflow-hidden transition-all relative"
+                  style={{
+                    width: 120, height: 68,
+                    outline: i === current ? "2px solid rgba(255,255,255,0.6)" : "2px solid rgba(255,255,255,0.1)",
+                    outlineOffset: 2,
+                  }}
+                >
+                  {/* Mini aurora preview */}
+                  <SlideRenderer slide={s} style={{ borderRadius: 6, pointerEvents: "none" }} />
+                  {/* Overlay with title */}
+                  <div className="absolute inset-0 flex flex-col justify-between p-1.5" style={{ background: i === current ? "rgba(0,0,0,0.15)" : "rgba(0,0,0,0.3)" }}>
+                    <span className="text-[6px] font-bold uppercase tracking-wide text-white/60">{s.slide_type.replace(/_/g, " ")}</span>
+                    <span className="text-[7px] font-semibold leading-tight line-clamp-2 text-white/80">{s.title}</span>
+                  </div>
+                </button>
+              ))}
             </div>
           )}
         </div>
