@@ -14,6 +14,18 @@ import type { ThemeId, DeckTheme } from "@/features/pitch-deck/lib/theme-system"
 import { generatePPTX } from "@/features/pitch-deck/lib/pptx-generator";
 import { SlideRenderer } from "@/components/pitch-deck/SlideRenderer";
 
+// ─── Style modes ─────────────────────────────────────────────────────────────
+
+const STYLE_MODES = [
+  { id: "investor-pitch", label: "Investor Pitch", emoji: "💰", hint: "Data-driven, clear ask, traction-first" },
+  { id: "yc-demo-day",   label: "YC Demo Day",    emoji: "🚀", hint: "Hook fast, problem/solution/traction" },
+  { id: "apple-keynote", label: "Apple Keynote",  emoji: "🍎", hint: "Product-led, cinematic, emotion-driven" },
+  { id: "gen-z-viral",   label: "Gen Z Viral",    emoji: "⚡", hint: "Bold stats, punchy slides, meme energy" },
+  { id: "ted-talk",      label: "TED Talk",       emoji: "🎙", hint: "Story-first, insight-driven, one big idea" },
+  { id: "luxury-brand",  label: "Luxury Brand",   emoji: "✦",  hint: "Premium positioning, exclusivity, aspiration" },
+] as const;
+type StyleModeId = typeof STYLE_MODES[number]["id"];
+
 // ─── Slide themes ─────────────────────────────────────────────────────────────
 
 const SLIDE_THEMES: Record<string, { bg: string; titleColor: string; accent: string; textColor: string; badge: string }> = {
@@ -895,11 +907,13 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
   const [current, setCurrent] = useState(0);
   const [showNotes, setShowNotes] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [tab, setTab] = useState<"slides" | "scripts" | "qa">("slides");
+  const [tab, setTab] = useState<"slides" | "scripts" | "qa" | "roast">("slides");
   const [showImproveMenu, setShowImproveMenu] = useState(false);
   const [improving, setImproving] = useState(false);
   const [improveSuccess, setImproveSuccess] = useState(false);
   const [investorMode, setInvestorMode] = useState(false);
+  const [roastResult, setRoastResult] = useState<{ overall_roast: string; slide_roasts: { slide_type: string; title: string; roast: string; severity: string }[]; killer_line: string; redemption_arc: string } | null>(null);
+  const [roasting, setRoasting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const slides = result.slides;
   const slide = slides[current];
@@ -958,9 +972,10 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
       {!fullscreen && (
         <div className="flex gap-1 mb-4 p-1 rounded-xl" style={{ background: "#0F0A1F", border: "1px solid #1A1040" }}>
           {([
-            { key: "slides", icon: <Layers className="w-3.5 h-3.5" />, label: fts.slides },
+            { key: "slides",  icon: <Layers className="w-3.5 h-3.5" />,   label: fts.slides },
             { key: "scripts", icon: <FileText className="w-3.5 h-3.5" />, label: fts.scripts },
-            { key: "qa", icon: <HelpCircle className="w-3.5 h-3.5" />, label: fts.qa },
+            { key: "qa",      icon: <HelpCircle className="w-3.5 h-3.5" />, label: fts.qa },
+            { key: "roast",   icon: <span className="text-sm">🔥</span>,   label: "Roast" },
           ] as const).map((tb) => (
             <button
               key={tb.key}
@@ -1209,6 +1224,69 @@ function SlideViewer({ result, deckName, deckTheme, startupContext, locale, onSl
         </div>
       )}
 
+      {/* ROAST TAB */}
+      {tab === "roast" && !fullscreen && (
+        <div className="space-y-4">
+          {!roastResult ? (
+            <div className="rounded-2xl p-8 text-center" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
+              <div className="text-5xl mb-4">🔥</div>
+              <h3 className="text-xl font-black text-white mb-2">Roast My Deck</h3>
+              <p className="text-sm text-[#8B7CF8] mb-6 max-w-xs mx-auto">Get brutally honest AI feedback. It'll sting. But it'll make your deck better.</p>
+              <button
+                onClick={async () => {
+                  setRoasting(true);
+                  try {
+                    const res = await fetch("/api/pitch-deck/roast", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ slides: slides.map(s => ({ slide_type: s.slide_type, title: s.title, main_content: s.main_content })), startupName: deckName }),
+                    });
+                    if (res.ok) setRoastResult(await res.json());
+                  } finally {
+                    setRoasting(false);
+                  }
+                }}
+                disabled={roasting}
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-60"
+                style={{ background: "linear-gradient(135deg, #dc2626, #ea580c)", color: "#fff" }}
+              >
+                {roasting ? <><Loader2 className="w-4 h-4 animate-spin" /> Burning through your slides…</> : "Roast It 🔥"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Killer line */}
+              <div className="rounded-2xl p-6" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)" }}>
+                <p className="text-xs font-bold uppercase tracking-widest text-red-400 mb-2">💀 The Verdict</p>
+                <p className="text-lg font-black text-white italic">&ldquo;{roastResult.killer_line}&rdquo;</p>
+              </div>
+              {/* Overall */}
+              <div className="rounded-xl p-5" style={{ background: "rgba(15,10,31,0.9)", border: "1px solid #1A1040" }}>
+                <p className="text-xs font-bold uppercase tracking-widest text-[#8B7CF8] mb-2">Overall</p>
+                <p className="text-sm leading-relaxed text-white/80">{roastResult.overall_roast}</p>
+              </div>
+              {/* Slide roasts */}
+              {roastResult.slide_roasts.map((r, i) => (
+                <div key={i} className="rounded-xl p-4" style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.18)" }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-base">{r.severity}</span>
+                    <span className="text-xs font-bold text-red-400 uppercase tracking-wide">{r.slide_type.replace(/_/g, " ")}</span>
+                    <span className="text-xs text-[#555]">— {r.title}</span>
+                  </div>
+                  <p className="text-sm text-white/75">{r.roast}</p>
+                </div>
+              ))}
+              {/* Redemption arc */}
+              <div className="rounded-xl p-5" style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.25)" }}>
+                <p className="text-xs font-bold uppercase tracking-widest text-[#C9A84C] mb-2">✓ One Thing You Got Right</p>
+                <p className="text-sm leading-relaxed italic" style={{ color: "#C9A84C" }}>{roastResult.redemption_arc}</p>
+              </div>
+              <button onClick={() => setRoastResult(null)} className="text-xs text-[#555] hover:text-white transition-colors">Roast Again</button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Q&A TAB */}
       {tab === "qa" && !fullscreen && (
         <div className="space-y-4">
@@ -1345,6 +1423,7 @@ export default function PitchDeckPage() {
   const [deckName, setDeckName] = useState("My Startup");
   const [error, setError] = useState("");
   const [selectedTheme, setSelectedTheme] = useState<ThemeId>("dark-premium");
+  const [styleMode, setStyleMode] = useState<StyleModeId>("investor-pitch");
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [pptxLoading, setPptxLoading] = useState(false);
   const [pptxError, setPptxError] = useState("");
@@ -1364,7 +1443,7 @@ export default function PitchDeckPage() {
       const res = await fetch("/api/pitch-deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: finalAnswers, startupName, locale }),
+        body: JSON.stringify({ answers: finalAnswers, startupName, locale, styleMode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Generation failed");
@@ -1463,6 +1542,31 @@ export default function PitchDeckPage() {
               <div className="flex justify-center">
                 <ThemeSelector selected={selectedTheme} onChange={setSelectedTheme} />
               </div>
+            </div>
+
+            {/* Style Mode selector */}
+            <div className="mb-8">
+              <p className="text-xs text-[#8B7CF8] mb-3 font-semibold uppercase tracking-widest">Presentation Style</p>
+              <div className="flex gap-2 flex-wrap justify-center">
+                {STYLE_MODES.map((mode) => (
+                  <button
+                    key={mode.id}
+                    onClick={() => setStyleMode(mode.id)}
+                    title={mode.hint}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+                    style={{
+                      background: styleMode === mode.id ? "#C9A84C" : "rgba(124,58,237,0.1)",
+                      color: styleMode === mode.id ? "#06040F" : "#8B7CF8",
+                      border: styleMode === mode.id ? "1px solid #C9A84C" : "1px solid rgba(124,58,237,0.25)",
+                    }}
+                  >
+                    <span>{mode.emoji}</span> {mode.label}
+                  </button>
+                ))}
+              </div>
+              {STYLE_MODES.find(m => m.id === styleMode) && (
+                <p className="text-xs text-[#555] mt-2">{STYLE_MODES.find(m => m.id === styleMode)!.hint}</p>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-3">

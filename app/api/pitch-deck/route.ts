@@ -80,15 +80,25 @@ const LANG_MAP: Record<string, string> = {
   en: "English", ru: "Russian", es: "Spanish", zh: "Chinese", kz: "Kazakh",
 };
 
+const STYLE_MODE_INSTRUCTIONS: Record<string, string> = {
+  "investor-pitch": "Frame every slide with investor ROI in mind. Lead with traction and data. Every slide should answer 'why should I write a check?'",
+  "yc-demo-day": "Structure: strong hook, crisp problem/solution, impressive traction number, clear ask. No fluff. Be brutally concise like a YC demo day presentation.",
+  "apple-keynote": "Cinematic product storytelling. Build emotional tension before the reveal. One hero idea per slide. Make the product feel magical and inevitable.",
+  "gen-z-viral": "Maximum boldness. Short punchy text. Shocking stats front and center. Every slide should feel like a viral tweet. Use bold claims and energy.",
+  "ted-talk": "Lead with a big human insight, not a product pitch. Build a narrative arc around one transformative idea. Story-first, product second.",
+  "luxury-brand": "Premium positioning only. Every word implies exclusivity and aspiration. Never lead with price. Let scarcity and desirability do the work.",
+};
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { answers, startupName, locale = "en" } = body as {
+  const { answers, startupName, locale = "en", styleMode = "investor-pitch" } = body as {
     answers: string[];
     startupName: string;
     locale?: string;
+    styleMode?: string;
   };
 
   if (!answers || answers.length < 10) {
@@ -121,7 +131,11 @@ Traction: ${answers[7] || "-"}
 Team: ${answers[8] || "-"}
 Raise: ${answers[9] || "-"}`;
 
-  const slidesPrompt = `You are a pitch deck strategist who understands that every slide in a great deck has one job: advance a specific investor emotion. Investors don't just evaluate decks — they feel their way through them. If the emotion is wrong at any slide, the investor is gone before the ask.
+  const styleModeInstruction = STYLE_MODE_INSTRUCTIONS[styleMode] ?? STYLE_MODE_INSTRUCTIONS["investor-pitch"];
+
+  const slidesPrompt = `You are a pitch deck strategist. PRESENTATION STYLE: ${styleModeInstruction}
+
+You understand that every slide in a great deck has one job: advance a specific investor emotion. Investors don't just evaluate decks — they feel their way through them. If the emotion is wrong at any slide, the investor is gone before the ask.
 
 Emotion map you must follow precisely:
 - cover: curiosity — make them want to know more before you say a word
