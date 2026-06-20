@@ -234,46 +234,45 @@ function renderSlideHtml(slide: PitchSlide, th: typeof DEFAULT_THEME, startupNam
   }
 }
 
-function downloadPDF(result: PitchDeckResult, startupName: string) {
-  const slidesHtml = result.slides.map((slide) => {
-    const th = getTheme(slide.slide_type);
-    return renderSlideHtml(slide, th, startupName, result.slides.length);
-  }).join("");
+async function downloadPDF(startupName: string, setPdfLoading: (v: boolean) => void) {
+  setPdfLoading(true);
+  try {
+    const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+      import("html2canvas"),
+      import("jspdf"),
+    ]);
 
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8"/>
-<title>${startupName} — Pitch Deck</title>
-<style>
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:'Helvetica Neue',Arial,sans-serif;}
-  .page{width:100%;min-height:100vh;padding:48px 60px;display:flex;flex-direction:column;justify-content:center;page-break-after:always;overflow:hidden;}
-  .page:last-of-type{page-break-after:avoid;}
-  .extra{padding:48px 64px;border-top:1px solid #333;}
-  .extra h2{font-size:20px;font-weight:700;color:#7C3AED;margin-bottom:12px;}
-  .extra p{font-size:14px;color:#444;line-height:1.8;white-space:pre-wrap;}
-  .qa-item{margin-bottom:16px;padding:14px;border:1px solid #eee;border-radius:8px;}
-  .qa-q{font-size:14px;font-weight:700;color:#111;margin-bottom:6px;}
-  .qa-a{font-size:13px;color:#555;line-height:1.6;}
-  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
-</style>
-</head>
-<body>
-${slidesHtml}
-<div class="extra"><h2>3-Minute Script</h2><p>${result.three_minute_script}</p></div>
-<div class="extra"><h2>Elevator Pitch (30 sec)</h2><p>${result.elevator_pitch}</p></div>
-<div class="extra"><h2>Investor Q&amp;A</h2>${result.investor_questions?.map(qa => `<div class="qa-item"><div class="qa-q">Q: ${qa.question}</div><div class="qa-a">A: ${qa.answer}</div></div>`).join("") ?? ""}</div>
-</body>
-</html>`;
+    const W = 1280;
+    const H = 720;
+    const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [W, H] });
 
-  const blob = new Blob([html], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
-  const win = window.open(url, "_blank");
-  if (win) {
-    win.onload = () => {
-      setTimeout(() => { win.print(); URL.revokeObjectURL(url); }, 500);
-    };
+    const containers = document.querySelectorAll<HTMLElement>("[data-pdf-slide]");
+    if (containers.length === 0) {
+      console.warn("No pdf-slide elements found");
+      return;
+    }
+
+    await document.fonts.ready;
+    await new Promise<void>((r) => setTimeout(r, 350));
+
+    for (let i = 0; i < containers.length; i++) {
+      const el = containers[i];
+      const canvas = await html2canvas(el, {
+        width: W,
+        height: H,
+        scale: 1.5,
+        backgroundColor: "#18181A",
+        useCORS: true,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      if (i > 0) pdf.addPage([W, H], "landscape");
+      pdf.addImage(imgData, "PNG", 0, 0, W, H);
+    }
+
+    pdf.save(`${startupName.replace(/\s+/g, "-")}-pitch-deck.pdf`);
+  } finally {
+    setPdfLoading(false);
   }
 }
 
@@ -1427,6 +1426,7 @@ export default function PitchDeckPage() {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [pptxLoading, setPptxLoading] = useState(false);
   const [pptxError, setPptxError] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (step !== 2) return;
@@ -1771,12 +1771,13 @@ export default function PitchDeckPage() {
           <CopyBtn text={result.three_minute_script} label={ft.copyScript} />
           <div className="flex items-center gap-2">
             <button
-              onClick={() => downloadPDF(result, deckName)}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+              onClick={() => downloadPDF(deckName, setPdfLoading)}
+              disabled={pdfLoading}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-60"
               style={{ background: "#C9A84C", color: "#06040F" }}
             >
-              <Download className="w-4 h-4" />
-              {ft.downloadPDF}
+              {pdfLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {pdfLoading ? "Capturing…" : ft.downloadPDF}
             </button>
             <div className="relative">
               <button
@@ -1832,6 +1833,19 @@ export default function PitchDeckPage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Off-screen render container for PDF capture */}
+      <div style={{ position: "fixed", left: "-99999px", top: 0, width: "1280px", pointerEvents: "none", zIndex: -1 }} aria-hidden>
+        {result.slides.map((slide, i) => (
+          <div
+            key={i}
+            data-pdf-slide={i}
+            style={{ width: "1280px", height: "720px", overflow: "hidden" }}
+          >
+            <SlideRenderer slide={slide} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
